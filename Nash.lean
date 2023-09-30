@@ -1,5 +1,6 @@
 import Mathlib.Data.Fintype.Basic
 import Mathlib.Data.Real.EReal
+import Mathlib.Data.Set.Basic
 
 
 
@@ -12,7 +13,7 @@ structure Game.{u,v} where
     S : I → Type v 
     HS : ∀ (i: I), Inhabited (S i) 
     g : I → (∀ i:I, S i) →  ℝ
-
+#align game Game 
 
 
 namespace Game
@@ -31,3 +32,8 @@ structure FinGame extends Game where
 
 
 --def Simplex (α : Type*) :=  
+open BigOperators 
+
+def Simplex.{u} (α : Type u) [Fintype α]: Type u :=
+  { f : α → ℝ // 0≤ f ∧  ∑ i: α in Finset.univ, f i =1 }
+#align simplex Simplex 
