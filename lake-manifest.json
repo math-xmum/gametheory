@@ -1,10 +1,14 @@
-{"version": 5,
+{"version": 6,
  "packagesDir": "lake-packages",
  "packages":
  [{"git":
    {"url": "https://github.com/leanprover-community/mathlib4",
     "subDir?": null,
+<<<<<<< HEAD
     "rev": "fe2c350a0d0889341aa1c741338f76a73ba03f7e",
+=======
+    "rev": "4d91cd8b97acf77e7cf9eb4c6b9f183247f89a1a",
+>>>>>>> 0d168b2dc4b00b9acc85ba5103684b3b68469d2a
     "opts": {},
     "name": "mathlib",
     "inputRev?": null,
@@ -48,4 +52,9 @@
     "opts": {},
     "name": "proofwidgets",
     "inputRev?": "v0.0.16",
+<<<<<<< HEAD
     "inherited": true}}]}
+=======
+    "inherited": true}}],
+ "name": "zerosum"}
+>>>>>>> 0d168b2dc4b00b9acc85ba5103684b3b68469d2a
