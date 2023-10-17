@@ -76,7 +76,7 @@ lemma exists_max : ∃ i: I, b i = maxb b := by
 
 noncomputable def winner : I := Classical.choose (exists_max b)
 
-lemma winner_take_max : b (winner b) = maxb b:= Classical.choose_spec (exists max b)
+lemma winner_take_max : b (winner b) = maxb b:= Classical.choose_spec (exists_max b)
 
 lemma second_nonempty :Finset.Nonempty (Finset.erase  Finset.univ (winner b) ) := by 
 {
