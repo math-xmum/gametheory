@@ -8,15 +8,10 @@ section
 
 variable  {I : Type*} [Fintype I] [Inhabited I] (H : ∃ i j : I, i≠j) (v : I→ ℝ)
 
-
-
-
-
-
-
 section
  
-variable {I : Type*} [Fintype I] [hI: Inhabited I] {hP : ∃ i j : I , i ≠ j } (b :I →  ℝ  )
+variable {I : Type*} [Fintype I] [hI: Inhabited I] {hP : ∃ i j : I , i ≠ j } 
+variable (b :I →  ℝ  )
 
 
 lemma hP': ∀ i : I , ∃ j, i ≠  j := by 
@@ -80,28 +75,32 @@ lemma winner_take_max : b (winner b) = maxb b:= Classical.choose_spec (exists_ma
 
 lemma second_nonempty :Finset.Nonempty (Finset.erase  Finset.univ (winner b) ) := by 
 {
-   sorry
+  obtain ⟨ i , hi ⟩  := @hP' I hP (winner b) 
+  use i
+  simp only [Finset.mem_univ, not_true, Finset.mem_erase, and_true]
+  rw [ne_comm]
+  exact hi
 }
+
 noncomputable def secondprice : ℝ  := Finset.sup' (Finset.erase Finset.univ (winner b))
-(second_nonempty b) b
+(@second_nonempty _ _ _ hP b) b
 
 variable (v: I → ℝ)
 
-noncomputable def utility  (i : I) : ℝ := max (v i - (secondprice b)) 0 
+noncomputable def utility  (i : I) : ℝ := max (v i - (@secondprice _ _ _ hP b)) 0 
 
 
 -- bi is the dominant bidding for i-th player
 def dominant (i : I) (bi : ℝ) : Prop :=
    ∀ b b': I → ℝ , (b i =bi) → (∀ j:I, j≠ i→ b j = b' j) 
-   →  utility b v i ≥ utility b' v i 
+   →  @utility _ _ _ hP b v i ≥ @utility _ _ _ hP b' v i 
 
 end
 
-theorem valuation_is_dominant (i : I ) : dominant v i (v i) := by {
-   sorry 
+theorem valuation_is_dominant (i : I ) : @dominant _ _ _ hP v i (v i) := by {
+   sorry
+   
 }
-
-
 
 end
 
