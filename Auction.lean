@@ -4,103 +4,98 @@ import Mathlib.Data.Fintype.Lattice
 
 open Classical
 
-section 
+structure Auction where 
+   I : Type*
+   hF : Fintype I
+   hI: Inhabited I
+   hP : ∃ i j : I , i ≠ j 
+   hP' :  ∀ i : I , ∃ j, i ≠  j
+   v : I → ℝ -- The value of each clients
 
-variable  {I : Type*} [Fintype I] [Inhabited I] (H : ∃ i j : I, i≠j) (v : I→ ℝ)
 
-section
- 
-variable {I : Type*} [Fintype I] [hI: Inhabited I] {hP : ∃ i j : I , i ≠ j } 
-variable (b :I →  ℝ  )
+namespace Auction
+
+variable {a : Auction} (b : a.I → ℝ  )
+
+instance : Fintype a.I := a.hF
+
+def maxb : ℝ  := Finset.sup' Finset.univ (⟨ a.hI.default ,  (Finset.mem_univ _)⟩ ) b
 
 
-lemma hP': ∀ i : I , ∃ j, i ≠  j := by 
+lemma exists_max : ∃ i: a.I, b i = a.maxb b := by
 {
-   obtain  ⟨ ii, jj , hh⟩  := hP
-   intro i
-   by_cases (i=ii)
-   . use jj ; rw [h] ; exact hh
-   --use jj as j
-   . use ii
-}
---这有点像if/else，case by case讨论？
-
-/-
-example (P Q : Prop ) : P ∧  Q → Q ∧ P :=  by {
-  intro H
-  exact ⟨H.2, H.1⟩ 
-} 
-
-def one : {x:ℕ // x>0} := {
-   val :=1
-   property := by norm_num
-}
-
-def one' : {x:ℕ // x>0} := ⟨ 1, by norm_num⟩ 
-
-
-#check one
--/
-
-def maxb : ℝ  := Finset.sup' Finset.univ (⟨ hI.default ,  Finset.mem_univ _⟩ ) b
-/-
-Given nonempty finset s then s.sup' H f is the supremum of its image under b in
--/
-
-/-后面跟个b是什么作用
-b: I → ℝ
--/
-
-/- Finset.univ is the universal finite set of type Finset α implied from the assumption Fintype α.
-全集
-
--/
-
-
-
---⟨ ⟩ 什么时候用
-
-lemma exists_max : ∃ i: I, b i = maxb b := by
-{
-   obtain ⟨  i , _ ,h2⟩ := Finset.exists_mem_eq_sup' (⟨ hI.default, Finset.mem_univ _⟩ ) b
+   obtain ⟨  i , _ ,h2⟩ := Finset.exists_mem_eq_sup' (⟨ a.hI.default, (Finset.mem_univ _)⟩ ) b
    exact ⟨ i, symm h2⟩
 }
---theorem Finset.exists_mem_eq_sup'{α : Type u_2} {ι : Type u_5} [LinearOrder α] {s : Finset ι} (H : Finset.Nonempty s) (f : ι → α) :
---   ∃ i, i ∈ s ∧ Finset.sup' s H f = f i
 
 
-noncomputable def winner : I := Classical.choose (exists_max b)
+noncomputable def winner : a.I := Classical.choose (exists_max b)
 
 lemma winner_take_max : b (winner b) = maxb b:= Classical.choose_spec (exists_max b)
 
-lemma second_nonempty :Finset.Nonempty (Finset.erase  Finset.univ (winner b) ) := by 
+lemma delete_i_nonempty (i:a.I) :Finset.Nonempty (Finset.erase  Finset.univ i ) := by 
 {
-  obtain ⟨ i , hi ⟩  := @hP' I hP (winner b) 
+  obtain ⟨ i , hi ⟩  := a.hP' i 
   use i
   simp only [Finset.mem_univ, not_true, Finset.mem_erase, and_true]
   rw [ne_comm]
   exact hi
 }
 
-noncomputable def secondprice : ℝ  := Finset.sup' (Finset.erase Finset.univ (winner b))
-(@second_nonempty _ _ _ hP b) b
+noncomputable def B (i: a.I) : ℝ  := Finset.sup' (Finset.erase Finset.univ i) (delete_i_nonempty i) b
+ 
 
-variable (v: I → ℝ)
-
-noncomputable def utility  (i : I) : ℝ := max (v i - (@secondprice _ _ _ hP b)) 0 
+noncomputable def secondprice : ℝ  := B b (winner b)
 
 
--- bi is the dominant bidding for i-th player
-def dominant (i : I) (bi : ℝ) : Prop :=
-   ∀ b b': I → ℝ , (b i =bi) → (∀ j:I, j≠ i→ b j = b' j) 
-   →  @utility _ _ _ hP b v i ≥ @utility _ _ _ hP b' v i 
+noncomputable def utility  (i : a.I) : ℝ := if i = winner b then a.v i - secondprice b else 0 
 
-end
+lemma utility_winner (H: i = winner b) : utility b i = a.v i - secondprice b 
+:= by rw [utility]; simp only [ite_true, H]
 
-theorem valuation_is_dominant (i : I ) : @dominant _ _ _ hP v i (v i) := by {
-   sorry
-   
+lemma utility_loser (i: a.I) (H : i≠ winner b) : utility b i = 0 
+:= by rw [utility]; simp only [ite_false, H]
+
+def dominant (i : a.I) (bi : ℝ) : Prop :=
+   ∀ b b': a.I → ℝ , (b i = bi) → (∀ j: a.I, j≠ i→ b j = b' j) 
+   →  utility  b i ≥ utility b' i 
+
+
+lemma gt_wins (i : a.I) (H: ∀ j , i ≠j →  b i > b j) : i = winner b 
+:= by sorry
+
+lemma b_winner' (H: i = winner b) : b i ≥ B b i := by sorry
+
+lemma b_winner (H: i = winner b) : b i ≥ secondprice b := by sorry
+
+lemma b_loser' (H: i ≠  winner b) : b i ≤ B b i := by sorry
+
+lemma b_loser (H: i ≠  winner b) : b i ≤ secondprice b := by sorry
+
+lemma utility_pos (i: a.I) : (b i = a.v i) → utility b i≥0   := by sorry
+
+theorem valuation_is_dominant (i : a.I ) : dominant i (a.v i) := by {
+   intro b b' hb hb'
+   by_cases H : i = winner b' 
+   . { 
+      by_cases H2 : a.v i >  B b' i
+      . { 
+         -- Show that i is also the winner for bidding b
+         -- Show that secondprice b  = secondprice b'
+         -- Show that utility b i = utility b' i
+         sorry
+      }
+      . {
+         -- Show that 0 ≥  utility b' i  
+         -- Combine with utility b i ≥ 0 finish the proof
+         sorry
+      }
+   } 
+   . {
+      have u' := utility_loser b' i  H 
+      simp only [u',utility_pos b i hb]
+   }
 }
 
-end
 
+end Auction
