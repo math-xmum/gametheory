@@ -64,6 +64,8 @@ def dominant (i : a.I) (bi : ℝ) : Prop :=
 lemma gt_wins (i : a.I) (H: ∀ j , i ≠j →  b i > b j) : i = winner b 
 := by sorry
 
+lemma b_winner_max (H: i = winner b) : ∀ j: a.I, b i ≥ b j := by sorry
+
 lemma b_winner' (H: i = winner b) : b i ≥ B b i := by sorry
 
 lemma b_winner (H: i = winner b) : b i ≥ secondprice b := by sorry
