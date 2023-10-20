@@ -1,29 +1,15 @@
 import Mathlib.Data.Real.EReal 
 import Mathlib.Probability.ProbabilityMassFunction.Integrals
+import Mathlib.Probability.ProbabilityMassFunction.Monad 
 
-
-section 
-
-variable {I J : Type*} (g : I → J → ℝ) 
-
---def gg : I -> J -> EReal := fun i => fun j => ( (g i j):EReal )
-
-
-
-
-
-
+open Classical
 
 /-
 We use Probability mass function to denote a mixed stratage
 -/
 
 
-
-end
-
 variable (I J : Type*)
-
 
 @[ext]
 structure zerosumGame where
@@ -82,12 +68,33 @@ end zerosumGame
 
 
 
+section
+variable {I : Type*}
 
+lemma sum_pure {f: I→ℝ} {a:I}: ∑' i: I, ((PMF.pure a i).toReal * f i) = f a := by {
+  have Hsummand : (fun i => (PMF.pure a i).toReal * f i) 
+              = fun i:I  => (if i = a then f a else 0) := by {
+                ext i
+                simp only [PMF.pure_apply]
+                by_cases hh: i = a
+                . simp only [hh,ite_true, ENNReal.one_toReal, one_mul]
+                . simp only [hh, ite_false, ENNReal.zero_toReal, zero_mul]
+              } 
+  rw [Hsummand]
+  exact tsum_ite_eq a (f a)  
+} 
+
+end
 
 section zerosumFGame  
 
 variable {I J : Type*}
 variable (A : zerosumGame I J) 
+
+
+
+lemma simplex_ge_iff_vertex_ge {I : Type*} [Inhabited I] [Fintype I] {f : I → ℝ } {v : ℝ} : 
+ ∀ x : PMF I,   ∑' i : I, (x i).toReal * f i ≥ v ↔ ∀ i : I, f i ≥ v := by sorry   
 
 
 theorem Loomis (B : I →J → ℝ   ) (PB : ∀ i:I, ∀ j:J,  B i j > 0 )  : 
