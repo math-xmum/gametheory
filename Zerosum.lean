@@ -125,6 +125,35 @@ def sumyC (i:I) (y : PMF J) (C : I →J → ℝ ) := Finset.sum  (@Finset.univ _
 
 
 
+lemma sum_pure [Fintype I] {f: I→ℝ} {a:I} : 
+  Finset.sum Finset.univ (fun i => (PMF.pure a i).toReal * f i) = f a :=
+  by {
+    have : f a= (PMF.pure a a).toReal * f a := by simp only [PMF.pure_apply, ite_true, ENNReal.one_toReal, one_mul]
+    rw [this]
+    apply Finset.sum_eq_single --_ I _ Finset.univ _ a (sorry) (sorry) 
+    intro h1 _ h3; simp only [PMF.pure_apply, h3, ite_false, ENNReal.zero_toReal, zero_mul]
+    intro h1; exfalso; simp only [Finset.mem_univ, not_true] at h1  
+  }
+
+
+lemma simplex_ge_iff_vertex_ge [Fintype I] {f : I → ℝ } {v : ℝ} : 
+   (∀ x : PMF I,   Finset.sum Finset.univ (fun i : I => (x i).toReal * f i)≥ v) 
+    ↔ (∀ i : I, f i ≥ v):= by {
+  constructor 
+  . {
+    intro H i
+    have := H (PMF.pure i)
+    rw [sum_pure] at this
+    exact this
+  } 
+  . {
+    intro H x
+    sorry
+  }
+ } 
+
+
+
 theorem Loomis (B : I →J → ℝ   ) (PB : ∀ i:I, ∀ j:J,  B i j > 0 )  : 
   ∃ (xx : PMF I) (yy : PMF J) (v : ℝ),  
     (∀ j , A.sumxC j xx A ≥  v * A.sumxC j xx B) ∧
