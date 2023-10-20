@@ -67,9 +67,6 @@ def guarantees1 (w : ℝ) := ∃ i: I, ∀ j : J , (A i j) ≥ w
 def guarantees2 (w : ℝ) := ∃ j: J, ∀ i : I , (A i j) ≤ w 
 
 
--- expactation of the payoff of a mixed stratage
-noncomputable def E (x : PMF I) (y : PMF J) : ℝ := ∑' (i : I ),  ∑' (j : J), ((x i).toReal : ℝ) * (A i j) * ((y j).toReal : ℝ) 
-
 end zerosumGame
 
 
@@ -152,6 +149,11 @@ lemma simplex_ge_iff_vertex_ge [Fintype I] {f : I → ℝ } {v : ℝ} :
   }
  } 
 
+-- expactation of the payoff of a mixed stratage
+noncomputable def E (x : PMF I) (y : PMF J) : ℝ := Finset.sum (@Finset.univ _ A.FI) 
+( fun (i : I ) => Finset.sum (@Finset.univ _ A.FJ) (fun (j : J) => ((x i).toReal : ℝ) * (A i j) * ((y j).toReal : ℝ) ))
+
+-- One may need Finset.sum_comm'
 
 
 theorem Loomis (B : I →J → ℝ   ) (PB : ∀ i:I, ∀ j:J,  B i j > 0 )  : 
