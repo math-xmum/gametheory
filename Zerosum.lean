@@ -90,7 +90,10 @@ variable {I J : Type*}
 variable (A : zerosumGame I J) 
 
 
-
+theorem Loomis (B : I →J → ℝ   ) (PB : ∀ i:I, ∀ j:J,  B i j > 0 )  : 
+  ∃ (xx : PMF I) (yy : PMF J) (v : ℝ),  
+    (∀ j , ∑ᶠ i:I, (xx i).toReal * A i j ≥  v * ∑ᶠ i:I, (xx i).toReal * B i j ) ∧
+    (∀ i ,  ∑ᶠ j:J, (yy j).toReal * A i j ≤  v * ∑ᶠ j:J, (yy j).toReal * B i j ) := by sorry  
 
 theorem minmax_theorem : ∃ (xx : PMF I) (yy : PMF J) (v : ℝ), ∀ (x : PMF I) (y : PMF J) , A.E xx y ≥ v ∧ A.E x yy ≤ v  := by sorry   
 
