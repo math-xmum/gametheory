@@ -20,15 +20,21 @@ structure zerosumGame where
 instance : CoeFun (zerosumGame I J) (fun _ => I →  J → ℝ ) where  
   coe := zerosumGame.g
 
-attribute [coe] zerosumGame.g 
+attribute [coe] zerosumGame.g  
 
 
 --finite game
 structure zerosumFGame extends zerosumGame I J where
   FI : Fintype I 
   FJ : Fintype J 
-  
 
+
+
+def zerosumFGame.toFun (A : zerosumFGame I J) := A.g 
+instance : CoeFun (zerosumFGame I J) (fun _ => I →  J → ℝ ) where  
+  coe := zerosumFGame.toFun I J 
+
+attribute [coe] zerosumFGame.toFun   
 
 namespace zerosumGame 
 variable {I J : Type*}
@@ -67,7 +73,7 @@ noncomputable def E (x : PMF I) (y : PMF J) : ℝ := ∑' (i : I ),  ∑' (j : J
 end zerosumGame
 
 
-
+/-
 section
 variable {I : Type*}
 
@@ -84,23 +90,45 @@ lemma sum_pure {f: I→ℝ} {a:I}: ∑' i: I, ((PMF.pure a i).toReal * f i) = f 
   exact tsum_ite_eq a (f a)  
 } 
 
-end
 
-section zerosumFGame  
+lemma simplex_ge_iff_vertex_ge {f : I → ℝ } {v : ℝ} : 
+ (∀ x : PMF I,   ∑' i : I, (x i).toReal * f i ≥ v) ↔ (∀ i : I, f i ≥ v):= by {
+  constructor 
+  . {
+    intro H i
+    have := H (PMF.pure i)
+    rw [sum_pure] at this
+    exact this
+  } 
+  . {
+    intro H x
+
+  }
+ } 
+
+end
+-/
+
+
+namespace zerosumFGame  
 
 variable {I J : Type*}
-variable (A : zerosumGame I J) 
+variable (A : zerosumFGame I J) 
+
+instance : Fintype I := A.FI
+instance : Fintype J := A.FJ
 
 
+def sumxC (j:J) (x : PMF I) (C : I →J → ℝ ) := Finset.sum  (@Finset.univ _ A.FI) (fun i : I=> (x i).toReal *( C i j))
 
-lemma simplex_ge_iff_vertex_ge {I : Type*} [Inhabited I] [Fintype I] {f : I → ℝ } {v : ℝ} : 
- ∀ x : PMF I,   ∑' i : I, (x i).toReal * f i ≥ v ↔ ∀ i : I, f i ≥ v := by sorry   
+def sumyC (i:I) (y : PMF J) (C : I →J → ℝ ) := Finset.sum  (@Finset.univ _ A.FJ) (fun j : J=> (y j).toReal *( C i j))
+
 
 
 theorem Loomis (B : I →J → ℝ   ) (PB : ∀ i:I, ∀ j:J,  B i j > 0 )  : 
   ∃ (xx : PMF I) (yy : PMF J) (v : ℝ),  
-    (∀ j , ∑ᶠ i:I, (xx i).toReal * A i j ≥  v * ∑ᶠ i:I, (xx i).toReal * B i j ) ∧
-    (∀ i ,  ∑ᶠ j:J, (yy j).toReal * A i j ≤  v * ∑ᶠ j:J, (yy j).toReal * B i j ) := by sorry  
+    (∀ j , A.sumxC j xx A ≥  v * A.sumxC j xx B) ∧
+    (∀ i ,  A.sumyC i yy A≤  v * A.sumyC i yy B ) := by sorry  
 
 theorem minmax_theorem : ∃ (xx : PMF I) (yy : PMF J) (v : ℝ), ∀ (x : PMF I) (y : PMF J) , A.E xx y ≥ v ∧ A.E x yy ≤ v  := by sorry   
 
