@@ -118,10 +118,11 @@ instance coe_fun : CoeFun (S α) fun _ => α → NNReal :=
   ⟨fun x => (x.val : α → NNReal)⟩ 
 
 @[simp]
-noncomputable def pure (i : α) : α → NNReal  := fun j => if i=j then 1 else 0 
+noncomputable def pure (i : α) : S α  := ⟨ fun j => if i=j then 1 else 0,
+ by {simp only [Finset.sum_ite_eq, Finset.mem_univ, ite_true]}⟩ 
 
-#export pure
-end
+
+end S
 
 namespace zerosumFGame  
 
@@ -155,12 +156,12 @@ lemma sum_pure [Fintype I] {f: I→ℝ} {a:I} :
 
 
 lemma simplex_ge_iff_vertex_ge [Fintype I] {f : I → ℝ } {v : ℝ} : 
-   (∀ x : PMF I,   Finset.sum Finset.univ (fun i : I => (x i).toReal * f i)≥ v) 
+   (∀ x : S I,   Finset.sum Finset.univ (fun i : I => (x i).toReal * f i)≥ v) 
     ↔ (∀ i : I, f i ≥ v):= by {
   constructor 
   . {
     intro H i
-    have := H (PMF.pure i)
+    have := H (pure I i)
     rw [sum_pure] at this
     exact this
   } 
@@ -176,7 +177,7 @@ lemma simplex_ge_iff_vertex_ge [Fintype I] {f : I → ℝ } {v : ℝ} :
         intro i
         simp only [Finset.mem_univ, gt_iff_lt, forall_true_left]
         rw [<-sub_nonneg,<-mul_sub]
-        exact mul_nonneg (ENNReal.toReal_nonneg) (sub_nonneg.2 (H i))
+        exact mul_nonneg (NNReal.zero_le_coe) (sub_nonneg.2 (H i))
       })
   }
  } 
@@ -184,8 +185,8 @@ lemma simplex_ge_iff_vertex_ge [Fintype I] {f : I → ℝ } {v : ℝ} :
 
 
 -- expactation of the payoff of a mixed stratage
-noncomputable def E (x : PMF I) (y : PMF J) : ℝ := Finset.sum (@Finset.univ _ A.FI) 
-( fun (i : I ) => Finset.sum (@Finset.univ _ A.FJ) (fun (j : J) => ((x i).toReal : ℝ) * (A i j) * ((y j).toReal : ℝ) ))
+noncomputable def E (x : S I) (y : S J) : ℝ := Finset.sum Finset.univ  
+( fun (i : I ) => Finset.sum Finset.univ  (fun (j : J) => (x i) * (A i j) * (y j)))
 
 -- One may need Finset.sum_comm' Finset.sum_mul
 
