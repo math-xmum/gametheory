@@ -182,7 +182,7 @@ theorem Loomis' (Hgt : 2 ≤ n) (Hn: n=Fintype.card I + Fintype.card J) (A : I �
   ∃ (v : ℝ),  
     (∃  (xx : S I) , ∀ j , wsum xx (fun i => A i j) ≥  v * wsum xx (fun i=> B i j)) ∧
     (∃ (yy : S J), ∀ i ,  wsum yy (A i) ≤  v * wsum yy (B i)) := by {
-      induction n, Hgt using Nat.le_induction
+      induction n, Hgt using Nat.le_induction 
       . {
         have HSI : Fintype.card I =1 := by {
           have p1 := @Fintype.card_pos I _ _
@@ -234,7 +234,7 @@ theorem Loomis (A : I →J→ ℝ) (B : I→ J→ ℝ) (PB : ∀ i:I, ∀ j:J,  
   ∧ (∃ (yy : S J), ∀ i ,  wsum yy (A i) ≤  v * wsum yy (B i)) 
  := by { 
       let n := Fintype.card I + Fintype.card J
-      exact @Loomis' n I J _ _ ( by 
+      exact @Loomis' n I J _ _ _ _ ( by 
          {
           have p1 := @Fintype.card_pos I _ _
           have p2 := @Fintype.card_pos J _ _
