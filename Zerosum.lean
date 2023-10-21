@@ -2,13 +2,11 @@ import Mathlib.Data.Real.EReal
 import Mathlib.Data.Real.NNReal 
 import Mathlib.Data.Fintype.Basic
 import Mathlib.Algebra.BigOperators.Basic
---import Mathlib.Probability.ProbabilityMassFunction.Integrals
---import Mathlib.Probability.ProbabilityMassFunction.Monad 
 
 open Classical
 
 /-
-We use Probability mass function to denote a mixed stratage
+We use S to denote a mixed stratage
 -/
 
 
@@ -25,19 +23,6 @@ instance : CoeFun (zerosumGame I J) (fun _ => I →  J → ℝ ) where
 
 attribute [coe] zerosumGame.g  
 
-
---finite game
-structure zerosumFGame extends zerosumGame I J where
-  FI : Fintype I 
-  FJ : Fintype J 
-
-
-
-def zerosumFGame.toFun (A : zerosumFGame I J) := A.g 
-instance : CoeFun (zerosumFGame I J) (fun _ => I →  J → ℝ ) where  
-  coe := zerosumFGame.toFun I J 
-
-attribute [coe] zerosumFGame.toFun   
 
 namespace zerosumGame 
 variable {I J : Type*}
@@ -71,43 +56,6 @@ def guarantees2 (w : ℝ) := ∃ j: J, ∀ i : I , (A i j) ≤ w
 
 
 end zerosumGame
-
-
-/-
-sectionm
-variable {I : Type*}
-
-lemma sum_pure {f: I→ℝ} {a:I}: ∑' i: I, ((PMF.pure a i).toReal * f i) = f a := by {
-  have Hsummand : (fun i => (PMF.pure a i).toReal * f i) 
-              = fun i:I  => (if i = a then f a else 0) := by {
-                ext i
-                simp only [PMF.pure_apply]
-                by_cases hh: i = a
-                . simp only [hh,ite_true, ENNReal.one_toReal, one_mul]
-                . simp only [hh, ite_false, ENNReal.zero_toReal, zero_mul]
-              } 
-  rw [Hsummand]
-  exact tsum_ite_eq a (f a)  
-} 
-
-
-lemma simplex_ge_iff_vertex_ge {f : I → ℝ } {v : ℝ} : 
- (∀ x : PMF I,   ∑' i : I, (x i).toReal * f i ≥ v) ↔ (∀ i : I, f i ≥ v):= by {
-  constructor 
-  . {
-    intro H i
-    have := H (PMF.pure i)
-    rw [sum_pure] at this
-    exact this
-  } 
-  . {
-    intro H x
-
-  }
- } 
-
-end
--/
 
 section S 
 variable (α : Type*) [Fintype α] 
