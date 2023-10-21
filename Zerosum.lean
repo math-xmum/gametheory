@@ -176,6 +176,7 @@ lemma E_eq1 {x : PMF I} {y : PMF J} : Finset.sum (@Finset.univ _ A.FI)
 }
 -/
 
+-- invoke exterem value theorem is_compact.exists_forall_le
 
 
 theorem Loomis (B : I →J → ℝ   ) (PB : ∀ i:I, ∀ j:J,  B i j > 0 )  : 
