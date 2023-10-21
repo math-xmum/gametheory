@@ -159,9 +159,21 @@ noncomputable def E (x : PMF I) (y : PMF J) : ℝ := Finset.sum (@Finset.univ _ 
 theorem Loomis (B : I →J → ℝ   ) (PB : ∀ i:I, ∀ j:J,  B i j > 0 )  : 
   ∃ (xx : PMF I) (yy : PMF J) (v : ℝ),  
     (∀ j , A.sumxC j xx A ≥  v * A.sumxC j xx B) ∧
-    (∀ i ,  A.sumyC i yy A≤  v * A.sumyC i yy B ) := by sorry  
+    (∀ i ,  A.sumyC i yy A ≤  v * A.sumyC i yy B ) := by sorry  
 
-theorem minmax_theorem : ∃ (xx : PMF I) (yy : PMF J) (v : ℝ), ∀ (x : PMF I) (y : PMF J) , A.E xx y ≥ v ∧ A.E x yy ≤ v  := by sorry   
+
+
+theorem minmax_theorem : ∃ (xx : PMF I) (yy : PMF J) (v : ℝ), (∀ (x : PMF I) , A.E xx y ≥ v ) ∧ (∀ (y : PMF J), A.E x yy ≤ v)  := by {  
+  let B : I → J → ℝ  := fun i => fun j => 1 
+  obtain ⟨xx, yy, v, H1, H2⟩ := Loomis A B (by {intro i j; simp only [gt_iff_lt, zero_lt_one]})
+  use xx,  yy, v
+  constructor 
+  . {
+    sorry  -- rw [simplex_ge_iff_vertex_ge]
+  }
+  . {sorry} 
+
+} 
 
 
 
