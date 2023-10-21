@@ -1,6 +1,9 @@
 import Mathlib.Data.Real.EReal 
-import Mathlib.Probability.ProbabilityMassFunction.Integrals
-import Mathlib.Probability.ProbabilityMassFunction.Monad 
+import Mathlib.Data.Real.NNReal 
+import Mathlib.Data.Fintype.Basic
+import Mathlib.Algebra.BigOperators.Basic
+--import Mathlib.Probability.ProbabilityMassFunction.Integrals
+--import Mathlib.Probability.ProbabilityMassFunction.Monad 
 
 open Classical
 
@@ -71,7 +74,7 @@ end zerosumGame
 
 
 /-
-section
+sectionm
 variable {I : Type*}
 
 lemma sum_pure {f: I→ℝ} {a:I}: ∑' i: I, ((PMF.pure a i).toReal * f i) = f a := by {
@@ -106,30 +109,48 @@ lemma simplex_ge_iff_vertex_ge {f : I → ℝ } {v : ℝ} :
 end
 -/
 
+section S 
+variable (α : Type*) [Fintype α] 
+
+def S := { x : α→ NNReal // Finset.sum Finset.univ x = 1}  
+
+instance coe_fun : CoeFun (S α) fun _ => α → NNReal :=
+  ⟨fun x => (x.val : α → NNReal)⟩ 
+
+@[simp]
+noncomputable def pure (i : α) : α → NNReal  := fun j => if i=j then 1 else 0 
+
+#export pure
+end
 
 namespace zerosumFGame  
 
-variable {I J : Type*}
-variable (A : zerosumFGame I J) 
-
-instance : Fintype I := A.FI
-instance : Fintype J := A.FJ
+variable {I J : Type*}  [Inhabited I] [Inhabited J] [Fintype I] [Fintype J]
+variable (A : I → J → ℝ ) 
 
 
-def sumxC (j:J) (x : PMF I) (C : I →J → ℝ ) := Finset.sum  (@Finset.univ _ A.FI) (fun i : I=> (x i).toReal *( C i j))
 
-def sumyC (i:I) (y : PMF J) (C : I →J → ℝ ) := Finset.sum  (@Finset.univ _ A.FJ) (fun j : J=> (y j).toReal *( C i j))
+def sumxC (j:J) (x : S I) (C : I →J → ℝ ) := Finset.sum Finset.univ (fun i : I => (x i) *( C i j))
+
+def sumyC (i:I) (y : S J) (C : I →J → ℝ ) := Finset.sum  Finset.univ (fun j : J=> (y j) * ( C i j))
 
 
 
 lemma sum_pure [Fintype I] {f: I→ℝ} {a:I} : 
-  Finset.sum Finset.univ (fun i => (PMF.pure a i).toReal * f i) = f a :=
+  Finset.sum Finset.univ (fun i => (pure I a i) * f i) = f a :=
   by {
-    have : f a= (PMF.pure a a).toReal * f a := by simp only [PMF.pure_apply, ite_true, ENNReal.one_toReal, one_mul]
+    have : f a= (pure I a a).toReal * f a := by simp [_root_.pure,ite_true, ENNReal.one_toReal, one_mul]
     rw [this]
     apply Finset.sum_eq_single --_ I _ Finset.univ _ a (sorry) (sorry) 
-    intro h1 _ h3; simp only [PMF.pure_apply, h3, ite_false, ENNReal.zero_toReal, zero_mul]
-    intro h1; exfalso; simp only [Finset.mem_univ, not_true] at h1  
+    . {
+      intro b _ h3
+      simp only [_root_.pure, mul_eq_zero, NNReal.coe_eq_zero, ite_eq_right_iff, one_ne_zero]
+      exact Or.inl (fun x => h3 (symm x))   
+    }
+    . {
+    intro h1
+    exfalso; simp only [Finset.mem_univ, not_true] at h1  
+    }
   }
 
 
@@ -159,6 +180,8 @@ lemma simplex_ge_iff_vertex_ge [Fintype I] {f : I → ℝ } {v : ℝ} :
       })
   }
  } 
+
+
 
 -- expactation of the payoff of a mixed stratage
 noncomputable def E (x : PMF I) (y : PMF J) : ℝ := Finset.sum (@Finset.univ _ A.FI) 
