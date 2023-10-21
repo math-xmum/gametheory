@@ -145,7 +145,18 @@ lemma simplex_ge_iff_vertex_ge [Fintype I] {f : I → ℝ } {v : ℝ} :
   } 
   . {
     intro H x
-    sorry
+    simp only [ge_iff_le]
+    calc 
+      v = Finset.sum Finset.univ (fun i : I => (x i).toReal * v) := by {
+        sorry
+      } 
+      _ ≤ Finset.sum Finset.univ (fun i : I => (x i).toReal * f i) :=
+      Finset.sum_le_sum (by {
+        intro i
+        simp only [Finset.mem_univ, gt_iff_lt, forall_true_left]
+        rw [<-sub_nonneg,<-mul_sub]
+        exact mul_nonneg (ENNReal.toReal_nonneg) (sub_nonneg.2 (H i))
+      })
   }
  } 
 
@@ -153,25 +164,41 @@ lemma simplex_ge_iff_vertex_ge [Fintype I] {f : I → ℝ } {v : ℝ} :
 noncomputable def E (x : PMF I) (y : PMF J) : ℝ := Finset.sum (@Finset.univ _ A.FI) 
 ( fun (i : I ) => Finset.sum (@Finset.univ _ A.FJ) (fun (j : J) => ((x i).toReal : ℝ) * (A i j) * ((y j).toReal : ℝ) ))
 
--- One may need Finset.sum_comm'
+-- One may need Finset.sum_comm' Finset.sum_mul
+
+-- lemma E_eq1 
+
+/-
+lemma E_eq1 {x : PMF I} {y : PMF J} : Finset.sum (@Finset.univ _ A.FI) 
+( fun (i : I ) => Finset.sum (@Finset.univ _ A.FJ) (fun (j : J) => (x i).toReal * (A i j) * ((y j).toReal) )) = Finset.sum (@Finset.univ _ A.FI) 
+( fun (i : I ) =>(x i).toReal * Finset.sum (@Finset.univ _ A.FJ) (fun (j : J) => (A i j) * ((y j).toReal) )) := by { 
+  sorry
+}
+-/
+
 
 
 theorem Loomis (B : I →J → ℝ   ) (PB : ∀ i:I, ∀ j:J,  B i j > 0 )  : 
   ∃ (xx : PMF I) (yy : PMF J) (v : ℝ),  
     (∀ j , A.sumxC j xx A ≥  v * A.sumxC j xx B) ∧
-    (∀ i ,  A.sumyC i yy A ≤  v * A.sumyC i yy B ) := by sorry  
+    (∀ i ,  A.sumyC i yy A ≤  v * A.sumyC i yy B) := by sorry  
 
 
 
-theorem minmax_theorem : ∃ (xx : PMF I) (yy : PMF J) (v : ℝ), (∀ (x : PMF I) , A.E xx y ≥ v ) ∧ (∀ (y : PMF J), A.E x yy ≤ v)  := by {  
+theorem minmax_theorem : ∃ (xx : PMF I) (yy : PMF J) (v : ℝ), (∀ (y : PMF J), A.E xx y ≥ v ) ∧ (∀ (x : PMF I), A.E x yy ≤ v)  := by {  
   let B : I → J → ℝ  := fun i => fun j => 1 
   obtain ⟨xx, yy, v, H1, H2⟩ := Loomis A B (by {intro i j; simp only [gt_iff_lt, zero_lt_one]})
   use xx,  yy, v
   constructor 
   . {
-    sorry  -- rw [simplex_ge_iff_vertex_ge]
+    -- rw [E_eq1]
+    -- rw [simplex_ge_iff_vertex_ge]
+    sorry  
   }
-  . {sorry} 
+  . {
+    --rw [E_eq1]
+
+  } 
 
 } 
 
