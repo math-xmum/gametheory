@@ -204,13 +204,13 @@ lemma E_eq1 {x : PMF I} {y : PMF J} : Finset.sum (@Finset.univ _ A.FI)
 
 
 theorem Loomis (B : I →J → ℝ   ) (PB : ∀ i:I, ∀ j:J,  B i j > 0 )  : 
-  ∃ (xx : PMF I) (yy : PMF J) (v : ℝ),  
-    (∀ j , A.sumxC j xx A ≥  v * A.sumxC j xx B) ∧
-    (∀ i ,  A.sumyC i yy A ≤  v * A.sumyC i yy B) := by sorry  
+  ∃ (xx : S I) (yy : S J) (v : ℝ),  
+    (∀ j , sumxC j xx A ≥  v * sumxC j xx B) ∧
+    (∀ i ,  sumyC i yy A ≤  v * sumyC i yy B) := by sorry  
 
 
 
-theorem minmax_theorem : ∃ (xx : PMF I) (yy : PMF J) (v : ℝ), (∀ (y : PMF J), A.E xx y ≥ v ) ∧ (∀ (x : PMF I), A.E x yy ≤ v)  := by {  
+theorem minmax_theorem : ∃ (xx : S I) (yy : S J) (v : ℝ), (∀ (y : S J), E A xx y ≥ v ) ∧ (∀ (x : S I), E A x yy ≤ v)  := by {  
   let B : I → J → ℝ  := fun i => fun j => 1 
   obtain ⟨xx, yy, v, H1, H2⟩ := Loomis A B (by {intro i j; simp only [gt_iff_lt, zero_lt_one]})
   use xx,  yy, v
@@ -222,7 +222,7 @@ theorem minmax_theorem : ∃ (xx : PMF I) (yy : PMF J) (v : ℝ), (∀ (y : PMF 
   }
   . {
     --rw [E_eq1]
-
+  sorry
   } 
 
 } 
