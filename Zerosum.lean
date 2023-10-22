@@ -158,6 +158,7 @@ lemma E_eq1 {x : PMF I} {y : PMF J} : Finset.sum (@Finset.univ _ A.FI)
 end zerosumFGame
 
 section Loomis
+
 variable (n : ℕ) {I J: Type*} [Inhabited I] [Inhabited J] [Fintype I] [Fintype J] 
 
 lemma nonempty (α : Type*) [Inhabited α] [Fintype α ]: Finset.Nonempty (@Finset.univ α  _)  := by {
@@ -182,7 +183,7 @@ theorem Loomis' (Hgt : 2 ≤ n) (Hn: n=Fintype.card I + Fintype.card J) (A : I �
   ∃ (v : ℝ),  
     (∃  (xx : S I) , ∀ j , wsum xx (fun i => A i j) ≥  v * wsum xx (fun i=> B i j)) ∧
     (∃ (yy : S J), ∀ i ,  wsum yy (A i) ≤  v * wsum yy (B i)) := by {
-      induction n, Hgt using Nat.le_induction 
+      induction' n, Hgt using Nat.le_induction with n hn IH generalizing I J  A B
       . {
         have HSI : Fintype.card I =1 := by {
           have p1 := @Fintype.card_pos I _ _
@@ -224,7 +225,10 @@ theorem Loomis' (Hgt : 2 ≤ n) (Hn: n=Fintype.card I + Fintype.card J) (A : I �
             sorry
         }
       }
-      . {sorry}
+      . {
+
+        sorry
+      } 
     } 
 
 
