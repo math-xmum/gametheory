@@ -167,7 +167,7 @@ lemma nonempty (α : Type*) [Inhabited α] [Fintype α ]: Finset.Nonempty (@Fins
 }
 
 
-noncomputable def lam.aux (A B : I →J → ℝ )(x : S I) (j : J) :=  wsum x (fun i => A i j ) / wsum x (fun i => B i j) 
+noncomputable def lam.aux (A B : I →J → ℝ ) (x : S I) (j : J) :=  wsum x (fun i => A i j ) / wsum x (fun i => B i j) 
 noncomputable def lam.aux' (A B : I →J → ℝ ) (x : S I) :=  Finset.sup' Finset.univ (nonempty J) (lam.aux A B x)  
 
 noncomputable def lam0 (A B : I →J → ℝ ):=  iInf (lam.aux' A B)  
@@ -178,13 +178,21 @@ noncomputable def mu.aux' (A B : I →J → ℝ ) (y : S J) :=  Finset.inf' Fins
 
 noncomputable def mu0 (A B : I →J → ℝ ):=  iSup (mu.aux' A B)  
 
+lemma exits_xx_lam0 (A B : I →J → ℝ ) (PB : ∀ i:I, ∀ j:J,  B i j > 0 ) : ∃ (xx : S I), ∀ j, (wsum xx (fun i => A i j)) / (wsum xx (fun i => B i j))≥  lam0 A B  := by sorry 
+
+lemma exits_yy_mu0 (A B : I →J → ℝ ) (PB : ∀ i:I, ∀ j:J,  B i j > 0 ) : ∃ (y : S J), ∀ i, (wsum yy (A i)) / (wsum yy (B i))≤  mu0 A B  := by sorry 
+
+
+lemma lam0_le_mu0 (A B : I →J → ℝ ) (PB : ∀ i:I, ∀ j:J,  B i j > 0 ) : 
+  lam0 A B ≤ mu0 A B := by sorry 
+
 
 theorem Loomis' (Hgt : 2 ≤ n) (Hn: n=Fintype.card I + Fintype.card J) (A : I →J→ ℝ) (B : I→ J→ ℝ) (PB : ∀ i:I, ∀ j:J,  B i j > 0 ): 
   ∃ (v : ℝ),  
     (∃  (xx : S I) , ∀ j , wsum xx (fun i => A i j) ≥  v * wsum xx (fun i=> B i j)) ∧
     (∃ (yy : S J), ∀ i ,  wsum yy (A i) ≤  v * wsum yy (B i)) := by {
       induction' n, Hgt using Nat.le_induction with n hn IH generalizing I J  A B
-      . {
+      . { 
         have HSI : Fintype.card I =1 := by {
           have p1 := @Fintype.card_pos I _ _
           have p2 := @Fintype.card_pos J _ _
@@ -226,7 +234,7 @@ theorem Loomis' (Hgt : 2 ≤ n) (Hn: n=Fintype.card I + Fintype.card J) (A : I �
         }
       }
       . {
-
+        
         sorry
       } 
     } 
@@ -252,7 +260,7 @@ end Loomis
 
 
 
-
+/-
 
 section minmax
 theorem minmax_theorem : ∃ (xx : S I) (yy : S J) (v : ℝ), (∀ (y : S J), E A xx y ≥ v ) ∧ (∀ (x : S I), E A x yy ≤ v)  := by {  
@@ -272,5 +280,6 @@ theorem minmax_theorem : ∃ (xx : S I) (yy : S J) (v : ℝ), (∀ (y : S J), E 
 
 } 
 
-
 end minmax
+
+-/
