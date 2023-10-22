@@ -245,7 +245,25 @@ theorem Loomis' (Hgt : 2 ≤ n) (Hn: n=Fintype.card I + Fintype.card J) (A : I �
           exact ⟨exits_xx_lam0' A B PB, by {rw [HH]; exact exits_yy_mu0' A B PB}⟩  
         }
         . {
-          sorry
+          have H0:= lam0_le_mu0 A B PB 
+          have H0: lam0 A B < mu0 A B := by {
+            rw [le_iff_lt_or_eq] at H0
+            exact Or.elim H0 (id) (by intro H; exfalso;exact HH H)
+          }
+          obtain ⟨xx, Hxx⟩ :=  exits_xx_lam0' A B PB
+          obtain ⟨yy, Hyy⟩ :=  exits_yy_mu0' A B PB
+          have exits_ij : (∃ j:J, (wsum xx (fun i => A i j)) > lam0 A B * wsum xx (fun i => B i j))
+             ∨  (∃ i:I, (wsum yy (fun j => A i j)) < mu0 A B * wsum yy (fun j => B i j))
+            := by sorry 
+          apply Or.elim exits_ij
+          . {
+            intro HJ
+            obtain ⟨j0,HJ⟩:= HJ 
+            sorry  
+          }          
+          . {
+            sorry
+          }
         }
       } 
     } 
