@@ -167,20 +167,25 @@ lemma nonempty (α : Type*) [Inhabited α] [Fintype α ]: Finset.Nonempty (@Fins
 }
 
 
-noncomputable def lam.aux (A B : I →J → ℝ ) (x : S I) (j : J) :=  wsum x (fun i => A i j ) / wsum x (fun i => B i j) 
-noncomputable def lam.aux' (A B : I →J → ℝ ) (x : S I) :=  Finset.sup' Finset.univ (nonempty J) (lam.aux A B x)  
+noncomputable def lam.aux (A B : I →J → ℝ ) (x : S I) :=  
+  Finset.inf' Finset.univ (nonempty J) (fun j => 
+   wsum x (fun i => A i j ) / wsum x (fun i => B i j))  
 
-noncomputable def lam0 (A B : I →J → ℝ ):=  iInf (lam.aux' A B)  
+noncomputable def lam0 (A B : I →J → ℝ ):=  iSup (lam.aux A B)  
 
 
-noncomputable def mu.aux (A B : I →J → ℝ ) (y : S J) (i : I) :=  wsum y (fun j => A i j ) / wsum y (fun j => B i j) 
-noncomputable def mu.aux' (A B : I →J → ℝ ) (y : S J) :=  Finset.inf' Finset.univ (nonempty  I) (mu.aux A B y)  
+noncomputable def mu.aux (A B : I →J → ℝ ) (y : S J) :=  Finset.sup' Finset.univ (nonempty  I) (fun i => wsum y (fun j => A i j ) / wsum y (fun j => B i j) )
 
-noncomputable def mu0 (A B : I →J → ℝ ):=  iSup (mu.aux' A B)  
+noncomputable def mu0 (A B : I →J → ℝ ):=  iInf (mu.aux A B)  
 
 lemma exits_xx_lam0 (A B : I →J → ℝ ) (PB : ∀ i:I, ∀ j:J,  B i j > 0 ) : ∃ (xx : S I), ∀ j, (wsum xx (fun i => A i j)) / (wsum xx (fun i => B i j))≥  lam0 A B  := by sorry 
 
-lemma exits_yy_mu0 (A B : I →J → ℝ ) (PB : ∀ i:I, ∀ j:J,  B i j > 0 ) : ∃ (y : S J), ∀ i, (wsum yy (A i)) / (wsum yy (B i))≤  mu0 A B  := by sorry 
+
+lemma exits_xx_lam0' (A B : I →J → ℝ ) (PB : ∀ i:I, ∀ j:J,  B i j > 0 ) : ∃ (xx : S I), ∀ j, (wsum xx (fun i => A i j))≥  lam0 A B *  (wsum xx (fun i => B i j)) := by sorry 
+
+lemma exits_yy_mu0 (A B : I →J → ℝ ) (PB : ∀ i:I, ∀ j:J,  B i j > 0 ) : ∃ (yy : S J), ∀ i, (wsum yy (A i)) / (wsum yy (B i))≤  mu0 A B  := by sorry 
+
+lemma exits_yy_mu0' (A B : I →J → ℝ ) (PB : ∀ i:I, ∀ j:J,  B i j > 0 ) : ∃ (yy : S J), ∀ i, (wsum yy (A i)) ≤  mu0 A B * (wsum yy (B i)) := by sorry 
 
 
 lemma lam0_le_mu0 (A B : I →J → ℝ ) (PB : ∀ i:I, ∀ j:J,  B i j > 0 ) : 
@@ -234,8 +239,14 @@ theorem Loomis' (Hgt : 2 ≤ n) (Hn: n=Fintype.card I + Fintype.card J) (A : I �
         }
       }
       . {
-        
-        sorry
+        by_cases  HH : lam0 A B = mu0 A B
+        . {
+          use (lam0 A B) 
+          exact ⟨exits_xx_lam0' A B PB, by {rw [HH]; exact exits_yy_mu0' A B PB}⟩  
+        }
+        . {
+          sorry
+        }
       } 
     } 
 
