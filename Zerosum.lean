@@ -2,6 +2,8 @@ import Mathlib.Data.Real.EReal
 import Mathlib.Data.Real.NNReal 
 import Mathlib.Data.Fintype.Basic
 import Mathlib.Algebra.BigOperators.Basic
+import Mathlib.Topology.Algebra.Order.Compact
+import Mathlib.Topology.MetricSpace.Basic
 
 open Classical
 
@@ -72,6 +74,25 @@ noncomputable def pure (i : α) : S α  := ⟨ fun j => if i=j then 1 else 0,
 noncomputable def wsum {α : Type*} [Fintype α] (x : S α) (f : α → ℝ ) := Finset.sum Finset.univ (fun i:α => (x i) * (f i))
 
 lemma sum_pos {α : Type*} [Fintype α] {x : S α} {f : α → ℝ } (H : ∀ i, f i >0) : wsum x f > 0:= by sorry    
+
+def linear_comb {α : outParam Type*} [Fintype α] (t: {t : NNReal // t≤ 1}) (a : S α) (b : S α) : S α := 
+  ⟨ fun i => ⟨t * a i + (1-t) * (b i), (by {sorry})⟩,  
+    by {
+      sorry
+    } 
+  ⟩    
+
+
+instance topS {α : Type*} [Fintype α] : MetricSpace (S α) := MetricSpace.induced (fun x => x.val)
+   (by {rw [Function.Injective]; exact fun a1 a2 h1 => Subtype.ext_iff.2 h1}) 
+   (metricSpacePi) 
+
+instance Simplex_compact {α : Type*} [Fintype α] [Inhabited α]: CompactSpace (S α) := by sorry
+-- Use Metric.compactSpace_iff_isBounded_univ 
+
+
+
+-- Use IsCompact.exists_sSup_image_eq_and_ge
 
 end S
 
@@ -259,7 +280,27 @@ theorem Loomis' (Hgt : 2 ≤ n) (Hn: n=Fintype.card I + Fintype.card J) (A : I �
           . {
             intro HJ
             obtain ⟨j0,HJ⟩:= HJ 
-            sorry  
+            let J' := {j : J // j≠j0} 
+            have inhabited_J' : Inhabited J':= by sorry 
+            have cardn : n = Fintype.card I + Fintype.card J' := by {
+              have : Fintype.card J'  = Fintype.card J -1 := by simp only [ne_eq, Fintype.card_subtype_compl, Fintype.card_ofSubsingleton, ge_iff_le] 
+              have cardposJ: 1≤ Fintype.card J := @Fintype.card_pos J _ _ 
+              rw [this,<-Nat.add_sub_assoc cardposJ _,<-Hn]
+              simp only [ge_iff_le, add_le_iff_nonpos_left, nonpos_iff_eq_zero, add_tsub_cancel_right]
+            } 
+            let A' := fun i: I => fun j : J' => A i j
+            let B' := fun i: I => fun j : J' => B i j
+            have posB' : ∀ i j, B' i j >0 :=  fun i => fun j =>  PB i j
+            obtain ⟨v',⟨xx',hxx'⟩, ⟨ yy',hyy'⟩ ⟩ := @IH I J' _ (inhabited_J') _ _ cardn A' B' posB'         
+            have lam0_lt_v' : lam0 A B < v' := by {sorry} 
+            exfalso
+            have prop_st :∃ t : {t: NNReal // t≤1},  lam.aux A B (linear_comb t xx xx') > lam0 A B := by sorry  
+            obtain ⟨t, Hst⟩ := prop_st
+            -- ℝ is not a complete lattice, 
+            --iSup may not exits le_iSup' (lam.aux A B)  (linear_comb t xx xx')
+            have prop_iSup : ∀ x: S I, lam.aux A B x ≤ lam0 A B := by sorry
+            have := prop_iSup (linear_comb t xx xx')
+            linarith 
           }          
           . {
             sorry
