@@ -70,6 +70,18 @@ instance coe_fun : CoeFun (S α) fun _ => α → NNReal :=
 lemma sum_one (x : S α) : Finset.sum Finset.univ x = 1
 := x.prop
 
+lemma exists_nonzero {α : Type* } [Fintype α]  (x: S α) : ∃ i, x i > 0 := by {
+  by_contra h
+  simp only [gt_iff_lt, not_exists, not_lt, nonpos_iff_eq_zero] at h
+  have : Finset.sum Finset.univ x = 0 := by {
+    apply Finset.sum_eq_zero
+    intros i _
+    exact h i
+  }
+  rw  [sum_one α x] at this
+  exact one_ne_zero this
+}
+
 @[simp]
 noncomputable def pure (i : α) : S α  := ⟨ fun j => if i=j then 1 else 0,
  by {simp only [Finset.sum_ite_eq, Finset.mem_univ, ite_true]}⟩
@@ -78,7 +90,11 @@ noncomputable def pure (i : α) : S α  := ⟨ fun j => if i=j then 1 else 0,
 noncomputable def wsum {α : Type*} [Fintype α] (x : S α) (f : α → ℝ ) := Finset.sum Finset.univ (fun i:α => (x i) * (f i))
 
 lemma sum_pos {α : Type*} [Fintype α] {x : S α} {f : α → ℝ } (H : ∀ i, f i >0) : wsum x f > 0:= by {
- sorry
+  -- q: what is sum_pos
+  have h' : ∀ i, (x i : ℝ) * (f i : ℝ) ≥  0 := by
+    { intro i; exact mul_pos (H i) ((x i).2) };
+    rw [NNReal.coe_pos] at h';
+    exact NNReal.sum_pos (by simp [h'])
 }
 
 def linear_comb {α : outParam Type*} [Fintype α] (t: {t : NNReal // t≤ 1}) (a : S α) (b : S α) : S α :=
