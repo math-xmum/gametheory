@@ -165,7 +165,7 @@ lemma simplex_ge_iff_vertex_ge [Fintype I] {f : I → ℝ } {v : ℝ} :
     simp only [ge_iff_le]
     calc
       v = Finset.sum Finset.univ (fun i : I => (x i).toReal * v) := by {
-        sorry
+        rw [<-Finset.sum_mul,<-NNReal.coe_sum,sum_one,NNReal.coe_one, one_mul]
       }
       _ ≤ Finset.sum Finset.univ (fun i : I => (x i).toReal * f i) :=
       Finset.sum_le_sum (by {
