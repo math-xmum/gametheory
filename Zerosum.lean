@@ -99,9 +99,38 @@ lemma sum_pos {α : Type*} [Fintype α] {x : S α} {f : α → ℝ } (H : ∀ i,
 
 def linear_comb {α : outParam Type*} [Fintype α] (t: {t : NNReal // t≤ 1}) (a : S α) (b : S α) : S α :=
   ⟨ fun i => ⟨t * a i + (1-t) * (b i), (by
-  {apply add_nonneg; apply mul_nonneg; simp[NNReal.coe_nat_cast]; simp[NNReal.coe_nat_cast]; apply mul_nonneg; exact nnreal.sub_le_iff_le_add.mp; simp[NNReal.coe_nat_cast] })⟩,
+  { apply add_nonneg; apply mul_nonneg
+    simp[NNReal.coe_nat_cast]
+    simp[NNReal.coe_nat_cast]
+    apply mul_nonneg
+    simp only [sub_nonneg]
+    exact t.prop
+    simp
+    })⟩,
     by {
-      apply add_nonneg;
+      let f : α → Real  := fun i => (t :ℝ) * (a i :ℝ)
+      have sumf : Finset.sum Finset.univ f = t := by {
+        rw [<-Finset.mul_sum]
+        norm_cast
+        simp [sum_one]
+      }
+      let g : α → Real  := fun i => (1 -(t: ℝ)) * (b i :ℝ)
+      have sumg : Finset.sum Finset.univ g = 1-t := by {
+        rw [<-Finset.mul_sum]
+        norm_cast
+        simp [sum_one]
+      }
+      ext
+      rw [NNReal.coe_sum]
+      simp only [NNReal.coe_mk, NNReal.coe_one]
+      have fg_eq :  (fun i : α  =>(f i + g i) )= fun i => t * a i + (1 -(t: ℝ)) * (b i :ℝ) := by {
+        ext
+        dsimp
+      }
+      rw [<-fg_eq]
+      rw [Finset.sum_add_distrib]
+      rw [sumf,sumg]
+      simp only [add_sub_cancel'_right]
     }
   ⟩
 
