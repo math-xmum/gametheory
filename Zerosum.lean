@@ -98,9 +98,10 @@ lemma sum_pos {α : Type*} [Fintype α] {x : S α} {f : α → ℝ } (H : ∀ i,
 }
 
 def linear_comb {α : outParam Type*} [Fintype α] (t: {t : NNReal // t≤ 1}) (a : S α) (b : S α) : S α :=
-  ⟨ fun i => ⟨t * a i + (1-t) * (b i), (by {sorry})⟩,
+  ⟨ fun i => ⟨t * a i + (1-t) * (b i), (by
+  {apply add_nonneg; apply mul_nonneg; simp[NNReal.coe_nat_cast]; simp[NNReal.coe_nat_cast]; apply mul_nonneg; exact nnreal.sub_le_iff_le_add.mp; simp[NNReal.coe_nat_cast] })⟩,
     by {
-      sorry
+      apply add_nonneg;
     }
   ⟩
 
