@@ -66,19 +66,21 @@ def dominant (i : a.I) (bi : ℝ) : Prop :=
 
 lemma gt_wins (i : a.I) (H: ∀ j , i ≠j →  b i > b j) : i = winner b
 := by {
-   have HH : ∀ j, i = j → b j = maxb := by {
+   have HH : ∀ j, i = j ↔  b j = maxb b:= by {
       have imax : b i = maxb b := by {
-         have H1 : b i ≤  maxb b := by {
-            apply finset.le_sup'
+         have H1 : b i ≤  maxb b := by
+         {
+            apply Finset.le_sup'
             simp only [Finset.mem_univ]
          }
-         have H2 : maxb b ≤ b i := by {
-            apply finset.sup'_le
+         have H2 : maxb b ≤ b i := by
+         {
+            apply Finset.sup'_le
             intro j _
             by_cases hji : i=j
             . rw [hji]
             . {
-               have hji' := H j {by rw [ne_eq] : exact hji}
+               have hji' := H j ( by rw [ne_eq] ; exact hji)
                linarith
             }
          }
@@ -94,14 +96,13 @@ lemma gt_wins (i : a.I) (H: ∀ j , i ≠j →  b i > b j) : i = winner b
       . {
          intro hbj
          by_contra hji
-         have hji' := H j (by rw [ne_eq]:exact hji)
+         have hji' := H j (by rw [ne_eq];exact hji)
          rw [hbj] at hji'
          linarith
       }
    }
    rw [HH]
    rw [<-winner_take_max]
-
 }
 
 
