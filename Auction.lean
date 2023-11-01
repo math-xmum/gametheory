@@ -1,14 +1,16 @@
-import Mathlib.Data.Real.EReal 
+import Mathlib.Data.Real.EReal
 import Mathlib.Data.Fintype.Basic
 import Mathlib.Data.Fintype.Lattice
 
+
+
 open Classical
 
-structure Auction where 
+structure Auction where
    I : Type*
    hF : Fintype I
    hI: Inhabited I
-   hP : ∃ i j : I , i ≠ j 
+   hP : ∃ i j : I , i ≠ j
    hP' :  ∀ i : I , ∃ j, i ≠  j
    v : I → ℝ -- The value of each clients
 
@@ -19,6 +21,7 @@ variable {a : Auction} (b : a.I → ℝ  )
 
 instance : Fintype a.I := a.hF
 
+@[simp]
 def maxb : ℝ  := Finset.sup' Finset.univ (⟨ a.hI.default ,  (Finset.mem_univ _)⟩ ) b
 
 
@@ -33,9 +36,9 @@ noncomputable def winner : a.I := Classical.choose (exists_max b)
 
 lemma winner_take_max : b (winner b) = maxb b:= Classical.choose_spec (exists_max b)
 
-lemma delete_i_nonempty (i:a.I) :Finset.Nonempty (Finset.erase  Finset.univ i ) := by 
+lemma delete_i_nonempty (i:a.I) :Finset.Nonempty (Finset.erase  Finset.univ i ) := by
 {
-  obtain ⟨ i , hi ⟩  := a.hP' i 
+  obtain ⟨ i , hi ⟩  := a.hP' i
   use i
   simp only [Finset.mem_univ, not_true, Finset.mem_erase, and_true]
   rw [ne_comm]
@@ -43,26 +46,68 @@ lemma delete_i_nonempty (i:a.I) :Finset.Nonempty (Finset.erase  Finset.univ i ) 
 }
 
 noncomputable def B (i: a.I) : ℝ  := Finset.sup' (Finset.erase Finset.univ i) (delete_i_nonempty i) b
- 
+
 
 noncomputable def secondprice : ℝ  := B b (winner b)
 
 
-noncomputable def utility  (i : a.I) : ℝ := if i = winner b then a.v i - secondprice b else 0 
+noncomputable def utility  (i : a.I) : ℝ := if i = winner b then a.v i - secondprice b else 0
 
-lemma utility_winner (H: i = winner b) : utility b i = a.v i - secondprice b 
+lemma utility_winner (H: i = winner b) : utility b i = a.v i - secondprice b
 := by rw [utility]; simp only [ite_true, H]
 
-lemma utility_loser (i: a.I) (H : i≠ winner b) : utility b i = 0 
+lemma utility_loser (i: a.I) (H : i≠ winner b) : utility b i = 0
 := by rw [utility]; simp only [ite_false, H]
 
 def dominant (i : a.I) (bi : ℝ) : Prop :=
-   ∀ b b': a.I → ℝ , (b i = bi) → (∀ j: a.I, j≠ i→ b j = b' j) 
-   →  utility  b i ≥ utility b' i 
+   ∀ b b': a.I → ℝ , (b i = bi) → (∀ j: a.I, j≠ i→ b j = b' j)
+   →  utility  b i ≥ utility b' i
 
 
-lemma gt_wins (i : a.I) (H: ∀ j , i ≠j →  b i > b j) : i = winner b 
-:= by sorry
+lemma gt_wins (i : a.I) (H: ∀ j , i ≠j →  b i > b j) : i = winner b
+:= by {
+   have HH : ∀ j, i = j → b j = maxb := by {
+      have imax : b i = maxb b := by {
+         have H1 : b i ≤  maxb b := by {
+            apply finset.le_sup'
+            simp only [Finset.mem_univ]
+         }
+         have H2 : maxb b ≤ b i := by {
+            apply finset.sup'_le
+            intro j _
+            by_cases hji : i=j
+            . rw [hji]
+            . {
+               have hji' := H j {by rw [ne_eq] : exact hji}
+               linarith
+            }
+         }
+         linarith
+      }
+      intro j
+      constructor
+      . {
+         intro hji
+         rw [<-hji]
+         exact imax
+      }
+      . {
+         intro hbj
+         by_contra hji
+         have hji' := H j (by rw [ne_eq]:exact hji)
+         rw [hbj] at hji'
+         linarith
+      }
+   }
+   rw [HH]
+   rw [<-winner_take_max]
+
+}
+
+
+
+
+
 
 lemma b_winner_max (H: i = winner b) : ∀ j: a.I, b i ≥ b j := by sorry
 
@@ -78,23 +123,23 @@ lemma utility_pos (i: a.I) : (b i = a.v i) → utility b i≥0   := by sorry
 
 theorem valuation_is_dominant (i : a.I ) : dominant i (a.v i) := by {
    intro b b' hb hb'
-   by_cases H : i = winner b' 
-   . { 
+   by_cases H : i = winner b'
+   . {
       by_cases H2 : a.v i >  B b' i
-      . { 
+      . {
          -- Show that i is also the winner for bidding b
          -- Show that secondprice b  = secondprice b'
          -- Show that utility b i = utility b' i
          sorry
       }
       . {
-         -- Show that 0 ≥  utility b' i  
+         -- Show that 0 ≥  utility b' i
          -- Combine with utility b i ≥ 0 finish the proof
          sorry
       }
-   } 
+   }
    . {
-      have u' := utility_loser b' i  H 
+      have u' := utility_loser b' i  H
       simp only [u',utility_pos b i hb]
    }
 }
