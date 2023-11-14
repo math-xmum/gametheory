@@ -237,9 +237,11 @@ instance Simplex_compact [Inhabited α]: CompactSpace (S' α) := by {
   rw [Metric.isCompact_iff_isClosed_bounded]
   constructor
   . {
+    rw [<-isSeqClosed_iff_isClosed]
     sorry
   }
   . {
+    --use Bornology.IsBounded.subset_ball
     sorry
   }
 }
