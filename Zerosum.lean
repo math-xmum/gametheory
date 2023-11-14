@@ -91,10 +91,26 @@ noncomputable def wsum {α : Type*} [Fintype α] (x : S α) (f : α → ℝ ) :=
 
 lemma sum_pos {α : Type*} [Fintype α] {x : S α} {f : α → ℝ } (H : ∀ i, f i >0) : wsum x f > 0:= by {
   -- q: what is sum_pos
-  have h' : ∀ i, (x i : ℝ) * (f i : ℝ) ≥  0 := by
-    { intro i; exact mul_pos (H i) ((x i).2) };
-    rw [NNReal.coe_pos] at h';
-    exact NNReal.sum_pos (by simp [h'])
+  have h' : ∀ i, (x i : ℝ) * (f i : ℝ) ≥  0 := by{
+    intro i ; exact mul_nonneg (NNReal.zero_le_coe) (le_of_lt (H i))
+  }
+  simp only [wsum];
+  let ⟨j, Hjj⟩ := exists_nonzero x;
+  have h'' : (x j : ℝ) * (f j : ℝ) > 0 := by {exact mul_pos (Hjj) (H j)}
+  have H'' : (Finset.sum (Finset.univ \ {j}) fun i => (x i) * f i) + (Finset.sum {j} fun i => (x i) * f i)
+      = (Finset.sum Finset.univ fun i => (x i) * f i) := by {
+    apply Finset.sum_sdiff
+    simp only [Finset.subset_univ]
+  }
+  rw [<-H'',add_comm]
+  apply add_pos_of_pos_of_nonneg
+  rw [Finset.sum_singleton]
+  exact h''
+  apply Finset.sum_nonneg
+  simp only [Finset.mem_univ, not_true, Finset.mem_sdiff, Finset.mem_singleton, true_and, gt_iff_lt,
+    NNReal.coe_pos]
+  intro i _
+  exact h' i
 }
 
 def linear_comb {α : outParam Type*} [Fintype α] (t: {t : NNReal // t≤ 1}) (a : S α) (b : S α) : S α :=
