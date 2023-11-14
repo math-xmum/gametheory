@@ -4,6 +4,8 @@ import Mathlib.Data.Fintype.Basic
 import Mathlib.Algebra.BigOperators.Basic
 import Mathlib.Topology.Algebra.Order.Compact
 import Mathlib.Topology.MetricSpace.Basic
+import Mathlib.Topology.MetricSpace.Bounded
+import Mathlib.Analysis.NormedSpace.FiniteDimension
 
 open Classical
 
@@ -126,6 +128,8 @@ namespace S'
 
 variable {α : Type*} [Fintype α]
 
+lemma subset_subtype: S' α =  ↑{ x : α→ ℝ | (∀ i:α, 0 ≤ x i)  ∧  Finset.sum Finset.univ x = 1} := rfl
+
 instance coe_fun : CoeFun (S' α) fun _ => α → ℝ :=
   ⟨fun x => (x.val : α → ℝ )⟩
 
@@ -148,9 +152,6 @@ lemma exists_nonzero {α : Type* } [Fintype α]  (x: S' α) : ∃ i, x i > 0 := 
   exact one_ne_zero this
 }
 
-@[simp]
-noncomputable def pure (i : α) : S α  := ⟨ fun j => if i=j then 1 else 0,
- by {simp only [Finset.sum_ite_eq, Finset.mem_univ, ite_true]}⟩
 
 --weighted sum
 noncomputable def wsum {α : Type*} [Fintype α] (x : S' α) (f : α → ℝ ) := Finset.sum Finset.univ (fun i:α => (x i) * (f i))
@@ -221,7 +222,27 @@ instance metricS : MetricSpace (S' α) := MetricSpace.induced (fun x => x.val)
    (by {rw [Function.Injective]; exact fun a1 a2 h1 => Subtype.ext_iff.2 h1})
    (metricSpacePi)
 
-instance Simplex_compact [Inhabited α]: CompactSpace (S' α) := by sorry
+
+instance proper_real : ProperSpace ℝ := by {
+  simp [properSpace_of_locallyCompactSpace ℝ]
+}
+
+instance proper_pi : ProperSpace (α→ ℝ ) := by {
+  apply pi_properSpace
+}
+
+instance Simplex_compact [Inhabited α]: CompactSpace (S' α) := by {
+  simp only [subset_subtype]
+  rw [<-isCompact_iff_compactSpace]
+  rw [Metric.isCompact_iff_isClosed_bounded]
+  constructor
+  . {
+    sorry
+  }
+  . {
+    sorry
+  }
+}
 
 
 end S'
