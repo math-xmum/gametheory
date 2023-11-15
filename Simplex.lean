@@ -246,5 +246,16 @@ instance Simplex_compact [Inhabited α]: CompactSpace (S' α) := by {
   }
 }
 
+lemma SS'_iso : S α ≃ᵢ  S' α where
+  toFun := fun x => ⟨fun i => x i, ⟨fun i => (x i).prop ,(by sorry)⟩⟩
+  invFun := fun x => ⟨fun i => ⟨x i,x.prop.1 i⟩, (by sorry)⟩
+  left_inv := by {
+    intro x
+    sorry
+    }
+  right_inv := by {sorry}
+  isometry_toFun := by {sorry}
+
+end S'
 
 end S'
