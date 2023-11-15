@@ -45,6 +45,7 @@ lemma delete_i_nonempty (i:a.I) :Finset.Nonempty (Finset.erase  Finset.univ i ) 
   exact hi
 }
 
+--B is the maxial bid of all but i
 noncomputable def B (i: a.I) : ℝ  := Finset.sup' (Finset.erase Finset.univ i) (delete_i_nonempty i) b
 
 
@@ -110,13 +111,79 @@ lemma gt_wins (i : a.I) (H: ∀ j , i ≠j →  b i > b j) : i = winner b
 
 
 
-lemma b_winner_max (H: i = winner b) : ∀ j: a.I, b i ≥ b j := by sorry
+lemma b_winner_max (H: i = winner b) : ∀ j: a.I, b i ≥ b j
+:= by{
+          intro j
 
-lemma b_winner' (H: i = winner b) : b i ≥ B b i := by sorry
+          have H_max: b (winner b) = maxb b := winner_take_max b
+          rw [<-H] at H_max
+          --怎么将 winner_take_max 重写为关于 i 的形式:直接rw反过来
+          have H_sup: b j ≤ maxb b
+          {
+          apply Finset.le_sup'
+          simp only [Finset.mem_univ]
+          }
+          rw [<-H_max] at H_sup
+          exact H_sup
+           --怎么用这个linarith：不用linarith就行
+     }
 
-lemma b_winner (H: i = winner b) : b i ≥ secondprice b := by sorry
+lemma b_winner' (H: i = winner b) : b i ≥ B b i := by
+{
+   have Hmax := winner_take_max b
+   rw [<-H] at Hmax
+   rw [Hmax]
+   apply Finset.sup'_le
+   intro j
+   intro hj
+   apply Finset.le_sup'
+   simp only [Finset.mem_erase,Finset.mem_univ]
+}
 
-lemma b_loser' (H: i ≠  winner b) : b i ≤ B b i := by sorry
+lemma b_winner (H: i = winner b) : b i ≥ secondprice b := by
+   {
+    have Hmax := winner_take_max b
+    rw [<-H] at Hmax
+    rw [Hmax]
+    apply Finset.sup'_le
+    apply delete_i_nonempty
+    intro j _
+    apply Finset.le_sup'
+    simp only [Finset.mem_erase,Finset.mem_univ]
+
+   }
+
+lemma b_loser_max (H: i ≠  winner b) : B b i = maxb b := by
+   {
+      have H1 : B b i ≤ maxb b := by
+      {
+         apply Finset.sup'_le
+         intro i _
+         apply Finset.le_sup'
+         simp only [Finset.mem_univ]
+      }
+      have H2 : maxb b ≤ B b i := by
+      {
+       rw [<-winner_take_max]
+       intro j _
+       by_cases hji : i=j
+       apply Finset.sup'_le
+      }
+      linarith
+   }
+--bbi<=maxb b
+--maxb b<=bbi
+lemma b_loser' (H: i ≠  winner b) : b i ≤ B b i := by
+   {
+      have Hmax := winner_take_max b
+      rw [Hmax]
+      apply Finset.sup'_le
+      intro j
+      intro hj
+      apply Finset.le_sup'
+      simp only [Finset.mem_erase,Finset.mem_univ]
+
+   }
 
 lemma b_loser (H: i ≠  winner b) : b i ≤ secondprice b := by sorry
 
