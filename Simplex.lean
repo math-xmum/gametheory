@@ -256,6 +256,5 @@ lemma SS'_iso : S α ≃ᵢ  S' α where
   right_inv := by {sorry}
   isometry_toFun := by {sorry}
 
-end S'
 
 end S'
