@@ -123,12 +123,13 @@ end S
 variable (α : Type*) [Fintype α]
 
 def S' := { x : α→ ℝ // (∀ i:α, 0 ≤ x i)  ∧  Finset.sum Finset.univ x = 1}
+def S'' := {x :α → ℝ  | (∀ i:α, 0 ≤ x i)  ∧  (Finset.sum (Finset.univ) x = 1)}
 
 namespace S'
 
 variable {α : Type*} [Fintype α]
 
-lemma subset_subtype: S' α =  ↑{ x : α→ ℝ | (∀ i:α, 0 ≤ x i)  ∧  Finset.sum Finset.univ x = 1} := rfl
+lemma subset_subtype: S' α =  ↑(S'' α):= rfl
 
 instance coe_fun : CoeFun (S' α) fun _ => α → ℝ :=
   ⟨fun x => (x.val : α → ℝ )⟩
@@ -231,6 +232,38 @@ instance proper_pi : ProperSpace (α→ ℝ ) := by {
   apply pi_properSpace
 }
 
+lemma x_ge_zero {x : α → ℝ} {b : α} {h : x ∈ S'' α } :  0 ≤  x b := by {
+  rw [S'',Set.mem_setOf] at h
+  exact h.1 b
+}
+lemma x_le_one {x : α → ℝ} (h : x ∈ S'' α ): x b ≤ 1 := by {
+  rw [S'', Set.mem_setOf] at h
+  rw [<-h.2]
+  apply Finset.single_le_sum (by {
+    simp only [Finset.mem_univ, forall_true_left]
+    exact h.1
+  }) (by {
+    simp only [Finset.mem_univ]
+  }
+  )
+}
+
+lemma Simplex_bounded [Inhabited α] : Bornology.IsBounded (S'' α) := by {
+  rw [Metric.isBounded_iff_subset_ball (fun _ => 0)]
+  use (2:ℝ)
+  intro x hx
+  simp only [Metric.mem_ball]
+  rw [dist_pi_def]
+  norm_cast
+  simp only [bot_eq_zero', zero_lt_two, Finset.sup_lt_iff, Finset.mem_univ, forall_true_left]
+  intro b
+  rw [nndist_dist, Real.dist_eq,<-NNReal.coe_lt_coe,NNReal.coe_two,Real.coe_toNNReal]
+  simp only [sub_zero]
+  rw [abs_of_nonneg]
+  apply lt_of_lt_of_le 
+
+}
+
 instance Simplex_compact [Inhabited α]: CompactSpace (S' α) := by {
   simp only [subset_subtype]
   rw [<-isCompact_iff_compactSpace]
@@ -245,6 +278,7 @@ instance Simplex_compact [Inhabited α]: CompactSpace (S' α) := by {
     sorry
   }
 }
+
 
 lemma SS'_iso : S α ≃ᵢ  S' α where
   toFun := fun x => ⟨fun i => x i, ⟨fun i => (x i).prop ,(by sorry)⟩⟩
