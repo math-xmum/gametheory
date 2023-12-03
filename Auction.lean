@@ -234,10 +234,7 @@ theorem valuation_is_dominant (i : a.I ) : dominant i (a.v i) := by {
    . {
       by_cases H1 : a.v i >  B b' i
       . {
-          --have u := utility_winner b' H
-          --rw[u]
-          --have u' := utility_winner b H
-          --rw[u']
+
 
           have h_winner_b : i = winner b := gt_wins b i (λ j hj => by {
             rw [hb]
