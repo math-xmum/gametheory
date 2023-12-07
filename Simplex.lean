@@ -232,11 +232,11 @@ instance proper_pi : ProperSpace (α→ ℝ ) := by {
   apply pi_properSpace
 }
 
-lemma x_ge_zero {x : α → ℝ} {b : α} {h : x ∈ S'' α } :  0 ≤  x b := by {
+lemma x_ge_zero {x : α → ℝ} {b : α} (h : x ∈ S'' α ) :  0 ≤  x b := by {
   rw [S'',Set.mem_setOf] at h
   exact h.1 b
 }
-lemma x_le_one {x : α → ℝ} (h : x ∈ S'' α ): x b ≤ 1 := by {
+lemma x_le_one {x : α → ℝ} {b:α} (h : x ∈ S'' α ): x b ≤ 1 := by {
   rw [S'', Set.mem_setOf] at h
   rw [<-h.2]
   apply Finset.single_le_sum (by {
@@ -257,11 +257,13 @@ lemma Simplex_bounded [Inhabited α] : Bornology.IsBounded (S'' α) := by {
   norm_cast
   simp only [bot_eq_zero', zero_lt_two, Finset.sup_lt_iff, Finset.mem_univ, forall_true_left]
   intro b
-  rw [nndist_dist, Real.dist_eq,<-NNReal.coe_lt_coe,NNReal.coe_two,Real.coe_toNNReal]
+  rw [nndist_dist, Real.dist_eq,<-NNReal.coe_lt_coe,NNReal.coe_two,Real.coe_toNNReal _ (by simp)]
   simp only [sub_zero]
   rw [abs_of_nonneg]
-  apply lt_of_lt_of_le 
-
+  have hb:= @x_le_one _ _ _ b hx
+  apply lt_of_le_of_lt hb
+  norm_cast
+  apply x_ge_zero hx
 }
 
 instance Simplex_compact [Inhabited α]: CompactSpace (S' α) := by {
@@ -270,13 +272,27 @@ instance Simplex_compact [Inhabited α]: CompactSpace (S' α) := by {
   rw [Metric.isCompact_iff_isClosed_bounded]
   constructor
   . {
-    rw [<-isSeqClosed_iff_isClosed]
-    sorry
-  }
-  . {
+      rw [<-isSeqClosed_iff_isClosed]
+      rw [isSeqClosed_iff]
+      apply superset_antisymm
+      exact subset_seqClosure
+      rw [seqClosure_eq_closure]
+      intro x hx
+      rw [mem_closure_iff_seq_limit] at hx
+      let ⟨y,hy1,hy2⟩ := hx
+      simp only [S'',Set.mem_setOf_eq]
+      rw [tendsto_pi_nhds] at hy2
+      constructor
+      . {
+        intro a
+        have hy22 := hy2 a
+        
+      }
+      . sorry
+
+      }
     --use Bornology.IsBounded.subset_ball
-    sorry
-  }
+  sorry
 }
 
 
