@@ -235,31 +235,71 @@ theorem valuation_is_dominant (i : a.I ) : dominant i (a.v i) := by {
       by_cases H1 : a.v i >  B b' i
       . {
 
-
-          have h_winner_b : i = winner b := gt_wins b i (λ j hj => by {
-            rw [hb]
-
-
-          })
-          --rw [h_winner_b]
-
-
-
          -- Show that i is also the winner for bidding b
          -- Show that secondprice b  = secondprice b'
          -- Show that utility b i = utility b' i
+         have h_winner_b : i = winner b := gt_wins b i (λ j hj => by {
+         rw[hb]
+         rw[hb']
+         --对于所有 j ≠ i，b i = a.v i > b' j = b j
+         have HBi: B b' i ≥  b' j := by {
+            rw [B]
+            simp only [Finset.mem_univ, not_true, ge_iff_le, Finset.le_sup'_iff, Finset.mem_erase,
+              ne_eq, and_true]
+            use j
+            simp only [le_refl, and_true]
+            rw [<-ne_eq,ne_comm]
+            exact hj
+         }
+
+         exact gt_of_gt_of_ge H1 HBi
+         exact id (Ne.symm hj)
+         })
+         repeat rw [utility_winner]
+
+         -- Show that secondprice b  = secondprice b'
+         have h_secondprice_eq : secondprice b = secondprice b' := by {
+            repeat rw [secondprice]
+            rw[<-h_winner_b]
+            rw[<-H]
+            repeat rw [B]
+
+            --simp only [B]
+         -- show B b i = B b' i
+            have secondprice_eq: B b i = B b' i := by {
+               --apply Finset.sup'_eq
+               apply le_antisymm
+               . {
+                  apply Finset.sup'_le
+                  intro j
+                  intro hj
+                  apply Finset.le_sup'
+
+
+               }
+
+               rw [B]
+               rw [B]
+               simp only [Finset.mem_univ, not_true, ge_iff_le, Finset.le_sup'_iff, Finset.mem_erase,
+                 ne_eq, and_true]
+
+            }
+
+         }
 
       }
-      . {
+
+
+
+   }
+   . {
          -- Show that 0 ≥  utility b' i
          -- Combine with utility b i ≥ 0 finish the proof
          sorry
-      }
    }
-   . {
-      have u' := utility_loser b' i  H
-      simp only [u',utility_pos b i hb]
-   }
+    --  have u' := utility_loser b' i  H
+   --   simp only [u',utility_pos b i hb]
+   --}
 }
 
 
