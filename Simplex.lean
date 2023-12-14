@@ -6,6 +6,7 @@ import Mathlib.Topology.Algebra.Order.Compact
 import Mathlib.Topology.MetricSpace.Basic
 import Mathlib.Topology.MetricSpace.Bounded
 import Mathlib.Analysis.NormedSpace.FiniteDimension
+import Mathlib.Topology.Separation
 
 open Classical
 
@@ -248,7 +249,7 @@ lemma x_le_one {x : α → ℝ} {b:α} (h : x ∈ S'' α ): x b ≤ 1 := by {
   )
 }
 
-lemma Simplex_bounded [Inhabited α] : Bornology.IsBounded (S'' α) := by {
+lemma Simplex.isBounded [Inhabited α] : Bornology.IsBounded (S'' α) := by {
   rw [Metric.isBounded_iff_subset_ball (fun _ => 0)]
   use (2:ℝ)
   intro x hx
@@ -266,45 +267,75 @@ lemma Simplex_bounded [Inhabited α] : Bornology.IsBounded (S'' α) := by {
   apply x_ge_zero hx
 }
 
-instance Simplex_compact [Inhabited α]: CompactSpace (S' α) := by {
+lemma Simplex.isClosed :IsClosed (S'' α):= by {
+  rw [<-isSeqClosed_iff_isClosed]
+  rw [isSeqClosed_iff]
+  apply superset_antisymm
+  exact subset_seqClosure
+  rw [seqClosure_eq_closure]
+  intro x hx
+  rw [mem_closure_iff_seq_limit] at hx
+  let ⟨y,hy1,hy2⟩ := hx
+  simp only [S'',Set.mem_setOf_eq]
+  rw [tendsto_pi_nhds] at hy2
+  constructor
+  . {
+    intro a
+    have hy22 := hy2 a
+    rw [Filter.Tendsto] at hy22
+    apply ge_of_tendsto hy22
+    apply Filter.eventually_of_forall
+    intro i
+    let ⟨h1,_⟩ := hy1 i
+    exact h1 a
+  }
+  . {
+    have h1:= tendsto_finset_sum (Finset.univ: Finset α) (fun i _ => hy2 i)
+    have hy1:= fun b => (hy1 b).2
+    simp only [hy1, gt_iff_lt, not_lt] at h1
+    rw [tendsto_const_nhds_iff] at h1
+    rw [h1]
+  }
+}
+
+instance Simplex.isCompact' [Inhabited α]: CompactSpace (S' α) := by {
   simp only [subset_subtype]
   rw [<-isCompact_iff_compactSpace]
   rw [Metric.isCompact_iff_isClosed_bounded]
-  constructor
-  . {
-      rw [<-isSeqClosed_iff_isClosed]
-      rw [isSeqClosed_iff]
-      apply superset_antisymm
-      exact subset_seqClosure
-      rw [seqClosure_eq_closure]
-      intro x hx
-      rw [mem_closure_iff_seq_limit] at hx
-      let ⟨y,hy1,hy2⟩ := hx
-      simp only [S'',Set.mem_setOf_eq]
-      rw [tendsto_pi_nhds] at hy2
-      constructor
-      . {
-        intro a
-        have hy22 := hy2 a
-        
-      }
-      . sorry
-
-      }
-    --use Bornology.IsBounded.subset_ball
-  sorry
+  exact ⟨Simplex.isClosed, Simplex.isBounded⟩
 }
 
 
 lemma SS'_iso : S α ≃ᵢ  S' α where
-  toFun := fun x => ⟨fun i => x i, ⟨fun i => (x i).prop ,(by sorry)⟩⟩
-  invFun := fun x => ⟨fun i => ⟨x i,x.prop.1 i⟩, (by sorry)⟩
+  toFun := fun x => ⟨fun i => x i, ⟨fun i => (x i).prop ,(by {
+    have :=x.2
+    norm_cast
+   })⟩⟩
+  invFun := fun x => ⟨fun i => ⟨x i,x.prop.1 i⟩, (by {
+    ext
+    simp only [NNReal.coe_one,NNReal.coe_sum,NNReal.coe_mk,x.2.2]
+    })⟩
   left_inv := by {
     intro x
-    sorry
-    }
-  right_inv := by {sorry}
-  isometry_toFun := by {sorry}
+    apply Subtype.coe_eta
+  }
+  right_inv := by {
+    rw [Function.RightInverse,Function.LeftInverse]
+    simp
+  }
+  isometry_toFun := by {
+    rw [Isometry]
+    simp only
+    intro x1 x2
+    norm_cast
+  }
+
+
+instance Simplex.isCompact [Inhabited α]: CompactSpace (S α) := by {
+  have h:= Homeomorph.symm (IsometryEquiv.toHomeomorph (@SS'_iso α _))
+  exact Homeomorph.compactSpace h
+}
+
 
 
 end S'
