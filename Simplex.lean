@@ -110,7 +110,6 @@ instance metricS {α : Type*} [Fintype α] : MetricSpace (S α) := MetricSpace.i
    (by {rw [Function.Injective]; exact fun a1 a2 h1 => Subtype.ext_iff.2 h1})
    (metricSpacePi)
 
-instance Simplex_compact {α : Type*} [Fintype α] [Inhabited α]: CompactSpace (S α) := by sorry
 -- Use Metric.compactSpace_iff_isBounded_univ
 
 --#check Metric.compactSpace_iff_isBounded_univ
@@ -298,7 +297,7 @@ lemma Simplex.isClosed :IsClosed (S'' α):= by {
   }
 }
 
-instance Simplex.isCompact' [Inhabited α]: CompactSpace (S' α) := by {
+instance Simplex.CompactSpace' [Inhabited α]: CompactSpace (S' α) := by {
   simp only [subset_subtype]
   rw [<-isCompact_iff_compactSpace]
   rw [Metric.isCompact_iff_isClosed_bounded]
@@ -331,7 +330,7 @@ lemma SS'_iso : S α ≃ᵢ  S' α where
   }
 
 
-instance Simplex.isCompact [Inhabited α]: CompactSpace (S α) := by {
+instance Simplex.CompactSpace [Inhabited α]: CompactSpace (S α) := by {
   have h:= Homeomorph.symm (IsometryEquiv.toHomeomorph (@SS'_iso α _))
   exact Homeomorph.compactSpace h
 }
