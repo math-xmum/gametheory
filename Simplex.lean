@@ -336,3 +336,4 @@ instance Simplex.CompactSpace [Inhabited α]: CompactSpace (S α) := by {
 }
 
 end S'
+ 
