@@ -335,6 +335,4 @@ instance Simplex.CompactSpace [Inhabited α]: CompactSpace (S α) := by {
   exact Homeomorph.compactSpace h
 }
 
-
-
 end S'
