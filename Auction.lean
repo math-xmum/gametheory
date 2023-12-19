@@ -16,7 +16,7 @@ structure Auction where
 
 namespace Auction
 
-variable {a : Auction} (b : a.I → ℝ  )
+variable {a : Auction} (b : a.I → ℝ )
 
 instance : Fintype a.I := a.hF
 
@@ -201,7 +201,7 @@ lemma b_loser' (H: i ≠  winner b) : b i ≤ B b i := by sorry
 
 lemma b_loser (H: i ≠  winner b) : b i ≤ secondprice b := by sorry
 
-lemma utility_pos (i: a.I) : (b i = a.v i) → utility b i≥0   := by {
+lemma utility_nneg (i: a.I) : (b i = a.v i) → utility b i≥0   := by {
    intro H
    by_cases H2 : i = winner b
 
@@ -233,7 +233,6 @@ theorem valuation_is_dominant (i : a.I ) : dominant i (a.v i) := by {
    . {
       by_cases H1 : a.v i >  B b' i
       . {
-
          -- Show that i is also the winner for bidding b
          -- Show that secondprice b  = secondprice b'
          -- Show that utility b i = utility b' i
@@ -259,67 +258,31 @@ theorem valuation_is_dominant (i : a.I ) : dominant i (a.v i) := by {
          -- Show that secondprice b  = secondprice b'
          have h_secondprice_eq : secondprice b = secondprice b' := by {
             repeat rw [secondprice]
-            rw[<-h_winner_b]
-            rw[<-H]
+            rw[<-h_winner_b,<-H]
             repeat rw [B]
-            apply le_antisymm
-            . {
-             apply Finset.sup'_le
-             intro j
-             intro hj
-             apply Finset.le_sup' _ (Finset.mem_erase_of_ne_of_mem _ (Finset.mem_univ _))
-             by_contra
-             push_neg at h
-             rw [h] at hj
-             exact H hj
-            }
-            . {
-            apply Finset.sup'_le
-            intro j
-            intro hj
-            apply Finset.le_sup' _ (Finset.mem_erase_of_ne_of_mem _ (Finset.mem_univ _))
-            by_contra
-            push_neg at h
-            rw [<-h] at hj
-            exact H hj
-             }
-
-
+            apply Finset.sup'_congr (delete_i_nonempty i) (rfl)
+            intro j hj
+            rw [Finset.mem_erase] at hj
+            exact hb' j hj.1
          }
-
-         -- show B b i = B b' i
-            have secondprice_eq: B b i = B b' i := by {
-               --apply Finset.sup'_eq
-               apply le_antisymm
-               . {
-                  apply Finset.sup'_le
-                  intro j
-                  intro hj
-
-               }
-
-               rw [B]
-               rw [B]
-               simp only [Finset.mem_univ, not_true, ge_iff_le, Finset.le_sup'_iff, Finset.mem_erase,
-                 ne_eq, and_true]
-
-            }
-
+         . rw [h_secondprice_eq]
+         . rw [H]
+         . rw [h_winner_b]
          }
-
+      . {
+         rw [ge_iff_le,utility,<-H]
+         simp only [ite_true, ge_iff_le, tsub_le_iff_right]
+         simp only [gt_iff_lt, not_lt] at H1
+         rw [secondprice,<-H]
+         have := utility_nneg b i hb
+         linarith
       }
-
-
-
    }
    . {
-         -- Show that 0 ≥  utility b' i
-         -- Combine with utility b i ≥ 0 finish the proof
-         sorry
+      have := utility_nneg b i hb
+      convert this
+      simp [utility,H]
    }
-    --  have u' := utility_loser b' i  H
-   --   simp only [u',utility_pos b i hb]
-   --}
 }
 
 
