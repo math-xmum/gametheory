@@ -253,8 +253,8 @@ theorem valuation_is_dominant (i : a.I ) : dominant i (a.v i) := by {
          exact gt_of_gt_of_ge H1 HBi
          exact id (Ne.symm hj)
          })
-         repeat rw [utility_winner]
-
+         rw [utility_winner _ h_winner_b]
+         rw [utility_winner _ H]
          -- Show that secondprice b  = secondprice b'
          have h_secondprice_eq : secondprice b = secondprice b' := by {
             repeat rw [secondprice]
@@ -266,8 +266,6 @@ theorem valuation_is_dominant (i : a.I ) : dominant i (a.v i) := by {
             exact hb' j hj.1
          }
          . rw [h_secondprice_eq]
-         . rw [H]
-         . rw [h_winner_b]
          }
       . {
          rw [ge_iff_le,utility,<-H]
@@ -287,11 +285,3 @@ theorem valuation_is_dominant (i : a.I ) : dominant i (a.v i) := by {
 
 
 end Auction
-
---什么是lean，什么是mathlib，怎么用mathlib，怎么用lean，什么是type
---什么是structure，什么是instance，什么是lemma，什么是theorem，什么是def，什么是variable
---陈述一个定理，证明一个定理，怎么用mathlib里的定理，怎么用mathlib里的lemma
---关于auction的定义
---关于auction的定理
---关于auction的证明
---主要是presentation skills
