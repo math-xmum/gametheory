@@ -13,35 +13,30 @@ structure Auction where
    hP' :  ∀ i : I , ∃ j, i ≠  j
    v : I → ℝ -- The value of each clients
 
-
 namespace Auction
 
 variable {a : Auction} (b : a.I → ℝ  )
 
 instance : Fintype a.I := a.hF
 
-
-
---Helper Functions and Definitions
+--Helper Definitions and Lemmas
 @[simp]
---maxb computes the highest bid given a bidding function b
 def maxb : ℝ  := Finset.sup' Finset.univ (⟨ a.hI.default ,  (Finset.mem_univ _)⟩ ) b
+--maxb computes the highest bid given a bidding function b
 
---there exists a participant i whose bid equals the highest bid
 lemma exists_max : ∃ i: a.I, b i = a.maxb b := by
 {
    obtain ⟨  i , _ ,h2⟩ := Finset.exists_mem_eq_sup' (⟨ a.hI.default, (Finset.mem_univ _)⟩ ) b
    exact ⟨ i, symm h2⟩
 }
+--there exists a participant i whose bid equals the highest bid
 
---defines the winner of the auction
---i.e. the participant with the highest bid
 noncomputable def winner : a.I := Classical.choose (exists_max b)
+--defines the winner of the auction,i.e. the participant with the highest bid
 
---states that the bid of the winner equals the highest bid
 lemma winner_take_max : b (winner b) = maxb b:= Classical.choose_spec (exists_max b)
+--states that the bid of the winner equals the highest bid
 
---removing a participant i from all participants still leaves a non-empty set
 lemma delete_i_nonempty (i:a.I) :Finset.Nonempty (Finset.erase  Finset.univ i ) := by
 {
   obtain ⟨ i , hi ⟩  := a.hP' i
@@ -50,55 +45,44 @@ lemma delete_i_nonempty (i:a.I) :Finset.Nonempty (Finset.erase  Finset.univ i ) 
   rw [ne_comm]
   exact hi
 }
+--removing a participant i from all participants still leaves a non-empty set
 
---B is the maximal bid of all but i
 noncomputable def B (i: a.I) : ℝ  := Finset.sup' (Finset.erase Finset.univ i) (delete_i_nonempty i) b
+--B is the maximal bid of all but i
 
---defines the second highest bid
---i.e.the highest bid excluding the winner’s bid.
 noncomputable def secondprice : ℝ  := B b (winner b)
+--defines the second highest bid,(i.e.the highest bid excluding the winner’s bid.)
 
---defines the utility of participant i, which is
---their valuation minus the second highest bid if i is the winner
---otherwise, it's 0.
 noncomputable def utility  (i : a.I) : ℝ := if i = winner b then a.v i - secondprice b else 0
+--defines the utility of participant i, which is--their valuation minus the second highest bid if i is the winner--otherwise, it's 0.
 
-
-
---Proofs and Lemmas
-
---if i is the winner
---then their utility is their valuation minus the second highest bid.
 lemma utility_winner (H: i = winner b) : utility b i = a.v i - secondprice b
 := by rw [utility]; simp only [ite_true, H]
+--if i is the winner
+--then their utility is their valuation minus the second highest bid.
 
---if i is not the winner, then their utility is 0.
 lemma utility_loser (i: a.I) (H : i≠ winner b) : utility b i = 0
 := by rw [utility]; simp only [ite_false, H]
+--if i is not the winner, then their utility is 0.
 
---defines concept of a dominant strategy
 def dominant (i : a.I) (bi : ℝ) : Prop :=
    ∀ b b': a.I → ℝ , (b i = bi) → (∀ j: a.I, j≠ i→ b j = b' j)
    →  utility  b i ≥ utility b' i
-
-
+--defines concept of a dominant strategy
 lemma gt_wins (i : a.I) (H: ∀ j , i ≠j →  b i > b j) : i = winner b
 := by {
    have HH : ∀ j, i = j ↔  b j = maxb b:= by {
       have imax : b i = maxb b := by {
          have H1 : b i ≤  maxb b := by
-         {
-            apply Finset.le_sup'
+         {  apply Finset.le_sup'
             simp only [Finset.mem_univ]
          }
          have H2 : maxb b ≤ b i := by
-         {
-            apply Finset.sup'_le
+         {  apply Finset.sup'_le
             intro j _
             by_cases hji : i=j
             . rw [hji]
-            . {
-               have hji' := H j ( by rw [ne_eq] ; exact hji)
+            . {have hji' := H j ( by rw [ne_eq] ; exact hji)
                linarith
             }
          }
@@ -106,13 +90,11 @@ lemma gt_wins (i : a.I) (H: ∀ j , i ≠j →  b i > b j) : i = winner b
       }
       intro j
       constructor
-      . {
-         intro hji
+      . {intro hji
          rw [<-hji]
          exact imax
       }
-      . {
-         intro hbj
+      . {intro hbj
          by_contra hji
          have hji' := H j (by rw [ne_eq];exact hji)
          rw [hbj] at hji'
@@ -121,20 +103,14 @@ lemma gt_wins (i : a.I) (H: ∀ j , i ≠j →  b i > b j) : i = winner b
    }
    rw [HH]
    rw [<-winner_take_max]
-}
+   }
 
-
-
-
-
---the bid of the winner is always greater than or equal to the bids of all other participants.
 lemma b_winner_max (H: i = winner b) : ∀ j: a.I, b i ≥ b j
 := by{
           intro j
 
           have H_max: b (winner b) = maxb b := winner_take_max b
           rw [<-H] at H_max
-          --怎么将 winner_take_max 重写为关于 i 的形式:直接rw反过来
           have H_sup: b j ≤ maxb b
           {
           apply Finset.le_sup'
@@ -142,11 +118,9 @@ lemma b_winner_max (H: i = winner b) : ∀ j: a.I, b i ≥ b j
           }
           rw [<-H_max] at H_sup
           exact H_sup
-           --怎么用这个linarith：不用linarith就行
      }
+--the bid of the winner is always greater than or equal to the bids of all other participants.
 
-
---shows that the bid of the winner is always greater than or equal to the second highest bid.
 lemma b_winner' (H: i = winner b) : b i ≥ B b i := by
 {
    have Hmax := winner_take_max b
@@ -158,9 +132,8 @@ lemma b_winner' (H: i = winner b) : b i ≥ B b i := by
    apply Finset.le_sup'
    simp only [Finset.mem_erase,Finset.mem_univ]
 }
+--shows that the bid of the winner is always greater than or equal to the second highest bid.
 
-
--- the bid of the winner is always greater than or equal to the second highest bid.
 lemma b_winner (H: i = winner b) : b i ≥ secondprice b := by
    {
     have Hmax := winner_take_max b
@@ -173,11 +146,8 @@ lemma b_winner (H: i = winner b) : b i ≥ secondprice b := by
     simp only [Finset.mem_erase,Finset.mem_univ]
 
    }
+-- the bid of the winner is always greater than or equal to the second highest bid.
 
-
--- if i is not the winner, then the highest bid excluding i is equal to the overall highest bid.
---bbi<=maxb b
---maxb b<=bbi
 lemma b_loser_max (H: i ≠  winner b) : B b i = maxb b := by
    {
       have H1 : B b i ≤ maxb b := by
@@ -196,11 +166,13 @@ lemma b_loser_max (H: i ≠  winner b) : B b i = maxb b := by
       }
       linarith
    }
+-- if i is not the winner, then the highest bid excluding i is equal to the overall highest bid.
 
 lemma b_loser' (H: i ≠  winner b) : b i ≤ B b i := by sorry
 
 lemma b_loser (H: i ≠  winner b) : b i ≤ secondprice b := by sorry
 
+--Proof for the two Propositions
 lemma utility_pos (i: a.I) : (b i = a.v i) → utility b i≥0   := by {
    intro H
    by_cases H2 : i = winner b
@@ -226,21 +198,16 @@ lemma utility_pos (i: a.I) : (b i = a.v i) → utility b i≥0   := by {
       rw [if_neg H2]
    }
 }
-
 theorem valuation_is_dominant (i : a.I ) : dominant i (a.v i) := by {
    intro b b' hb hb'
    by_cases H : i = winner b'
    . {
       by_cases H1 : a.v i >  B b' i
       . {
-
-         -- Show that i is also the winner for bidding b
-         -- Show that secondprice b  = secondprice b'
-         -- Show that utility b i = utility b' i
          have h_winner_b : i = winner b := gt_wins b i (λ j hj => by {
          rw[hb]
          rw[hb']
-         --对于所有 j ≠ i，b i = a.v i > b' j = b j
+
          have HBi: B b' i ≥  b' j := by {
             rw [B]
             simp only [Finset.mem_univ, not_true, ge_iff_le, Finset.le_sup'_iff, Finset.mem_erase,
@@ -255,61 +222,29 @@ theorem valuation_is_dominant (i : a.I ) : dominant i (a.v i) := by {
          exact id (Ne.symm hj)
          })
          repeat rw [utility_winner]
-
-         -- Show that secondprice b  = secondprice b'
          have h_secondprice_eq : secondprice b = secondprice b' := by {
             repeat rw [secondprice]
             rw[<-h_winner_b]
             rw[<-H]
             repeat rw [B]
-            apply le_antisymm
-            . {
-             apply Finset.sup'_le
-             intro j
-             intro hj
-             apply Finset.le_sup' _ (Finset.mem_erase_of_ne_of_mem _ (Finset.mem_univ _))
-             by_contra
-             push_neg at h
-             rw [h] at hj
-             exact H hj
-            }
-            . {
-            apply Finset.sup'_le
-            intro j
-            intro hj
-            apply Finset.le_sup' _ (Finset.mem_erase_of_ne_of_mem _ (Finset.mem_univ _))
-            by_contra
-            push_neg at h
-            rw [<-h] at hj
-            exact H hj
-             }
-
-
-         }
-
-         -- show B b i = B b' i
             have secondprice_eq: B b i = B b' i := by {
-               --apply Finset.sup'_eq
                apply le_antisymm
                . {
                   apply Finset.sup'_le
                   intro j
                   intro hj
+                  apply Finset.le_sup'
 
                }
-
                rw [B]
                rw [B]
                simp only [Finset.mem_univ, not_true, ge_iff_le, Finset.le_sup'_iff, Finset.mem_erase,
                  ne_eq, and_true]
-
             }
 
          }
 
       }
-
-
 
    }
    . {
@@ -322,13 +257,4 @@ theorem valuation_is_dominant (i : a.I ) : dominant i (a.v i) := by {
    --}
 }
 
-
 end Auction
-
---什么是lean，什么是mathlib，怎么用mathlib，怎么用lean，什么是type
---什么是structure，什么是instance，什么是lemma，什么是theorem，什么是def，什么是variable
---陈述一个定理，证明一个定理，怎么用mathlib里的定理，怎么用mathlib里的lemma
---关于auction的定义
---关于auction的定理
---关于auction的证明
---主要是presentation skills
