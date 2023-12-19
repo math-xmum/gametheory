@@ -197,9 +197,9 @@ lemma b_loser_max (H: i ≠  winner b) : B b i = maxb b := by
       linarith
    }
 
-lemma b_loser' (H: i ≠  winner b) : b i ≤ B b i := by sorry
+--lemma b_loser' (H: i ≠  winner b) : b i ≤ B b i := by sorry
 
-lemma b_loser (H: i ≠  winner b) : b i ≤ secondprice b := by sorry
+--lemma b_loser (H: i ≠  winner b) : b i ≤ secondprice b := by sorry
 
 lemma utility_nneg (i: a.I) : (b i = a.v i) → utility b i≥0   := by {
    intro H
