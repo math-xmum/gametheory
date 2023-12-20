@@ -376,11 +376,12 @@ lemma le_iff_simplex_le {f : I → ℝ} {v : ℝ}: (∀ i:I , f i ≤  v) ↔ �
 
 lemma wsum_wsum_comm {A : I→J→ ℝ }: wsum xx (fun i => wsum yy (A i)) = wsum yy (fun j => wsum xx (fun i => A i j)) := by {
   repeat simp_rw [wsum,Finset.mul_sum]
-  have : (fun (i:I) (j:J) => (xx i:ℝ) * ((yy j:ℝ) * (A i j))) = (fun (i:I) (j: J)=> (yy j:ℝ ) * ((xx i:ℝ)  * (A i j))) := by {
-    ext i j
-    ring
-  }
-  sorry
+  rw [Finset.sum_comm]
+  apply Finset.sum_congr rfl
+  intro i _
+  apply Finset.sum_congr rfl
+  intro j _
+  ring
 }
 
 
