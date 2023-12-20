@@ -1,17 +1,17 @@
 import Lake
 open Lake DSL
 
-package «zerosum» {
+package «GameTheory» {
   -- add package configuration options here
 }
 
-lean_lib «Zerosum» {
+lean_lib «GameTheory» {
 
   -- add library configuration options here
 }
 
 @[default_target]
-lean_exe «zerosum» {
+lean_exe «Game» {
   root := `Main
 }
 
