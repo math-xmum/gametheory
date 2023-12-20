@@ -5,6 +5,8 @@ import Mathlib.Algebra.BigOperators.Basic
 import Mathlib.Topology.Algebra.Order.Compact
 import Mathlib.Topology.MetricSpace.Basic
 
+import GameTheory.Simplex
+
 open Classical
 
 /-
@@ -59,111 +61,6 @@ def guarantees2 (w : ℝ) := ∃ j: J, ∀ i : I , (A i j) ≤ w
 
 end zerosumGame
 
-section S
-variable (α : Type*) [Fintype α]
-
-def S := { x : α→ NNReal // Finset.sum Finset.univ x = 1}
-
-instance coe_fun : CoeFun (S α) fun _ => α → NNReal :=
-  ⟨fun x => (x.val : α → NNReal)⟩
-
-lemma sum_one (x : S α) : Finset.sum Finset.univ x = 1
-:= x.prop
-
-lemma exists_nonzero {α : Type* } [Fintype α]  (x: S α) : ∃ i, x i > 0 := by {
-  by_contra h
-  simp only [gt_iff_lt, not_exists, not_lt, nonpos_iff_eq_zero] at h
-  have : Finset.sum Finset.univ x = 0 := by {
-    apply Finset.sum_eq_zero
-    intros i _
-    exact h i
-  }
-  rw  [sum_one α x] at this
-  exact one_ne_zero this
-}
-
-@[simp]
-noncomputable def pure (i : α) : S α  := ⟨ fun j => if i=j then 1 else 0,
- by {simp only [Finset.sum_ite_eq, Finset.mem_univ, ite_true]}⟩
-
---weighted sum
-noncomputable def wsum {α : Type*} [Fintype α] (x : S α) (f : α → ℝ ) := Finset.sum Finset.univ (fun i:α => (x i) * (f i))
-
-lemma sum_pos {α : Type*} [Fintype α] {x : S α} {f : α → ℝ } (H : ∀ i, f i >0) : wsum x f > 0:= by {
-  -- q: what is sum_pos
-  have h' : ∀ i, (x i : ℝ) * (f i : ℝ) ≥  0 := by{
-    intro i ; exact mul_nonneg (NNReal.zero_le_coe) (le_of_lt (H i))
-  }
-  simp only [wsum];
-  let ⟨j, Hjj⟩ := exists_nonzero x;
-  have h'' : (x j : ℝ) * (f j : ℝ) > 0 := by {exact mul_pos (Hjj) (H j)}
-  have H'' : (Finset.sum (Finset.univ \ {j}) fun i => (x i) * f i) + (Finset.sum {j} fun i => (x i) * f i)
-      = (Finset.sum Finset.univ fun i => (x i) * f i) := by {
-    apply Finset.sum_sdiff
-    simp only [Finset.subset_univ]
-  }
-  rw [<-H'',add_comm]
-  apply add_pos_of_pos_of_nonneg
-  rw [Finset.sum_singleton]
-  exact h''
-  apply Finset.sum_nonneg
-  simp only [Finset.mem_univ, not_true, Finset.mem_sdiff, Finset.mem_singleton, true_and, gt_iff_lt,
-    NNReal.coe_pos]
-  intro i _
-  exact h' i
-}
-
-def linear_comb {α : outParam Type*} [Fintype α] (t: {t : NNReal // t≤ 1}) (a : S α) (b : S α) : S α :=
-  ⟨ fun i => ⟨t * a i + (1-t) * (b i), (by
-  { apply add_nonneg; apply mul_nonneg
-    simp[NNReal.coe_nat_cast]
-    simp[NNReal.coe_nat_cast]
-    apply mul_nonneg
-    simp only [sub_nonneg]
-    exact t.prop
-    simp
-    })⟩,
-    by {
-      let f : α → Real  := fun i => (t :ℝ) * (a i :ℝ)
-      have sumf : Finset.sum Finset.univ f = t := by {
-        rw [<-Finset.mul_sum]
-        norm_cast
-        simp [sum_one]
-      }
-      let g : α → Real  := fun i => (1 -(t: ℝ)) * (b i :ℝ)
-      have sumg : Finset.sum Finset.univ g = 1-t := by {
-        rw [<-Finset.mul_sum]
-        norm_cast
-        simp [sum_one]
-      }
-      ext
-      rw [NNReal.coe_sum]
-      simp only [NNReal.coe_mk, NNReal.coe_one]
-      have fg_eq :  (fun i : α  =>(f i + g i) )= fun i => t * a i + (1 -(t: ℝ)) * (b i :ℝ) := by {
-        ext
-        dsimp
-      }
-      rw [<-fg_eq]
-      rw [Finset.sum_add_distrib]
-      rw [sumf,sumg]
-      simp only [add_sub_cancel'_right]
-    }
-  ⟩
-
-
-instance metricS {α : Type*} [Fintype α] : MetricSpace (S α) := MetricSpace.induced (fun x => x.val)
-   (by {rw [Function.Injective]; exact fun a1 a2 h1 => Subtype.ext_iff.2 h1})
-   (metricSpacePi)
-
-instance Simplex_compact {α : Type*} [Fintype α] [Inhabited α]: CompactSpace (S α) := by sorry
--- Use Metric.compactSpace_iff_isBounded_univ
-
-#check Metric.compactSpace_iff_isBounded_univ
-
-
--- Use IsCompact.exists_sSup_image_eq_and_ge
-
-end S
 
 namespace zerosumFGame
 
@@ -183,7 +80,7 @@ lemma sum_pure [Fintype I] {f: I→ℝ} {a:I} :
   by {
     have : f a= (pure I a a).toReal * f a := by simp [_root_.pure,ite_true, ENNReal.one_toReal, one_mul]
     rw [this]
-    apply Finset.sum_eq_single --_ I _ Finset.univ _ a (sorry) (sorry)
+    apply Finset.sum_eq_single
     . {
       intro b _ h3
       simp only [_root_.pure, mul_eq_zero, NNReal.coe_eq_zero, ite_eq_right_iff, one_ne_zero]
@@ -195,6 +92,8 @@ lemma sum_pure [Fintype I] {f: I→ℝ} {a:I} :
     }
   }
 
+lemma wsum_pure [Fintype I] {f: I→ℝ} {a:I} :
+  wsum (pure I a) f = f a := by rw [wsum,sum_pure]
 
 lemma simplex_ge_iff_vertex_ge [Fintype I] {f : I → ℝ } {v : ℝ} :
    (∀ x : S I,   Finset.sum Finset.univ (fun i : I => (x i).toReal * f i)≥ v)
@@ -212,7 +111,7 @@ lemma simplex_ge_iff_vertex_ge [Fintype I] {f : I → ℝ } {v : ℝ} :
     calc
       v = Finset.sum Finset.univ (fun i : I => (x i).toReal * v) := by {
         rw [<-Finset.sum_mul]
-        norm_cast; rw [sum_one]
+        norm_cast; rw [S.sum_one]
         norm_cast; rw [one_mul]
       }
       _ ≤ Finset.sum Finset.univ (fun i : I => (x i).toReal * f i) :=
@@ -228,7 +127,7 @@ lemma simplex_ge_iff_vertex_ge [Fintype I] {f : I → ℝ } {v : ℝ} :
 
 
 -- expactation of the payoff of a mixed stratage
-noncomputable def E (A : I →J →ℝ) (x : S I) (y : S J) : ℝ := wsum x (fun i => wsum y (A i))
+noncomputable def E (A : I → J → ℝ) (x : S I) (y : S J) : ℝ := wsum x (fun i => wsum y (A i))
 
 -- One may need Finset.sum_comm' Finset.sum_mul
 
@@ -401,26 +300,109 @@ end Loomis
 
 
 
-/-
 
-section minmax
-theorem minmax_theorem : ∃ (xx : S I) (yy : S J) (v : ℝ), (∀ (y : S J), E A xx y ≥ v ) ∧ (∀ (x : S I), E A x yy ≤ v)  := by {
-  let B : I → J → ℝ  := fun i => fun j => 1
-  obtain ⟨xx, yy, v, H1, H2⟩ := Loomis A B (by {intro i j; simp only [gt_iff_lt, zero_lt_one]})
-  use xx,  yy, v
-  constructor
-  . {
-    -- rw [E_eq1]
-    -- rw [simplex_ge_iff_vertex_ge]
-    sorry
-  }
-  . {
-    --rw [E_eq1]
-  sorry
-  }
+namespace zerosumFGame
+variable {I J : Type*} [Inhabited I] [Inhabited J] [Fintype I] [Fintype J]
 
+#check E
+#check Loomis
+
+def one_matrix (_ : I )  (_ : J):  ℝ := 1
+
+
+def one_xx_eq_one {j: J } {xx : S I}: wsum xx (fun i => one_matrix i j) = 1 := by {
+  simp only [wsum,one_matrix,mul_one]
+  norm_cast
+  simp only [S.sum_one]
 }
 
-end minmax
+def one_yy_eq_one {i: I } {yy : S J}: wsum yy (one_matrix i) = 1 := by {
+  simp only [wsum,one_matrix,mul_one]
+  norm_cast
+  simp only [S.sum_one]
+}
 
--/
+lemma ge_iff_simplex_ge {f : I → ℝ} {v : ℝ}: (∀ i:I , f i ≥ v) ↔ ∀ x : S I, (wsum x f) ≥ v := by {
+  constructor
+  . {
+    intro hi x
+    rw [wsum,ge_iff_le]
+    calc
+      v = Finset.sum Finset.univ fun i => x i * v := by {
+        simp only [<-Finset.sum_mul]
+        norm_cast
+        simp only [S.sum_one, NNReal.coe_one, one_mul]
+      }
+      _ ≤ _ := by {
+        apply Finset.sum_le_sum
+        intro i _
+        apply mul_le_mul_of_nonneg_left (ge_iff_le.1 (hi i)) (by simp)
+      }
+  }
+  . {
+    intro HI i
+    have := HI (pure I i)
+    rw [wsum_pure] at this
+    exact this
+  }
+}
+
+lemma le_iff_simplex_le {f : I → ℝ} {v : ℝ}: (∀ i:I , f i ≤  v) ↔ ∀ x : S I, (wsum x f) ≤  v := by {
+  constructor
+  . {
+    intro hi x
+    rw [wsum,<-ge_iff_le]
+    calc
+      v = Finset.sum Finset.univ fun i => x i * v := by {
+        simp only [<-Finset.sum_mul]
+        norm_cast
+        simp only [S.sum_one, NNReal.coe_one, one_mul]
+      }
+      _ ≥   _ := by {
+        apply Finset.sum_le_sum
+        intro i _
+        apply mul_le_mul_of_nonneg_left (ge_iff_le.1 (hi i)) (by simp)
+      }
+  }
+  . {
+    intro HI i
+    have := HI (pure I i)
+    rw [wsum_pure] at this
+    exact this
+  }
+}
+
+
+
+lemma wsum_wsum_comm {A : I→J→ ℝ }: wsum xx (fun i => wsum yy (A i)) = wsum yy (fun j => wsum xx (fun i => A i j)) := by {
+  repeat simp_rw [wsum,Finset.mul_sum]
+  have : (fun (i:I) (j:J) => (xx i:ℝ) * ((yy j:ℝ) * (A i j))) = (fun (i:I) (j: J)=> (yy j:ℝ ) * ((xx i:ℝ)  * (A i j))) := by {
+    ext i j
+    ring
+  }
+  sorry
+}
+
+
+theorem minmax_theorem : ∃ (xx : S I) (yy : S J) (v : ℝ),
+  (∀ (y : S J), (E A xx y) ≥ v ) ∧ ( ∀ (x : S I), E A x yy ≤ v)  := by {
+    let B := @one_matrix I J
+    obtain ⟨v, ⟨xx, H1⟩ ,⟨yy, H2⟩⟩   := Loomis A B (by {
+        intro _ _; simp only [one_matrix,gt_iff_lt, zero_lt_one]})
+    use xx, yy, v
+    constructor
+    . {
+      simp_rw [one_xx_eq_one,mul_one] at H1
+      intro y
+      rw [E,wsum_wsum_comm]
+      apply (ge_iff_simplex_ge).1 H1
+    }
+    . {
+      simp_rw [one_yy_eq_one,mul_one] at H2
+      intro xx
+      rw [E]
+      apply (le_iff_simplex_le).1 H2
+    }
+}
+
+end zerosumFGame
