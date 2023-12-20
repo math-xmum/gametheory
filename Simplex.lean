@@ -22,8 +22,12 @@ def S := { x : α→ NNReal // Finset.sum Finset.univ x = 1}
 instance S.coe_fun : CoeFun (S α) fun _ => α → NNReal :=
   ⟨fun x => (x.val : α → NNReal)⟩
 
-lemma sum_one (x : S α) : Finset.sum Finset.univ x = 1
+lemma S.non_neg {i : α } {x : S α} : 0 ≤  x i := by simp only [zero_le]
+
+lemma S.sum_one (x : S α) : Finset.sum Finset.univ x = 1
 := x.prop
+
+
 
 lemma exists_nonzero {α : Type* } [Fintype α]  (x: S α) : ∃ i, x i > 0 := by {
   by_contra h
@@ -33,7 +37,7 @@ lemma exists_nonzero {α : Type* } [Fintype α]  (x: S α) : ∃ i, x i > 0 := b
     intros i _
     exact h i
   }
-  rw  [sum_one α x] at this
+  rw  [S.sum_one α x] at this
   exact one_ne_zero this
 }
 
@@ -83,13 +87,13 @@ def linear_comb {α : outParam Type*} [Fintype α] (t: {t : NNReal // t≤ 1}) (
       have sumf : Finset.sum Finset.univ f = t := by {
         rw [<-Finset.mul_sum]
         norm_cast
-        simp [sum_one]
+        simp [S.sum_one]
       }
       let g : α → Real  := fun i => (1 -(t: ℝ)) * (b i :ℝ)
       have sumg : Finset.sum Finset.univ g = 1-t := by {
         rw [<-Finset.mul_sum]
         norm_cast
-        simp [sum_one]
+        simp [S.sum_one]
       }
       ext
       rw [NNReal.coe_sum]
@@ -118,7 +122,6 @@ instance metricS {α : Type*} [Fintype α] : MetricSpace (S α) := MetricSpace.i
 -- Use IsCompact.exists_sSup_image_eq_and_ge
 
 end S
-
 
 variable (α : Type*) [Fintype α]
 
@@ -336,4 +339,3 @@ instance Simplex.CompactSpace [Inhabited α]: CompactSpace (S α) := by {
 }
 
 end S'
- 
