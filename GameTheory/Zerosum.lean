@@ -136,24 +136,39 @@ open S
 
 variable (n : ℕ) {I J: Type*} [Inhabited I] [Inhabited J] [Fintype I] [Fintype J]
 
+@[simp]
+def isPositive (B: I→ J→ℝ ) := ∀ i j, 0 < B i j
+
+lemma wsum_pos_I {B : I→ J → ℝ } (PB : isPositive B) : 0 < wsum x (fun i => B i j) := by {
+  apply wsum_pos; simp at PB;simp [PB] }
+
+lemma wsum_pos_J {B : I→ J → ℝ } (PB : isPositive B) : 0 < wsum x (B i) := by {
+  apply wsum_pos; simp at PB;simp [PB]}
+
 lemma nonempty (α : Type*) [Inhabited α] [Fintype α ]: Finset.Nonempty (@Finset.univ α  _)  := by {
   use Inhabited.default
   simp only [Finset.mem_univ]
 }
 
 
+
 noncomputable def lam.aux (A B : I →J → ℝ ) (x : S I) :=
   Finset.inf' Finset.univ (nonempty J) (fun j =>
    wsum x (fun i => A i j ) / wsum x (fun i => B i j))
 
+
+
 noncomputable def lam0 (A B : I →J → ℝ ):=  iSup (lam.aux A B)
 
 
-noncomputable def mu.aux (A B : I →J → ℝ ) (y : S J) :=  Finset.sup' Finset.univ (nonempty  I) (fun i => wsum y (fun j => A i j ) / wsum y (fun j => B i j) )
+noncomputable def mu.aux (A B : I →J → ℝ ) (y : S J) :=
+  Finset.sup' Finset.univ (nonempty  I) (fun i =>
+    wsum y (fun j => A i j ) / wsum y (fun j => B i j) )
 
 noncomputable def mu0 (A B : I →J → ℝ ):=  iInf (mu.aux A B)
 
-lemma exits_xx_lam0 (A B : I →J → ℝ ) (PB : ∀ i:I, ∀ j:J,  B i j > 0 ) : ∃ (xx : S I), ∀ j, (wsum xx (fun i => A i j)) / (wsum xx (fun i => B i j))≥  lam0 A B  := by sorry
+lemma exits_xx_lam0 (A B : I →J → ℝ ) (PB : isPositive B) :
+   ∃ (xx : S I), ∀ j, (wsum xx (fun i => A i j)) / (wsum xx (fun i => B i j))≥  lam0 A B  := by sorry
 
 
 lemma exits_xx_lam0' (A B : I →J → ℝ ) (PB : ∀ i:I, ∀ j:J,  B i j > 0 ) : ∃ (xx : S I), ∀ j, (wsum xx (fun i => A i j))≥  lam0 A B *  (wsum xx (fun i => B i j)) := by sorry

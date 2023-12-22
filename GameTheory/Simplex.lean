@@ -14,7 +14,6 @@ open Classical
 We use S to denote a mixed stratage
 -/
 
-
 variable (α : Type*) [Fintype α]
 
 def S := { x : α→ ℝ // (∀ i:α, 0 ≤ x i)  ∧  Finset.sum Finset.univ x = 1}
@@ -72,8 +71,7 @@ lemma pure_eq_zero {a b : α}: a ≠ b → pure a b = 0 := by {
 
 noncomputable def wsum {α : Type*} [Fintype α] (x : S α) (f : α → ℝ ) := Finset.sum Finset.univ (fun i:α => (x i) * (f i))
 
-lemma sum_pos {α : Type*} [Fintype α] {x : S α} {f : α → ℝ } (H : ∀ i, f i >0) : wsum x f > 0:= by {
-  -- q: what is sum_pos
+lemma wsum_pos {α : Type*} [Fintype α] {x : S α} {f : α → ℝ } (H : ∀ i, f i >0) : wsum x f > 0:= by {
   have h' : ∀ i, (x i : ℝ) * (f i : ℝ) ≥  0 := by{
     intro i ; exact mul_nonneg (by simp [S.non_neg]) (le_of_lt (H i))
   }
