@@ -5,7 +5,7 @@ import Mathlib.Algebra.BigOperators.Basic
 import Mathlib.Topology.Algebra.Order.Compact
 import Mathlib.Topology.MetricSpace.Basic
 
-import GameTheory.Simplex
+import GameTheory.Simplex1
 
 open Classical
 
@@ -62,10 +62,7 @@ def guarantees2 (w : ℝ) := ∃ j: J, ∀ i : I , (A i j) ≤ w
 end zerosumGame
 
 
-
 namespace zerosumFGame
-
-open S
 
 variable {I J : Type*}  [Inhabited I] [Inhabited J] [Fintype I] [Fintype J]
 variable (A : I → J → ℝ )
@@ -79,15 +76,15 @@ def sumyC (i:I) (y : S J) (C : I →J → ℝ ) := Finset.sum  Finset.univ (fun 
 
 
 lemma sum_pure [Fintype I] {f: I→ℝ} {a:I} :
-  Finset.sum Finset.univ (fun i => (S.pure a i) * f i) = f a :=
+  Finset.sum Finset.univ (fun i => (pure I a i) * f i) = f a :=
   by {
-    have : f a= (S.pure a a) * f a := by simp [ite_true, ENNReal.one_toReal, one_mul]
+    have : f a= (pure I a a).toReal * f a := by simp [_root_.pure,ite_true, ENNReal.one_toReal, one_mul]
     rw [this]
     apply Finset.sum_eq_single
     . {
       intro b _ h3
-      simp only [S.pure, ite_mul, one_mul, zero_mul, ite_eq_right_iff,S.pure_eq_zero (Ne.symm h3)]
-      simp only [Ne.symm h3, IsEmpty.forall_iff]
+      simp only [_root_.pure, mul_eq_zero, NNReal.coe_eq_zero, ite_eq_right_iff, one_ne_zero]
+      exact Or.inl (fun x => h3 (symm x))
     }
     . {
     intro h1
@@ -96,15 +93,15 @@ lemma sum_pure [Fintype I] {f: I→ℝ} {a:I} :
   }
 
 lemma wsum_pure [Fintype I] {f: I→ℝ} {a:I} :
-  wsum (S.pure a) f = f a := by rw [wsum,sum_pure]
+  wsum (pure I a) f = f a := by rw [wsum,sum_pure]
 
 lemma simplex_ge_iff_vertex_ge [Fintype I] {f : I → ℝ } {v : ℝ} :
-   (∀ x : S I,   Finset.sum Finset.univ (fun i : I => (x i) * f i)≥ v)
+   (∀ x : S I,   Finset.sum Finset.univ (fun i : I => (x i).toReal * f i)≥ v)
     ↔ (∀ i : I, f i ≥ v):= by {
   constructor
   . {
     intro H i
-    have := H (S.pure i)
+    have := H (pure I i)
     rw [sum_pure] at this
     exact this
   }
@@ -112,27 +109,46 @@ lemma simplex_ge_iff_vertex_ge [Fintype I] {f : I → ℝ } {v : ℝ} :
     intro H x
     simp only [ge_iff_le]
     calc
-      v = Finset.sum Finset.univ (fun i : I => (x i) * v) := by {
+      v = Finset.sum Finset.univ (fun i : I => (x i).toReal * v) := by {
         rw [<-Finset.sum_mul]
         norm_cast; rw [S.sum_one]
         norm_cast; rw [one_mul]
       }
-      _ ≤ Finset.sum Finset.univ (fun i : I => (x i) * f i) :=
+      _ ≤ Finset.sum Finset.univ (fun i : I => (x i).toReal * f i) :=
       Finset.sum_le_sum (by {
         intro i
         simp only [Finset.mem_univ, gt_iff_lt, forall_true_left]
         rw [<-sub_nonneg,<-mul_sub]
-        exact mul_nonneg (S.non_neg) (sub_nonneg.2 (H i))
+        exact mul_nonneg (NNReal.zero_le_coe) (sub_nonneg.2 (H i))
       })
   }
  }
 
+
+
+-- expactation of the payoff of a mixed stratage
 noncomputable def E (A : I → J → ℝ) (x : S I) (y : S J) : ℝ := wsum x (fun i => wsum y (A i))
+
+-- One may need Finset.sum_comm' Finset.sum_mul
+
+-- lemma E_eq1
+
+/-
+lemma E_eq1 {x : PMF I} {y : PMF J} : Finset.sum (@Finset.univ _ A.FI)
+( fun (i : I ) => Finset.sum (@Finset.univ _ A.FJ) (fun (j : J) => (x i).toReal * (A i j) * ((y j).toReal) )) = Finset.sum (@Finset.univ _ A.FI)
+( fun (i : I ) =>(x i).toReal * Finset.sum (@Finset.univ _ A.FJ) (fun (j : J) => (A i j) * ((y j).toReal) )) := by {
+  sorry
+}
+-/
+
+-- invoke exterem value theorem is_compact.exists_forall_le
+
+
+-- def lam0
 
 end zerosumFGame
 
 section Loomis
-open S
 
 variable (n : ℕ) {I J: Type*} [Inhabited I] [Inhabited J] [Fintype I] [Fintype J]
 
@@ -198,10 +214,10 @@ theorem Loomis' (Hgt : 2 ≤ n) (Hn: n=Fintype.card I + Fintype.card J) (A : I �
         use v
         constructor
         . {
-          use S.pure i0
+          use pure I i0
           intro j
           have HJ := hj0 j
-          simp_rw [wsum, HJ, UI,Finset.sum_singleton,S.pure_eq_one,one_mul, ge_iff_le]
+          simp_rw [wsum, HJ, UI,Finset.sum_singleton, _root_.pure, ite_true, NNReal.coe_one, one_mul, ge_iff_le]
           have :=PB i0 j0
           calc
            A i0 j0 / B i0 j0 * B i0 j0 = A i0 j0 := by {
@@ -248,7 +264,7 @@ theorem Loomis' (Hgt : 2 ≤ n) (Hn: n=Fintype.card I + Fintype.card J) (A : I �
             obtain ⟨v',⟨xx',hxx'⟩, ⟨ yy',hyy'⟩ ⟩ := @IH I J' _ (inhabited_J') _ _ cardn A' B' posB'
             have lam0_lt_v' : lam0 A B < v' := by {sorry}
             exfalso
-            have prop_st :∃ t : {t:ℝ // 0≤ t ∧ t≤1},  lam.aux A B (linear_comb t xx xx') > lam0 A B := by sorry
+            have prop_st :∃ t : {t: NNReal // t≤1},  lam.aux A B (linear_comb t xx xx') > lam0 A B := by sorry
             obtain ⟨t, Hst⟩ := prop_st
             -- ℝ is not a complete lattice,
             --iSup may not exits le_iSup' (lam.aux A B)  (linear_comb t xx xx')
@@ -286,10 +302,7 @@ end Loomis
 
 
 namespace zerosumFGame
-open S
 variable {I J : Type*} [Inhabited I] [Inhabited J] [Fintype I] [Fintype J]
-
-
 
 #check E
 #check Loomis
@@ -303,7 +316,7 @@ def one_xx_eq_one {j: J } {xx : S I}: wsum xx (fun i => one_matrix i j) = 1 := b
   simp only [S.sum_one]
 }
 
-def one_yy_eq_one {i: I } {yy : S J}: S.wsum yy (one_matrix i) = 1 := by {
+def one_yy_eq_one {i: I } {yy : S J}: wsum yy (one_matrix i) = 1 := by {
   simp only [wsum,one_matrix,mul_one]
   norm_cast
   simp only [S.sum_one]
@@ -323,12 +336,12 @@ lemma ge_iff_simplex_ge {f : I → ℝ} {v : ℝ}: (∀ i:I , f i ≥ v) ↔ ∀
       _ ≤ _ := by {
         apply Finset.sum_le_sum
         intro i _
-        apply mul_le_mul_of_nonneg_left (ge_iff_le.1 (hi i)) (non_neg)
+        apply mul_le_mul_of_nonneg_left (ge_iff_le.1 (hi i)) (by simp)
       }
   }
   . {
     intro HI i
-    have := HI (pure i)
+    have := HI (pure I i)
     rw [wsum_pure] at this
     exact this
   }
@@ -348,12 +361,12 @@ lemma le_iff_simplex_le {f : I → ℝ} {v : ℝ}: (∀ i:I , f i ≤  v) ↔ �
       _ ≥   _ := by {
         apply Finset.sum_le_sum
         intro i _
-        apply mul_le_mul_of_nonneg_left (ge_iff_le.1 (hi i)) (non_neg)
+        apply mul_le_mul_of_nonneg_left (ge_iff_le.1 (hi i)) (by simp)
       }
   }
   . {
     intro HI i
-    have := HI (pure i)
+    have := HI (pure I i)
     rw [wsum_pure] at this
     exact this
   }
