@@ -386,7 +386,6 @@ lemma wsum_wsum_comm {A : I→J→ ℝ }: wsum xx (fun i => wsum yy (A i)) = wsu
   ring
 }
 
-
 theorem minmax_theorem : ∃ (xx : S I) (yy : S J) (v : ℝ),
   (∀ (y : S J), (E A xx y) ≥ v ) ∧ ( ∀ (x : S I), E A x yy ≤ v)  := by {
     let B := @one_matrix I J
