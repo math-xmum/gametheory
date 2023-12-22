@@ -14,20 +14,25 @@ open Classical
 We use S to denote a mixed stratage
 -/
 
-section S
+
 variable (α : Type*) [Fintype α]
 
-def S := { x : α→ NNReal // Finset.sum Finset.univ x = 1}
+def S := { x : α→ ℝ // (∀ i:α, 0 ≤ x i)  ∧  Finset.sum Finset.univ x = 1}
+def S'' := {x :α → ℝ  | (∀ i:α, 0 ≤ x i)  ∧  (Finset.sum (Finset.univ) x = 1)}
 
-instance S.coe_fun : CoeFun (S α) fun _ => α → NNReal :=
-  ⟨fun x => (x.val : α → NNReal)⟩
+namespace S
 
-lemma S.non_neg {i : α } {x : S α} : 0 ≤  x i := by simp only [zero_le]
+variable {α : Type*} [Fintype α]
 
-lemma S.sum_one (x : S α) : Finset.sum Finset.univ x = 1
-:= x.prop
+lemma subset_subtype: S α =  ↑(S'' α):= rfl
 
+instance coe_fun : CoeFun (S α) fun _ => α → ℝ :=
+  ⟨fun x => (x.val : α → ℝ )⟩
 
+lemma non_neg {i : α } {x : S α} : 0 ≤  x i := x.prop.1 i
+
+lemma sum_one (x : S α) : Finset.sum Finset.univ x = 1
+:= x.prop.2
 
 lemma exists_nonzero {α : Type* } [Fintype α]  (x: S α) : ∃ i, x i > 0 := by {
   by_contra h
@@ -35,23 +40,42 @@ lemma exists_nonzero {α : Type* } [Fintype α]  (x: S α) : ∃ i, x i > 0 := b
   have : Finset.sum Finset.univ x = 0 := by {
     apply Finset.sum_eq_zero
     intros i _
-    exact h i
+    have : 0 ≤ x i  := by apply non_neg
+    have : x i ≤ 0 := h i
+    linarith
   }
-  rw  [S.sum_one α x] at this
-  exact one_ne_zero this
+  simp only  [sum_one,one_ne_zero] at this
 }
 
-@[simp]
-noncomputable def pure (i : α) : S α  := ⟨ fun j => if i=j then 1 else 0,
- by {simp only [Finset.sum_ite_eq, Finset.mem_univ, ite_true]}⟩
 
---weighted sum
+@[simp]
+noncomputable def pure (i : α) : S α  := ⟨fun j => if i=j then 1 else 0,
+ by {
+  constructor
+  . {
+    intro j
+    by_cases H: i=j
+    repeat simp [H]
+  }
+  . simp only [Finset.sum_ite_eq, Finset.mem_univ, ite_true]
+  }⟩
+
+lemma pure_eq_one {a b : α}: a = b → pure a b = 1 := by {
+  intro h
+  simp only [pure, ite_eq_left_iff, zero_ne_one,h]
+}
+
+lemma pure_eq_zero {a b : α}: a ≠ b → pure a b = 0 := by {
+  intro h
+  simp only [pure, ite_eq_right_iff,h]
+}
+
 noncomputable def wsum {α : Type*} [Fintype α] (x : S α) (f : α → ℝ ) := Finset.sum Finset.univ (fun i:α => (x i) * (f i))
 
 lemma sum_pos {α : Type*} [Fintype α] {x : S α} {f : α → ℝ } (H : ∀ i, f i >0) : wsum x f > 0:= by {
   -- q: what is sum_pos
   have h' : ∀ i, (x i : ℝ) * (f i : ℝ) ≥  0 := by{
-    intro i ; exact mul_nonneg (NNReal.zero_le_coe) (le_of_lt (H i))
+    intro i ; exact mul_nonneg (by simp [S.non_neg]) (le_of_lt (H i))
   }
   simp only [wsum];
   let ⟨j, Hjj⟩ := exists_nonzero x;
@@ -72,157 +96,37 @@ lemma sum_pos {α : Type*} [Fintype α] {x : S α} {f : α → ℝ } (H : ∀ i,
   exact h' i
 }
 
-def linear_comb {α : outParam Type*} [Fintype α] (t: {t : NNReal // t≤ 1}) (a : S α) (b : S α) : S α :=
-  ⟨ fun i => ⟨t * a i + (1-t) * (b i), (by
-  { apply add_nonneg; apply mul_nonneg
-    simp[NNReal.coe_nat_cast]
-    simp[NNReal.coe_nat_cast]
+def linear_comb {α : outParam Type*} [Fintype α] (t: {t :ℝ // 0≤ t ∧  t≤ 1}) (a : S α) (b : S α) : S α := ⟨fun i => (t * (a i) + (1-t) * (b i)), by {
+  constructor
+  . {
+    intro i
+    apply add_nonneg; apply mul_nonneg
+    simp [t.prop.1]
+    simp [S.non_neg]
     apply mul_nonneg
-    simp only [sub_nonneg]
-    exact t.prop
-    simp
-    })⟩,
-    by {
-      let f : α → Real  := fun i => (t :ℝ) * (a i :ℝ)
+    simp [t.prop.2]
+    simp [S.non_neg]
+  }
+  . {
+      let f : α → ℝ := fun i => (t :ℝ) * (a i :ℝ)
       have sumf : Finset.sum Finset.univ f = t := by {
         rw [<-Finset.mul_sum]
-        norm_cast
         simp [S.sum_one]
       }
       let g : α → Real  := fun i => (1 -(t: ℝ)) * (b i :ℝ)
       have sumg : Finset.sum Finset.univ g = 1-t := by {
         rw [<-Finset.mul_sum]
-        norm_cast
         simp [S.sum_one]
       }
-      ext
-      rw [NNReal.coe_sum]
-      simp only [NNReal.coe_mk, NNReal.coe_one]
-      have fg_eq :  (fun i : α  =>(f i + g i) )= fun i => t * a i + (1 -(t: ℝ)) * (b i :ℝ) := by {
-        ext
-        dsimp
-      }
+      have fg_eq :  (fun i : α  =>(f i + g i) )= fun i => t * a i + (1 -(t: ℝ)) * (b i :ℝ) := by dsimp
       rw [<-fg_eq]
       rw [Finset.sum_add_distrib]
       rw [sumf,sumg]
       simp only [add_sub_cancel'_right]
-    }
-  ⟩
+    }}⟩
 
 
-instance metricS {α : Type*} [Fintype α] : MetricSpace (S α) := MetricSpace.induced (fun x => x.val)
-   (by {rw [Function.Injective]; exact fun a1 a2 h1 => Subtype.ext_iff.2 h1})
-   (metricSpacePi)
-
--- Use Metric.compactSpace_iff_isBounded_univ
-
---#check Metric.compactSpace_iff_isBounded_univ
-
-
--- Use IsCompact.exists_sSup_image_eq_and_ge
-
-end S
-
-variable (α : Type*) [Fintype α]
-
-def S' := { x : α→ ℝ // (∀ i:α, 0 ≤ x i)  ∧  Finset.sum Finset.univ x = 1}
-def S'' := {x :α → ℝ  | (∀ i:α, 0 ≤ x i)  ∧  (Finset.sum (Finset.univ) x = 1)}
-
-namespace S'
-
-variable {α : Type*} [Fintype α]
-
-lemma subset_subtype: S' α =  ↑(S'' α):= rfl
-
-instance coe_fun : CoeFun (S' α) fun _ => α → ℝ :=
-  ⟨fun x => (x.val : α → ℝ )⟩
-
-lemma non_neg {i : α } {x : S' α} : 0 ≤  x i := x.prop.1 i
-
-lemma sum_one (x : S' α) : Finset.sum Finset.univ x = 1
-:= x.prop.2
-
-lemma exists_nonzero {α : Type* } [Fintype α]  (x: S' α) : ∃ i, x i > 0 := by {
-  by_contra h
-  simp only [gt_iff_lt, not_exists, not_lt, nonpos_iff_eq_zero] at h
-  have : Finset.sum Finset.univ x = 0 := by {
-    apply Finset.sum_eq_zero
-    intros i _
-    have : 0 ≤ x i  := non_neg
-    have : x i ≤ 0 := h i
-    linarith
-  }
-  rw  [sum_one x] at this
-  exact one_ne_zero this
-}
-
-
---weighted sum
-noncomputable def wsum {α : Type*} [Fintype α] (x : S' α) (f : α → ℝ ) := Finset.sum Finset.univ (fun i:α => (x i) * (f i))
-
-lemma sum_pos {α : Type*} [Fintype α] {x : S' α} {f : α → ℝ } (H : ∀ i, f i >0) : wsum x f > 0:= by {
-  -- q: what is sum_pos
-  have h' : ∀ i, (x i : ℝ) * (f i : ℝ) ≥  0 := by{
-    intro i ; exact mul_nonneg (non_neg) (le_of_lt (H i))
-  }
-  simp only [wsum];
-  let ⟨j, Hjj⟩ := exists_nonzero x;
-  have h'' : (x j : ℝ) * (f j : ℝ) > 0 := by {exact mul_pos (Hjj) (H j)}
-  have H'' : (Finset.sum (Finset.univ \ {j}) fun i => (x i) * f i) + (Finset.sum {j} fun i => (x i) * f i)
-      = (Finset.sum Finset.univ fun i => (x i) * f i) := by {
-    apply Finset.sum_sdiff
-    simp only [Finset.subset_univ]
-  }
-  rw [<-H'',add_comm]
-  apply add_pos_of_pos_of_nonneg
-  rw [Finset.sum_singleton]
-  exact h''
-  apply Finset.sum_nonneg
-  simp only [Finset.mem_univ, not_true, Finset.mem_sdiff, Finset.mem_singleton, true_and, gt_iff_lt,
-    NNReal.coe_pos]
-  intro i _
-  exact h' i
-}
-
-def linear_comb {α : outParam Type*} [Fintype α] (t: {t : NNReal // t≤ 1}) (a : S' α) (b : S' α) : S α :=
-  ⟨ fun i => ⟨t * a i + (1-t) * (b i), (by
-  { apply add_nonneg; apply mul_nonneg
-    simp[non_neg]
-    simp[non_neg]
-    apply mul_nonneg
-    simp only [sub_nonneg]
-    exact t.prop
-    simp [non_neg]
-    })⟩,
-    by {
-      let f : α → Real  := fun i => (t :ℝ) * (a i :ℝ)
-      have sumf : Finset.sum Finset.univ f = t := by {
-        rw [<-Finset.mul_sum]
-        norm_cast
-        simp [sum_one]
-      }
-      let g : α → Real  := fun i => (1 -(t: ℝ)) * (b i :ℝ)
-      have sumg : Finset.sum Finset.univ g = 1-t := by {
-        rw [<-Finset.mul_sum]
-        norm_cast
-        simp [sum_one]
-      }
-      ext
-      rw [NNReal.coe_sum]
-      simp only [NNReal.coe_mk, NNReal.coe_one]
-      have fg_eq :  (fun i : α  =>(f i + g i) )= fun i => t * a i + (1 -(t: ℝ)) * (b i :ℝ) := by {
-        ext
-        dsimp
-      }
-      rw [<-fg_eq]
-      rw [Finset.sum_add_distrib]
-      rw [sumf,sumg]
-      simp only [add_sub_cancel'_right]
-    }
-  ⟩
-
-
-instance metricS : MetricSpace (S' α) := MetricSpace.induced (fun x => x.val)
+instance metricS : MetricSpace (S α) := MetricSpace.induced (fun x => x.val)
    (by {rw [Function.Injective]; exact fun a1 a2 h1 => Subtype.ext_iff.2 h1})
    (metricSpacePi)
 
@@ -251,6 +155,8 @@ lemma x_le_one {x : α → ℝ} {b:α} (h : x ∈ S'' α ): x b ≤ 1 := by {
   )
 }
 
+
+
 lemma Simplex.isBounded [Inhabited α] : Bornology.IsBounded (S'' α) := by {
   rw [Metric.isBounded_iff_subset_ball (fun _ => 0)]
   use (2:ℝ)
@@ -266,10 +172,12 @@ lemma Simplex.isBounded [Inhabited α] : Bornology.IsBounded (S'' α) := by {
   have hb:= @x_le_one _ _ _ b hx
   apply lt_of_le_of_lt hb
   norm_cast
-  apply x_ge_zero hx
+  apply x_ge_zero
+  exact hx
 }
 
-lemma Simplex.isClosed :IsClosed (S'' α):= by {
+
+lemma SisClosed :IsClosed (S'' α):= by {
   rw [<-isSeqClosed_iff_isClosed]
   rw [isSeqClosed_iff]
   apply superset_antisymm
@@ -300,42 +208,11 @@ lemma Simplex.isClosed :IsClosed (S'' α):= by {
   }
 }
 
-instance Simplex.CompactSpace' [Inhabited α]: CompactSpace (S' α) := by {
+instance SisCompactSpace [Inhabited α]: CompactSpace (S α) := by {
   simp only [subset_subtype]
   rw [<-isCompact_iff_compactSpace]
   rw [Metric.isCompact_iff_isClosed_bounded]
-  exact ⟨Simplex.isClosed, Simplex.isBounded⟩
+  exact ⟨SisClosed, Simplex.isBounded⟩
 }
 
-
-lemma SS'_iso : S α ≃ᵢ  S' α where
-  toFun := fun x => ⟨fun i => x i, ⟨fun i => (x i).prop ,(by {
-    have :=x.2
-    norm_cast
-   })⟩⟩
-  invFun := fun x => ⟨fun i => ⟨x i,x.prop.1 i⟩, (by {
-    ext
-    simp only [NNReal.coe_one,NNReal.coe_sum,NNReal.coe_mk,x.2.2]
-    })⟩
-  left_inv := by {
-    intro x
-    apply Subtype.coe_eta
-  }
-  right_inv := by {
-    rw [Function.RightInverse,Function.LeftInverse]
-    simp
-  }
-  isometry_toFun := by {
-    rw [Isometry]
-    simp only
-    intro x1 x2
-    norm_cast
-  }
-
-
-instance Simplex.CompactSpace [Inhabited α]: CompactSpace (S α) := by {
-  have h:= Homeomorph.symm (IsometryEquiv.toHomeomorph (@SS'_iso α _))
-  exact Homeomorph.compactSpace h
-}
-
-end S'
+end S
