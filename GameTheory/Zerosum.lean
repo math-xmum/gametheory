@@ -78,54 +78,6 @@ def sumyC (i:I) (y : S J) (C : I →J → ℝ ) := Finset.sum  Finset.univ (fun 
 
 
 
-lemma sum_pure [Fintype I] {f: I→ℝ} {a:I} :
-  Finset.sum Finset.univ (fun i => (S.pure a i) * f i) = f a :=
-  by {
-    have : f a= (S.pure a a) * f a := by simp [ite_true, ENNReal.one_toReal, one_mul]
-    rw [this]
-    apply Finset.sum_eq_single
-    . {
-      intro b _ h3
-      simp only [S.pure, ite_mul, one_mul, zero_mul, ite_eq_right_iff,S.pure_eq_zero (Ne.symm h3)]
-      simp only [Ne.symm h3, IsEmpty.forall_iff]
-    }
-    . {
-    intro h1
-    exfalso; simp only [Finset.mem_univ, not_true] at h1
-    }
-  }
-
-lemma wsum_pure [Fintype I] {f: I→ℝ} {a:I} :
-  wsum (S.pure a) f = f a := by rw [wsum,sum_pure]
-
-lemma simplex_ge_iff_vertex_ge [Fintype I] {f : I → ℝ } {v : ℝ} :
-   (∀ x : S I,   Finset.sum Finset.univ (fun i : I => (x i) * f i)≥ v)
-    ↔ (∀ i : I, f i ≥ v):= by {
-  constructor
-  . {
-    intro H i
-    have := H (S.pure i)
-    rw [sum_pure] at this
-    exact this
-  }
-  . {
-    intro H x
-    simp only [ge_iff_le]
-    calc
-      v = Finset.sum Finset.univ (fun i : I => (x i) * v) := by {
-        rw [<-Finset.sum_mul]
-        norm_cast; rw [S.sum_one]
-        norm_cast; rw [one_mul]
-      }
-      _ ≤ Finset.sum Finset.univ (fun i : I => (x i) * f i) :=
-      Finset.sum_le_sum (by {
-        intro i
-        simp only [Finset.mem_univ, gt_iff_lt, forall_true_left]
-        rw [<-sub_nonneg,<-mul_sub]
-        exact mul_nonneg (S.non_neg) (sub_nonneg.2 (H i))
-      })
-  }
- }
 
 noncomputable def E (A : I → J → ℝ) (x : S I) (y : S J) : ℝ := wsum x (fun i => wsum y (A i))
 
@@ -145,27 +97,31 @@ lemma wsum_pos_I {B : I→ J → ℝ } (PB : isPositive B) : 0 < wsum x (fun i =
 lemma wsum_pos_J {B : I→ J → ℝ } (PB : isPositive B) : 0 < wsum x (B i) := by {
   apply wsum_pos; simp at PB;simp [PB]}
 
-lemma nonempty (α : Type*) [Inhabited α] [Fintype α ]: Finset.Nonempty (@Finset.univ α  _)  := by {
-  use Inhabited.default
-  simp only [Finset.mem_univ]
-}
-
 
 
 noncomputable def lam.aux (A B : I →J → ℝ ) (x : S I) :=
-  Finset.inf' Finset.univ (nonempty J) (fun j =>
+  Finset.inf' Finset.univ (Inhabited.toFinsetNonempty J) (fun j =>
    wsum x (fun i => A i j ) / wsum x (fun i => B i j))
 
 
 
 noncomputable def lam0 (A B : I →J → ℝ ):=  iSup (lam.aux A B)
 
+lemma lam.aux.continouse (A B : I →J → ℝ ) (HB : isPositive B) : Continuous (lam.aux A B) := by {
+  sorry
+}
+
 
 noncomputable def mu.aux (A B : I →J → ℝ ) (y : S J) :=
-  Finset.sup' Finset.univ (nonempty  I) (fun i =>
+  Finset.sup' Finset.univ (Inhabited.toFinsetNonempty I) (fun i =>
     wsum y (fun j => A i j ) / wsum y (fun j => B i j) )
 
 noncomputable def mu0 (A B : I →J → ℝ ):=  iInf (mu.aux A B)
+
+lemma mu.aux.continouse (A B : I →J → ℝ ) (HB : isPositive B) : Continuous (mu.aux A B) := by {
+  sorry
+}
+
 
 lemma exits_xx_lam0 (A B : I →J → ℝ ) (PB : isPositive B) :
    ∃ (xx : S I), ∀ j, (wsum xx (fun i => A i j)) / (wsum xx (fun i => B i j))≥  lam0 A B  := by sorry
@@ -322,56 +278,6 @@ def one_yy_eq_one {i: I } {yy : S J}: S.wsum yy (one_matrix i) = 1 := by {
   simp only [wsum,one_matrix,mul_one]
   norm_cast
   simp only [S.sum_one]
-}
-
-lemma ge_iff_simplex_ge {f : I → ℝ} {v : ℝ}: (∀ i:I , f i ≥ v) ↔ ∀ x : S I, (wsum x f) ≥ v := by {
-  constructor
-  . {
-    intro hi x
-    rw [wsum,ge_iff_le]
-    calc
-      v = Finset.sum Finset.univ fun i => x i * v := by {
-        simp only [<-Finset.sum_mul]
-        norm_cast
-        simp only [S.sum_one, NNReal.coe_one, one_mul]
-      }
-      _ ≤ _ := by {
-        apply Finset.sum_le_sum
-        intro i _
-        apply mul_le_mul_of_nonneg_left (ge_iff_le.1 (hi i)) (non_neg)
-      }
-  }
-  . {
-    intro HI i
-    have := HI (pure i)
-    rw [wsum_pure] at this
-    exact this
-  }
-}
-
-lemma le_iff_simplex_le {f : I → ℝ} {v : ℝ}: (∀ i:I , f i ≤  v) ↔ ∀ x : S I, (wsum x f) ≤  v := by {
-  constructor
-  . {
-    intro hi x
-    rw [wsum,<-ge_iff_le]
-    calc
-      v = Finset.sum Finset.univ fun i => x i * v := by {
-        simp only [<-Finset.sum_mul]
-        norm_cast
-        simp only [S.sum_one, NNReal.coe_one, one_mul]
-      }
-      _ ≥   _ := by {
-        apply Finset.sum_le_sum
-        intro i _
-        apply mul_le_mul_of_nonneg_left (ge_iff_le.1 (hi i)) (non_neg)
-      }
-  }
-  . {
-    intro HI i
-    have := HI (pure i)
-    rw [wsum_pure] at this
-    exact this
-  }
 }
 
 

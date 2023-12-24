@@ -7,6 +7,8 @@ import Mathlib.Topology.MetricSpace.Basic
 import Mathlib.Topology.MetricSpace.Bounded
 import Mathlib.Analysis.NormedSpace.FiniteDimension
 import Mathlib.Topology.Separation
+import Mathlib.Data.Finset.Lattice
+import Mathlib.Topology.Algebra.Order.Compact
 
 open Classical
 
@@ -58,6 +60,12 @@ noncomputable def pure (i : α) : S α  := ⟨fun j => if i=j then 1 else 0,
   }
   . simp only [Finset.sum_ite_eq, Finset.mem_univ, ite_true]
   }⟩
+
+noncomputable instance SInhabited_of_Inhabited {α : Type*} [Fintype α] [Inhabited α]: Inhabited (S α) where
+  default := pure (default : α)
+
+
+noncomputable instance SNonempty_of_Inhabited {α : Type*} [Fintype α] [Inhabited α]: Nonempty (S α) := Nonempty.intro (default : S α)
 
 lemma pure_eq_one {a b : α}: a = b → pure a b = 1 := by {
   intro h
@@ -212,5 +220,151 @@ instance SisCompactSpace [Inhabited α]: CompactSpace (S α) := by {
   rw [Metric.isCompact_iff_isClosed_bounded]
   exact ⟨SisClosed, Simplex.isBounded⟩
 }
+
+end S
+
+
+lemma Inhabited.toFinsetNonempty (α : Type*) [Inhabited α] [Fintype α ]: Finset.Nonempty (@Finset.univ α  _)  := by {
+  use Inhabited.default
+  simp only [Finset.mem_univ]
+}
+
+namespace S
+variable {I: Type*} [Fintype I]
+
+
+lemma sum_pure [Fintype I] {f: I→ℝ} {a:I} :
+  Finset.sum Finset.univ (fun i => (S.pure a i) * f i) = f a :=
+  by {
+    have : f a= (S.pure a a) * f a := by simp [ite_true, ENNReal.one_toReal, one_mul]
+    rw [this]
+    apply Finset.sum_eq_single
+    . {
+      intro b _ h3
+      simp only [S.pure, ite_mul, one_mul, zero_mul, ite_eq_right_iff,S.pure_eq_zero (Ne.symm h3)]
+      simp only [Ne.symm h3, IsEmpty.forall_iff]
+    }
+    . {
+    intro h1
+    exfalso; simp only [Finset.mem_univ, not_true] at h1
+    }
+  }
+
+--lemma wsum_pure [Fintype I] {f: I→ℝ} {a:I} :
+--  wsum (S.pure a) f = f a := by rw [wsum,sum_pure]
+
+lemma wsum_pure [Fintype I] (f: I→ℝ) (a:I) :
+  wsum (S.pure a) f = f a := by rw [wsum,sum_pure]
+
+lemma ge_iff_simplex_ge {f : I → ℝ} {v : ℝ}: (∀ i:I , f i ≥ v) ↔ ∀ x : S I, (wsum x f) ≥ v := by {
+  constructor
+  . {
+    intro hi x
+    rw [wsum,ge_iff_le]
+    calc
+      v = Finset.sum Finset.univ fun i => x i * v := by {
+        simp only [<-Finset.sum_mul]
+        norm_cast
+        simp only [S.sum_one, NNReal.coe_one, one_mul]
+      }
+      _ ≤ _ := by {
+        apply Finset.sum_le_sum
+        intro i _
+        apply mul_le_mul_of_nonneg_left (ge_iff_le.1 (hi i)) (non_neg)
+      }
+  }
+  . {
+    intro HI i
+    have := HI (pure i)
+    rw [wsum_pure] at this
+    exact this
+  }
+}
+
+
+lemma le_iff_simplex_le {f : I → ℝ} {v : ℝ}: (∀ i:I , f i ≤  v) ↔ ∀ x : S I, (wsum x f) ≤  v := by {
+  constructor
+  . {
+    intro hi x
+    rw [wsum,<-ge_iff_le]
+    calc
+      v = Finset.sum Finset.univ fun i => x i * v := by {
+        simp only [<-Finset.sum_mul]
+        norm_cast
+        simp only [S.sum_one, NNReal.coe_one, one_mul]
+      }
+      _ ≥   _ := by {
+        apply Finset.sum_le_sum
+        intro i _
+        apply mul_le_mul_of_nonneg_left (ge_iff_le.1 (hi i)) (non_neg)
+      }
+  }
+  . {
+    intro HI i
+    have := HI (pure i)
+    rw [wsum_pure] at this
+    exact this
+  }
+}
+
+
+variable [Inhabited I]
+
+
+lemma fintypenonempty (α : Type*) [Inhabited α] [Fintype α ]: Finset.Nonempty (@Finset.univ α  _)  := by {
+  use Inhabited.default
+  simp only [Finset.mem_univ]
+}
+
+
+-- The following lemmas compare sup on i and weighted sum sup
+
+lemma Finset.exists_sup'_image' (f : I → ℝ) (H: Finset.Nonempty s) : ∃ i∈ s,
+(Finset.sup' s H f = f i ∧ ∀ j ∈ s, f j ≤ f i)  := by {
+  obtain ⟨i,Hi⟩ := Finset.exists_max_image s f H
+  use i
+  exact  ⟨Hi.1,
+  ⟨by {
+      apply le_antisymm
+      . apply Finset.sup'_le H f Hi.2
+      . apply Finset.le_sup' f Hi.1 },
+    Hi.2 ⟩ ⟩
+}
+
+lemma Finset.exists_sup'_image (f : I → ℝ) (H: Finset.Nonempty s) : ∃ i∈ s,
+Finset.sup' s H f = f i   := by {
+  obtain ⟨i,Hi⟩ := Finset.exists_sup'_image' f H
+  use i
+  exact ⟨Hi.1,Hi.2.1⟩
+}
+
+lemma sup_eq_wsum_sup {f : I → ℝ} {v : ℝ}: Finset.sup' Finset.univ (Inhabited.toFinsetNonempty I) f = iSup (fun (x: S I) => wsum x f) := by {
+  have non_empty:=Inhabited.toFinsetNonempty I
+  obtain ⟨i,⟨Hi1,Hi2,Hi3⟩⟩ := Finset.exists_sup'_image' f non_empty
+  rw [Hi2]
+  have Hi3 : ∀ j:I, f j≤ f i := by simp [Hi3]
+  have Hi3' := le_iff_simplex_le.1 Hi3
+  apply le_antisymm
+  . {
+    have wsum_fi := wsum_pure f i
+    rw [<-wsum_fi]
+    have H : BddAbove (Set.range (fun x => wsum x f)):= by {
+      rw [<-wsum_fi] at Hi3'
+      apply bddAbove_def.2 ⟨wsum (pure i) f, by {
+        intro y hy
+        obtain ⟨j, hj⟩ := Set.mem_range.1 hy
+        simp only [<-hj,Hi3']
+      }⟩
+    }
+    apply le_ciSup H
+  }
+  . exact ciSup_le Hi3'
+}
+
+
+lemma inf_eq_wsum_inf {f : I → ℝ} {v : ℝ}: Finset.inf' Finset.univ (Inhabited.toFinsetNonempty I) f = iInf (fun (x: S I) => wsum x f) := by {
+  sorry
+}
+
 
 end S
