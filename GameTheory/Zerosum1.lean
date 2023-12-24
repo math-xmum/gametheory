@@ -180,7 +180,11 @@ lemma singleton_of_card_one {I:Type*} [Fintype I] (H: Fintype.card I = 1) : ∃ 
           have := Subtype.coe_eta x x.2
           rw [<-this]
           rw [Subtype.mk_eq_mk]
-          sorry
+          ext j
+          simp only [hi,ite_true]
+          have := x.2.2
+          simp only [univ_eq_singleton_of_card_one i H, Finset.sum_singleton] at this
+          exact this
         }
         . simp
     }
