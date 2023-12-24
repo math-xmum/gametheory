@@ -165,8 +165,53 @@ lemma lam0_le_mu0 (A : I →J → ℝ ) :
       _ ≤ mu0 A := by rw [E]; exact le_iff_simplex_le.1 Hyy xx
   }
 
+lemma singleton_of_card_one {I:Type*} [Fintype I] (H: Fintype.card I = 1) : ∃ i: I, (Finset.univ) = {i} ∧ (Set.univ) = {S.pure i} := by {
+    obtain ⟨i, hi⟩ := Fintype.card_eq_one_iff.1 H
+    use i
+    constructor
+    . {ext; simp [hi]}
+    . { ext x
+        constructor
+        . {
+          intro _
+          simp only [S.pure, Set.mem_singleton_iff]
+          --apply  Subtype.ext_val
+          --rw [S] at x
+          have := Subtype.coe_eta x x.2
+          rw [<-this]
+          rw [Subtype.mk_eq_mk]
+          sorry
+        }
+        . simp
+    }
+}
 
-theorem Loomis' (Hgt : 2 ≤ n) (Hn: n=Fintype.card I + Fintype.card J) (A : I →J→ ℝ) (B : I→ J→ ℝ) (PB : ∀ i:I, ∀ j:J,  B i j > 0 ):
+theorem minmax' (Hgt : 2 ≤ n) (Hn: n = Fintype.card I + Fintype.card J) (A : I →J→ ℝ): lam0 A = mu0 A := by {
+      induction' n, Hgt using Nat.le_induction with n hn IH generalizing I J  A
+      . {
+        have  ⟨HSI,HSJ⟩  : Fintype.card I =1 ∧ Fintype.card J =1:= by {
+          have p1 := @Fintype.card_pos I _ _
+          have p2 := @Fintype.card_pos J _ _
+          constructor; repeat linarith
+        }
+        obtain ⟨i0, hi0⟩ := Fintype.card_eq_one_iff.1 HSI
+        obtain ⟨j0, hj0⟩ := Fintype.card_eq_one_iff.1 HSJ
+        have UI : @Finset.univ I _ = {i0} := by {
+          ext
+          simp only [Finset.mem_univ, Finset.mem_singleton, true_iff,hi0]
+        }
+        have UJ : @Finset.univ J _ = {j0} := by {
+          ext
+          simp only [Finset.mem_univ, Finset.mem_singleton, true_iff,hj0]
+        }
+        rw [lam0,mu0]
+      }
+      . {
+        sorry
+      }
+}
+
+ theorem Loomis' (Hgt : 2 ≤ n) (Hn: n=Fintype.card I + Fintype.card J) (A : I →J→ ℝ) (B : I→ J→ ℝ) (PB : ∀ i:I, ∀ j:J,  B i j > 0 ):
   ∃ (v : ℝ),
     (∃  (xx : S I) , ∀ j , wsum xx (fun i => A i j) ≥  v * wsum xx (fun i=> B i j)) ∧
     (∃ (yy : S J), ∀ i ,  wsum yy (A i) ≤  v * wsum yy (B i)) := by {
