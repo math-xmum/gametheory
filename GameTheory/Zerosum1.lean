@@ -6,6 +6,9 @@ import Mathlib.Topology.Algebra.Order.Compact
 import Mathlib.Topology.MetricSpace.Basic
 
 
+-- ℝ is not a complete lattice,
+--iSup may not exits le_iSup' (lam.aux A B)  (linear_comb t xx xx')
+-- use theorems starts with ciSup etc.
 
 import GameTheory.Simplex
 
@@ -100,13 +103,26 @@ noncomputable def lam.aux (A: I →J → ℝ ) (x : S I) :=
 
 noncomputable def lam0 (A : I →J → ℝ ):=  iSup (lam.aux A )
 
+
 lemma lam.aux.continouse (A : I →J → ℝ ) : Continuous (lam.aux A) := by {
   sorry
 }
 
 instance Real.instClosedIciTopology : ClosedIicTopology ℝ := ⟨by {
- sorry
+  intro a
+  rw [<-isSeqClosed_iff_isClosed,IsSeqClosed]
+  intro x p hx hp
+  simp only [Set.mem_setOf_eq] at hx
+  simp only [Set.mem_setOf_eq]
+  apply le_of_tendsto_of_tendsto' hp (tendsto_const_nhds) hx
 } ⟩
+
+lemma lam.aux.bddAbove (A : I →J → ℝ ) : ∃ C, ∀ x , lam.aux A x ≤ C := by {
+  sorry
+}
+
+lemma lam.aux.le_lam0 (A : I →J → ℝ ) : ∀ x, lam.aux A x ≤ lam0 A :=
+  le_ciSup (bddAbove_def.2 (by simp [lam.aux.bddAbove A]))
 
 
 lemma exits_xx_lam0 (A : I →J → ℝ ) :
@@ -126,6 +142,8 @@ lemma exits_xx_lam0 (A : I →J → ℝ ) :
       _ ≤ _ :=by  rw [lam.aux]; apply Finset.inf'_le _ (by simp)
    }
 
+
+
 noncomputable def mu.aux (A : I →J → ℝ ) (y : S J) :=
   Finset.sup' Finset.univ (Inhabited.toFinsetNonempty I) (fun i =>
     wsum y (fun j => A i j ))
@@ -133,6 +151,7 @@ noncomputable def mu.aux (A : I →J → ℝ ) (y : S J) :=
 noncomputable def mu0 (A : I →J → ℝ ):=  iInf (mu.aux A )
 
 lemma mu.aux.continouse (A : I →J → ℝ ) : Continuous (mu.aux A) := by {
+  -- the proof is the same as that of lam
   sorry
 }
 
@@ -140,7 +159,7 @@ lemma mu.aux.continouse (A : I →J → ℝ ) : Continuous (mu.aux A) := by {
 
 
 lemma exits_yy_mu0 (A : I →J → ℝ )  : ∃ (yy : S J), ∀ i, (wsum yy (A i)) ≤  mu0 A := by sorry
-
+-- the proof is the same as that of xx_lam0
 
 
 lemma wsum_wsum_comm {A : I→J→ ℝ }: wsum xx (fun i => wsum yy (A i)) = wsum yy (fun j => wsum xx (fun i => A i j)) := by {
@@ -165,7 +184,7 @@ lemma lam0_le_mu0 (A : I →J → ℝ ) :
       _ ≤ mu0 A := by rw [E]; exact le_iff_simplex_le.1 Hyy xx
   }
 
-lemma singleton_of_card_one {I:Type*} [Fintype I] (H: Fintype.card I = 1) : ∃ i: I, (Finset.univ) = {i} ∧ (Set.univ) = {S.pure i} := by {
+lemma singleton_of_card_one {I: Type*} [Fintype I] (H: Fintype.card I = 1) : ∃ i: I, (Finset.univ) = {i} ∧ (Set.univ) = {S.pure i} := by {
     obtain ⟨i, hi⟩ := Fintype.card_eq_one_iff.1 H
     use i
     constructor
@@ -175,8 +194,6 @@ lemma singleton_of_card_one {I:Type*} [Fintype I] (H: Fintype.card I = 1) : ∃ 
         . {
           intro _
           simp only [S.pure, Set.mem_singleton_iff]
-          --apply  Subtype.ext_val
-          --rw [S] at x
           have := Subtype.coe_eta x x.2
           rw [<-this]
           rw [Subtype.mk_eq_mk]
@@ -190,96 +207,61 @@ lemma singleton_of_card_one {I:Type*} [Fintype I] (H: Fintype.card I = 1) : ∃ 
     }
 }
 
-theorem minmax' (Hgt : 2 ≤ n) (Hn: n = Fintype.card I + Fintype.card J) (A : I →J→ ℝ): lam0 A = mu0 A := by {
-      induction' n, Hgt using Nat.le_induction with n hn IH generalizing I J  A
-      . {
+lemma minmax'_IJ_2 (Hn: 2 = Fintype.card I + Fintype.card J) (A : I →J→ ℝ): lam0 A = mu0 A := by {
         have  ⟨HSI,HSJ⟩  : Fintype.card I =1 ∧ Fintype.card J =1:= by {
           have p1 := @Fintype.card_pos I _ _
           have p2 := @Fintype.card_pos J _ _
           constructor; repeat linarith
         }
-        obtain ⟨i0, hi0⟩ := Fintype.card_eq_one_iff.1 HSI
-        obtain ⟨j0, hj0⟩ := Fintype.card_eq_one_iff.1 HSJ
-        have UI : @Finset.univ I _ = {i0} := by {
-          ext
-          simp only [Finset.mem_univ, Finset.mem_singleton, true_iff,hi0]
+        obtain ⟨i0,hi1,hi2⟩ := singleton_of_card_one HSI
+        obtain ⟨j0,hj1,hj2⟩ := singleton_of_card_one HSJ
+        have H1 : lam0 A = A i0 j0 := by {
+          have :∀ x, lam.aux A x = A i0 j0 := by {
+            intro x
+            simp only [lam.aux,hj1,Finset.inf'_singleton]
+            have : x = S.pure i0 := Set.mem_singleton_iff.1 (by
+              simp_rw [<-hi2,Set.mem_univ])
+            rw [this,wsum_pure]
+          }
+          rw [lam0,iSup_congr this,ciSup_const]
         }
-        have UJ : @Finset.univ J _ = {j0} := by {
-          ext
-          simp only [Finset.mem_univ, Finset.mem_singleton, true_iff,hj0]
+        have H2 : mu0 A = A i0 j0 := by {
+          -- The proof is the same as that of H1
+          sorry
         }
-        rw [lam0,mu0]
-      }
-      . {
-        sorry
-      }
+        linarith
 }
 
- theorem Loomis' (Hgt : 2 ≤ n) (Hn: n=Fintype.card I + Fintype.card J) (A : I →J→ ℝ) (B : I→ J→ ℝ) (PB : ∀ i:I, ∀ j:J,  B i j > 0 ):
-  ∃ (v : ℝ),
-    (∃  (xx : S I) , ∀ j , wsum xx (fun i => A i j) ≥  v * wsum xx (fun i=> B i j)) ∧
-    (∃ (yy : S J), ∀ i ,  wsum yy (A i) ≤  v * wsum yy (B i)) := by {
-      induction' n, Hgt using Nat.le_induction with n hn IH generalizing I J  A B
+theorem minmax' (Hgt : 2 ≤ n) (Hn: n = Fintype.card I + Fintype.card J) (A : I →J→ ℝ): lam0 A = mu0 A := by {
+      induction' n, Hgt using Nat.le_induction with n hn IH generalizing I J  A
+      .  apply minmax'_IJ_2 Hn
       . {
-        have HSI : Fintype.card I =1 := by {
-          have p1 := @Fintype.card_pos I _ _
-          have p2 := @Fintype.card_pos J _ _
-          linarith
-        }
-        have HSJ : Fintype.card J =1 := by {
-          have p1 := @Fintype.card_pos I _ _
-          have p2 := @Fintype.card_pos J _ _
-          linarith
-        }
-        obtain ⟨i0, hi0⟩ := Fintype.card_eq_one_iff.1 HSI
-        obtain ⟨j0, hj0⟩ := Fintype.card_eq_one_iff.1 HSJ
-        have UI : @Finset.univ I _ = {i0} := by {
-          ext
-          simp only [Finset.mem_univ, Finset.mem_singleton, true_iff,hi0]
-        }
-        have UJ : @Finset.univ J _ = {j0} := by {
-          ext
-          simp only [Finset.mem_univ, Finset.mem_singleton, true_iff,hj0]
-        }
-        -- v = A i j /B i j where i j is the default value
-        let v := A i0 j0/ B i0 j0
-        use v
-        constructor
+        have := le_iff_eq_or_lt.1  (lam0_le_mu0 A)
+        apply Or.elim this
+        . simp
         . {
-          use S.pure i0
-          intro j
-          have HJ := hj0 j
-          simp_rw [wsum, HJ, UI,Finset.sum_singleton,S.pure_eq_one,one_mul, ge_iff_le]
-          have :=PB i0 j0
-          calc
-           A i0 j0 / B i0 j0 * B i0 j0 = A i0 j0 := by {
-            exact div_mul_cancel (A i0 j0) (ne_of_gt this)
-           }
-           _ ≤ A i0 j0 := le_refl _
-        }
-        . {
-            sorry
-        }
-      }
-      . {
-        by_cases  HH : lam0 A  = mu0 A
-        . {
-          use (lam0 A )
-          exact ⟨exits_xx_lam0' A , by {rw [HH]; exact exits_yy_mu0' A }⟩
-        }
-        . {
-          have H0:= lam0_le_mu0 A B PB
-          have H0: lam0 A B < mu0 A B := by {
-            rw [le_iff_lt_or_eq] at H0
-            exact Or.elim H0 (id) (by intro H; exfalso;exact HH H)
-          }
-          obtain ⟨xx, Hxx⟩ :=  exits_xx_lam0' A B PB
-          obtain ⟨yy, Hyy⟩ :=  exits_yy_mu0' A B PB
-          have exits_ij : (∃ j:J, (wsum xx (fun i => A i j)) > lam0 A B * wsum xx (fun i => B i j))
-             ∨  (∃ i:I, (wsum yy (fun j => A i j)) < mu0 A B * wsum yy (fun j => B i j))
-            := by sorry
+          intro lam0_lt_mu0
+          exfalso
+          obtain ⟨xx, Hxx⟩ :=  exits_xx_lam0 A
+          obtain ⟨yy, Hyy⟩ :=  exits_yy_mu0 A
+          have exits_ij : (∃ j:J, (wsum xx (fun i => A i j)) > lam0 A )
+             ∨  (∃ i:I, (wsum yy (fun j => A i j)) < mu0 A)
+            := by {
+              by_contra HP
+              simp only [not_or,not_exists,gt_iff_lt,not_lt] at HP
+              have Hxx:∀ (j : J), (wsum xx fun i => A i j) = lam0 A := fun j => le_antisymm  (HP.1 j) (Hxx j)
+              have Hyy:∀ (i : I), (wsum yy (A i))  = mu0 A := fun i => le_antisymm  (Hyy i) (HP.2 i)
+              have  :lam0 A = mu0 A:= by {calc
+                lam0 A = E A xx yy := by {
+                  rw [E,wsum_wsum_comm]
+                  simp only [wsum_const' Hxx]
+                }
+                _ = mu0 A := by simp only [E,wsum_const' Hyy]
+              }
+              linarith
+            }
           apply Or.elim exits_ij
-          . {
+          .  {
             intro HJ
             obtain ⟨j0,HJ⟩:= HJ
             let J' := {j : J // j≠j0}
@@ -291,42 +273,38 @@ theorem minmax' (Hgt : 2 ≤ n) (Hn: n = Fintype.card I + Fintype.card J) (A : I
               simp only [ge_iff_le, add_le_iff_nonpos_left, nonpos_iff_eq_zero, add_tsub_cancel_right]
             }
             let A' := fun i: I => fun j : J' => A i j
-            let B' := fun i: I => fun j : J' => B i j
-            have posB' : ∀ i j, B' i j >0 :=  fun i => fun j =>  PB i j
-            obtain ⟨v',⟨xx',hxx'⟩, ⟨ yy',hyy'⟩ ⟩ := @IH I J' _ (inhabited_J') _ _ cardn A' B' posB'
-            have lam0_lt_v' : lam0 A B < v' := by {sorry}
-            exfalso
-            have prop_st :∃ t : {t:ℝ // 0≤ t ∧ t≤1},  lam.aux A B (linear_comb t xx xx') > lam0 A B := by sorry
+            have HIJ' := IH cardn A'
+            have lam0_lt_lam0' : lam0 A  < lam0 A' := by {sorry}
+            obtain ⟨xx', Hxx'⟩ :=  exits_xx_lam0 A'
+            obtain ⟨yy', Hyy'⟩ :=  exits_yy_mu0 A'
+            have prop_st : ∃ t : {t: ℝ // 0≤ t ∧ t≤1},  lam.aux A (linear_comb t xx xx') > lam0 A := by {
+              -- This is the most difficult part
+              sorry
+            }
             obtain ⟨t, Hst⟩ := prop_st
-            -- ℝ is not a complete lattice,
-            --iSup may not exits le_iSup' (lam.aux A B)  (linear_comb t xx xx')
-            have prop_iSup : ∀ x: S I, lam.aux A B x ≤ lam0 A B := by sorry
+            have prop_iSup : ∀ x: S I, lam.aux A x ≤ lam0 A := lam.aux.le_lam0 A
             have := prop_iSup (linear_comb t xx xx')
             linarith
           }
           . {
+            -- The proof is almost similar to the above
             sorry
           }
         }
       }
-    }
+}
 
-
-theorem Loomis (A : I →J→ ℝ) (B : I→ J→ ℝ) (PB : ∀ i:I, ∀ j:J,  B i j > 0 ):
-  ∃ (v : ℝ) ,
-  (∃  (xx : S I) , ∀ j , wsum xx (fun i => A i j) ≥  v * wsum xx (fun i=> B i j))
-  ∧ (∃ (yy : S J), ∀ i ,  wsum yy (A i) ≤  v * wsum yy (B i))
+theorem minmax_theorem' (A : I →J→ ℝ): lam0 A = mu0 A
  := by {
       let n := Fintype.card I + Fintype.card J
-      exact @Loomis' n I J _ _ _ _ ( by
+      have ngetwo: 2 ≤ n :=by
          {
           have p1 := @Fintype.card_pos I _ _
           have p2 := @Fintype.card_pos J _ _
           linarith
         }
-      ) (rfl) A B PB
+      exact minmax' n  ngetwo (rfl) A
   }
-
 
 end Loomis
 
@@ -336,11 +314,6 @@ end Loomis
 namespace zerosumFGame
 open S
 variable {I J : Type*} [Inhabited I] [Inhabited J] [Fintype I] [Fintype J]
-
-
-
-#check E
-#check Loomis
 
 def one_matrix (_ : I )  (_ : J):  ℝ := 1
 
@@ -361,22 +334,20 @@ def one_yy_eq_one {i: I } {yy : S J}: S.wsum yy (one_matrix i) = 1 := by {
 
 theorem minmax_theorem : ∃ (xx : S I) (yy : S J) (v : ℝ),
   (∀ (y : S J), (E A xx y) ≥ v ) ∧ ( ∀ (x : S I), E A x yy ≤ v)  := by {
-    let B := @one_matrix I J
-    obtain ⟨v, ⟨xx, H1⟩ ,⟨yy, H2⟩⟩   := Loomis A B (by {
-        intro _ _; simp only [one_matrix,gt_iff_lt, zero_lt_one]})
-    use xx, yy, v
+    have  MM':= minmax_theorem' A
+    obtain ⟨xx, Hxx⟩ :=  exits_xx_lam0 A
+    obtain ⟨yy, Hyy⟩ :=  exits_yy_mu0 A
+    use xx,yy,(lam0 A)
     constructor
     . {
-      simp_rw [one_xx_eq_one,mul_one] at H1
       intro y
       rw [E,wsum_wsum_comm]
-      apply (ge_iff_simplex_ge).1 H1
+      apply (ge_iff_simplex_ge).1 Hxx
     }
     . {
-      simp_rw [one_yy_eq_one,mul_one] at H2
-      intro xx
-      rw [E]
-      apply (le_iff_simplex_le).1 H2
+      intro x
+      rw [E,MM']
+      apply (le_iff_simplex_le).1 Hyy
     }
 }
 

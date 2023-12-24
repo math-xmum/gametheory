@@ -256,6 +256,17 @@ lemma sum_pure [Fintype I] {f: I→ℝ} {a:I} :
 lemma wsum_pure [Fintype I] (f: I→ℝ) (a:I) :
   wsum (S.pure a) f = f a := by rw [wsum,sum_pure]
 
+
+lemma wsum_const [Fintype I] (b:ℝ) :
+  ∀ x: S I, wsum x (fun _ => b) = b :=
+    by intro x; simp [wsum,<-Finset.sum_mul,sum_one]
+
+lemma wsum_congr (h : ∀ (i : I), f i = g i) : ∀ x, wsum x f = wsum x g := by intro x ;simp [wsum,h]
+
+lemma wsum_const' [Fintype I] {b:ℝ}  {f: I→ℝ} (H: ∀ a:I, f a = b) :
+  ∀ x: S I, wsum x f = b :=
+    by intro x; simp [wsum,H,<-Finset.sum_mul,sum_one]
+
 lemma ge_iff_simplex_ge {f : I → ℝ} {v : ℝ}: (∀ i:I , f i ≥ v) ↔ ∀ x : S I, (wsum x f) ≥ v := by {
   constructor
   . {
