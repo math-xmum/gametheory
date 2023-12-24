@@ -5,6 +5,8 @@ import Mathlib.Algebra.BigOperators.Basic
 import Mathlib.Topology.Algebra.Order.Compact
 import Mathlib.Topology.MetricSpace.Basic
 
+
+
 import GameTheory.Simplex
 
 open Classical
@@ -85,57 +87,83 @@ end zerosumFGame
 
 section Loomis
 open S
+open zerosumFGame
 
 variable (n : ℕ) {I J: Type*} [Inhabited I] [Inhabited J] [Fintype I] [Fintype J]
 
-@[simp]
-def isPositive (B: I→ J→ℝ ) := ∀ i j, 0 < B i j
 
-lemma wsum_pos_I {B : I→ J → ℝ } (PB : isPositive B) : 0 < wsum x (fun i => B i j) := by {
-  apply wsum_pos; simp at PB;simp [PB] }
-
-lemma wsum_pos_J {B : I→ J → ℝ } (PB : isPositive B) : 0 < wsum x (B i) := by {
-  apply wsum_pos; simp at PB;simp [PB]}
-
-
-
-noncomputable def lam.aux (A B : I →J → ℝ ) (x : S I) :=
+noncomputable def lam.aux (A: I →J → ℝ ) (x : S I) :=
   Finset.inf' Finset.univ (Inhabited.toFinsetNonempty J) (fun j =>
-   wsum x (fun i => A i j ) / wsum x (fun i => B i j))
+   wsum x (fun i => A i j ))
 
 
 
-noncomputable def lam0 (A B : I →J → ℝ ):=  iSup (lam.aux A B)
+noncomputable def lam0 (A : I →J → ℝ ):=  iSup (lam.aux A )
 
-lemma lam.aux.continouse (A B : I →J → ℝ ) (HB : isPositive B) : Continuous (lam.aux A B) := by {
+lemma lam.aux.continouse (A : I →J → ℝ ) : Continuous (lam.aux A) := by {
   sorry
 }
 
+instance Real.instClosedIciTopology : ClosedIicTopology ℝ := ⟨by {
+ sorry
+} ⟩
 
-noncomputable def mu.aux (A B : I →J → ℝ ) (y : S J) :=
+
+lemma exits_xx_lam0 (A : I →J → ℝ ) :
+   ∃ (xx : S I), ∀ j, (wsum xx (fun i => A i j)) ≥  lam0 A := by {
+    have hs : IsCompact (Set.univ : Set (S I)) := isCompact_univ
+    have clam.aux : ContinuousOn (lam.aux A) (Set.univ)
+      := continuous_iff_continuousOn_univ.1 (lam.aux.continouse A)
+    obtain ⟨xx,_,Hxx⟩ := IsCompact.exists_isMaxOn (hs) (by simp [SNonempty_of_Inhabited]) (clam.aux)
+    rw [isMaxOn_iff] at Hxx
+    use xx
+    intro j
+    calc
+      lam0 A ≤ lam.aux A xx:= by {
+        simp only [Set.mem_univ, forall_true_left] at Hxx
+        simp [lam0, ciSup_le Hxx]
+      }
+      _ ≤ _ :=by  rw [lam.aux]; apply Finset.inf'_le _ (by simp)
+   }
+
+noncomputable def mu.aux (A : I →J → ℝ ) (y : S J) :=
   Finset.sup' Finset.univ (Inhabited.toFinsetNonempty I) (fun i =>
-    wsum y (fun j => A i j ) / wsum y (fun j => B i j) )
+    wsum y (fun j => A i j ))
 
-noncomputable def mu0 (A B : I →J → ℝ ):=  iInf (mu.aux A B)
+noncomputable def mu0 (A : I →J → ℝ ):=  iInf (mu.aux A )
 
-lemma mu.aux.continouse (A B : I →J → ℝ ) (HB : isPositive B) : Continuous (mu.aux A B) := by {
+lemma mu.aux.continouse (A : I →J → ℝ ) : Continuous (mu.aux A) := by {
   sorry
 }
 
-
-lemma exits_xx_lam0 (A B : I →J → ℝ ) (PB : isPositive B) :
-   ∃ (xx : S I), ∀ j, (wsum xx (fun i => A i j)) / (wsum xx (fun i => B i j))≥  lam0 A B  := by sorry
+-- use IsCompact.exists_isMaxOn
 
 
-lemma exits_xx_lam0' (A B : I →J → ℝ ) (PB : ∀ i:I, ∀ j:J,  B i j > 0 ) : ∃ (xx : S I), ∀ j, (wsum xx (fun i => A i j))≥  lam0 A B *  (wsum xx (fun i => B i j)) := by sorry
-
-lemma exits_yy_mu0 (A B : I →J → ℝ ) (PB : ∀ i:I, ∀ j:J,  B i j > 0 ) : ∃ (yy : S J), ∀ i, (wsum yy (A i)) / (wsum yy (B i))≤  mu0 A B  := by sorry
-
-lemma exits_yy_mu0' (A B : I →J → ℝ ) (PB : ∀ i:I, ∀ j:J,  B i j > 0 ) : ∃ (yy : S J), ∀ i, (wsum yy (A i)) ≤  mu0 A B * (wsum yy (B i)) := by sorry
+lemma exits_yy_mu0 (A : I →J → ℝ )  : ∃ (yy : S J), ∀ i, (wsum yy (A i)) ≤  mu0 A := by sorry
 
 
-lemma lam0_le_mu0 (A B : I →J → ℝ ) (PB : ∀ i:I, ∀ j:J,  B i j > 0 ) :
-  lam0 A B ≤ mu0 A B := by sorry
+
+lemma wsum_wsum_comm {A : I→J→ ℝ }: wsum xx (fun i => wsum yy (A i)) = wsum yy (fun j => wsum xx (fun i => A i j)) := by {
+  repeat simp_rw [wsum,Finset.mul_sum]
+  rw [Finset.sum_comm]
+  apply Finset.sum_congr rfl
+  intro i _
+  apply Finset.sum_congr rfl
+  intro j _
+  ring
+}
+
+
+lemma lam0_le_mu0 (A : I →J → ℝ ) :
+  lam0 A ≤ mu0 A := by {
+    obtain ⟨xx,Hxx⟩ := exits_xx_lam0 A
+    obtain ⟨yy,Hyy⟩ := exits_yy_mu0 A
+    calc
+      lam0 A ≤ E A xx yy := by {
+        rw [E,wsum_wsum_comm]; exact ge_iff_simplex_ge.1 Hxx yy
+      }
+      _ ≤ mu0 A := by rw [E]; exact le_iff_simplex_le.1 Hyy xx
+  }
 
 
 theorem Loomis' (Hgt : 2 ≤ n) (Hn: n=Fintype.card I + Fintype.card J) (A : I →J→ ℝ) (B : I→ J→ ℝ) (PB : ∀ i:I, ∀ j:J,  B i j > 0 ):
@@ -185,10 +213,10 @@ theorem Loomis' (Hgt : 2 ≤ n) (Hn: n=Fintype.card I + Fintype.card J) (A : I �
         }
       }
       . {
-        by_cases  HH : lam0 A B = mu0 A B
+        by_cases  HH : lam0 A  = mu0 A
         . {
-          use (lam0 A B)
-          exact ⟨exits_xx_lam0' A B PB, by {rw [HH]; exact exits_yy_mu0' A B PB}⟩
+          use (lam0 A )
+          exact ⟨exits_xx_lam0' A , by {rw [HH]; exact exits_yy_mu0' A }⟩
         }
         . {
           have H0:= lam0_le_mu0 A B PB
@@ -281,16 +309,6 @@ def one_yy_eq_one {i: I } {yy : S J}: S.wsum yy (one_matrix i) = 1 := by {
 }
 
 
-
-lemma wsum_wsum_comm {A : I→J→ ℝ }: wsum xx (fun i => wsum yy (A i)) = wsum yy (fun j => wsum xx (fun i => A i j)) := by {
-  repeat simp_rw [wsum,Finset.mul_sum]
-  rw [Finset.sum_comm]
-  apply Finset.sum_congr rfl
-  intro i _
-  apply Finset.sum_congr rfl
-  intro j _
-  ring
-}
 
 theorem minmax_theorem : ∃ (xx : S I) (yy : S J) (v : ℝ),
   (∀ (y : S J), (E A xx y) ≥ v ) ∧ ( ∀ (x : S I), E A x yy ≤ v)  := by {
