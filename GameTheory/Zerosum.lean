@@ -1,3 +1,8 @@
+/-
+Our reference is
+[LRS] Rida Laraki, Jérôme Renault, Sylvain Sorin, Mathematical Foundations of Game Theory (Universitext), 2019
+-/
+
 import Mathlib.Data.Real.EReal
 import Mathlib.Data.Real.NNReal
 import Mathlib.Data.Fintype.Basic
@@ -470,7 +475,8 @@ def one_yy_eq_one {i: I } {yy : S J}: S.wsum yy (one_matrix i) = 1 := by {
 }
 
 
-
+-- The following is a version of von Neumann's minimax theorem
+-- stated as Theorem 2.3.1 in [LRS]
 theorem minmax_theorem : ∃ (xx : S I) (yy : S J) (v : ℝ),
   (∀ (y : S J), (E A xx y) ≥ v ) ∧ ( ∀ (x : S I), E A x yy ≤ v)  := by {
     have  MM':= minmax_theorem' A
