@@ -114,13 +114,10 @@ lemma lam.aux_gt_iff_gt (A : I→ J →  ℝ ) (c:ℝ) (x: S I):
 
 
 lemma lam.aux.continouse (A : I →J → ℝ ) : Continuous (lam.aux A) := by {
-  simp_rw [lam.aux]
   let fj := fun j x => wsum x (fun i => A i j)
   --have H1: ∀ j∈ Finset.univ , Continuous ((fun j x => wsum x (fun i => A i j))fj j) := by sorry
-  have H1: ∀ j∈ Finset.univ , Continuous (fj j) := by sorry
-  --have := Continuous.finset_inf'_apply
-  --have := Continuous.finset_inf'_apply -- (by {sorry}) H1
-  sorry
+  have H1: ∀ j∈ Finset.univ , Continuous (fj j) := by simp [wsum_isContinous]
+  exact Continuous.finset_inf'_apply (Inhabited.toFinsetNonempty J) H1
 }
 
 #check Continuous.finset_inf'_apply

@@ -69,12 +69,12 @@ noncomputable instance SNonempty_of_Inhabited {α : Type*} [Fintype α] [Inhabit
 
 lemma pure_eq_one {a b : α}: a = b → pure a b = 1 := by {
   intro h
-  simp only [pure, ite_eq_left_iff, zero_ne_one,h]
+  simp [pure, ite_eq_left_iff, zero_ne_one,h]
 }
 
 lemma pure_eq_zero {a b : α}: a ≠ b → pure a b = 0 := by {
   intro h
-  simp only [pure, ite_eq_right_iff,h]
+  simp [pure, ite_eq_right_iff,h]
 }
 
 noncomputable def wsum {α : Type*} [Fintype α] (x : S α) (f : α → ℝ ) := Finset.sum Finset.univ (fun i:α => (x i) * (f i))
@@ -136,6 +136,14 @@ instance metricS : MetricSpace (S α) := MetricSpace.induced (fun x => x.val)
    (by {rw [Function.Injective]; exact fun a1 a2 h1 => Subtype.ext_iff.2 h1})
    (metricSpacePi)
 
+lemma projection_isContinuous {i: α} : Continuous (fun (x: S α ) => (x i :ℝ)) := by {
+  let proj := fun y : α → ℝ => y i
+  have Cproj : Continuous proj := by continuity
+  let inc := fun x : S α => x.val
+  have Cinc : Continuous inc := by continuity
+  have : (fun (x: S α ) => (x i :ℝ))  = proj ∘ inc := by ext; simp
+  exact Continuous.comp Cproj Cinc
+}
 
 instance proper_real : ProperSpace ℝ := by {
   simp [properSpace_of_locallyCompactSpace ℝ]
@@ -221,6 +229,8 @@ instance SisCompactSpace [Inhabited α]: CompactSpace (S α) := by {
   exact ⟨SisClosed, Simplex.isBounded⟩
 }
 
+
+
 end S
 
 
@@ -275,6 +285,10 @@ lemma wsum_le_of_le [Fintype I]  {f g: I→ℝ} (H: ∀ (a:I), (f a) ≤ g a) : 
     mul_le_mul_of_nonneg_left (H i) (non_neg)
   simp [wsum,Finset.sum_le_sum this]
 }
+
+lemma wsum_isContinous [Fintype I] {f: I→ℝ} : Continuous (fun x : S I => wsum x f) :=
+ continuous_finset_sum _ (fun _ _ => (Continuous.mul (projection_isContinuous) (continuous_const)))
+
 
 lemma ge_iff_simplex_ge {f : I → ℝ} {v : ℝ}: (∀ i:I , f i ≥ v) ↔ ∀ x : S I, (wsum x f) ≥ v := by {
   constructor
@@ -360,7 +374,7 @@ Finset.sup' s H f = f i   := by {
 
 lemma sup_eq_wsum_sup {f : I → ℝ} {v : ℝ}: Finset.sup' Finset.univ (Inhabited.toFinsetNonempty I) f = iSup (fun (x: S I) => wsum x f) := by {
   have non_empty:=Inhabited.toFinsetNonempty I
-  obtain ⟨i,⟨Hi1,Hi2,Hi3⟩⟩ := Finset.exists_sup'_image' f non_empty
+  obtain ⟨i,⟨_,Hi2,Hi3⟩⟩ := Finset.exists_sup'_image' f non_empty
   rw [Hi2]
   have Hi3 : ∀ j:I, f j≤ f i := by simp [Hi3]
   have Hi3' := le_iff_simplex_le.1 Hi3
@@ -382,9 +396,9 @@ lemma sup_eq_wsum_sup {f : I → ℝ} {v : ℝ}: Finset.sup' Finset.univ (Inhabi
 }
 
 
-lemma inf_eq_wsum_inf {f : I → ℝ} {v : ℝ}: Finset.inf' Finset.univ (Inhabited.toFinsetNonempty I) f = iInf (fun (x: S I) => wsum x f) := by {
-  sorry
-}
+-- lemma inf_eq_wsum_inf {f : I → ℝ} {v : ℝ}: Finset.inf' Finset.univ (Inhabited.toFinsetNonempty I) f = iInf (fun (x: S I) => wsum x f) := by {
+--   sorry
+-- }
 
 
 end S
