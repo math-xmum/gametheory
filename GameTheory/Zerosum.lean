@@ -277,49 +277,6 @@ lemma linear_comb_gt_of_ge_gt (x y: ℝ ) (c:ℝ) (H1 : x ≥ c ) (H2 : y >c)  (
 }
 
 
-lemma linear_comb_gt_of_gt_nbh (x y: ℝ ) (c:ℝ) (H : y > c ) : ∃ (t : Interval),  0 < t.val ∧ t.val <1 ∧  t.val * x + (1-t.val) *y > c:= by {
-  by_cases Hx : x≥ c
-  . {
-    let t :Interval := ⟨1/2, by norm_num⟩
-    use t
-    have :=linear_comb_gt_of_ge_gt x y c Hx H t (by norm_num)
-    exact ⟨by norm_num, by norm_num, this⟩
-  }
-  . {
-    rw [ge_iff_le, not_le] at Hx
-    have I1: x<y := by linarith
-    have I2: 0<y-x := by linarith
-    -- let t = (y-c)/y-x, then (1-t) = (c-x)/(y-x), and  t x + (1-t)*y = c
-    -- any point t' betwwen in (t,1) will work
-    -- I will take t' = (1+t)/2 = (y+y-x-c)/2(y-x)
-    -- Then 1-t' = (c-x) / 2(y-x)
-    let tv := (y+y-x-c)/(2*(y-x))
-    have H0 : 2*(y-x)≠0 := by linarith
-    have H1 : 0 < y+y-x-c := by linarith
-    have Ht1 : tv ≥ 0 := div_nonneg (by linarith) (by linarith)
-    have Ht2 : tv < 1 := by {
-      rw [<-lt_neg_add_iff_lt]
-      calc
-        _ < (c-x)/(2 *(y-x)) := by sorry
-        _ = _ := by {
-          apply div_eq_of_eq_mul (H0)
-          apply eq_of_sub_eq_zero
-          simp [tv,add_mul,div_mul_cancel _ H0]
-          ring
-        }
-    }
-    let t : Interval := ⟨tv,⟨Ht1,by linarith⟩ ⟩
-    use t
-    sorry
-    -- constructor
-    -- .  simp [Ht2]
-    -- . {
-    --   rw [gt_iff_lt,<-lt_neg_add_iff_lt]
-    --   sorry
-    -- }
-  }
-}
-
 lemma ContinuousAt_gt_of_gt_nbh {f : ℝ → ℝ} {c:ℝ} (H1: f x > c) (H2: ContinuousAt f x) {l :ℝ} (H3 : l < x): ∃ t, l < t ∧ t < x ∧ f t >c :=
 by {
   let A := Set.Ioi c
