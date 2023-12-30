@@ -426,7 +426,7 @@ theorem minmax' (Hgt : 2 ≤ n) (Hn: n = Fintype.card I + Fintype.card J) (A : I
             linarith
           }
           . {
-            -- The proof is almost similar to the above
+            -- The proof is similar to the above
             sorry
           }
         }
