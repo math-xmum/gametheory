@@ -4,6 +4,10 @@ import Mathlib.Data.Fintype.Basic
 import Mathlib.Algebra.BigOperators.Basic
 import Mathlib.Topology.Algebra.Order.Compact
 import Mathlib.Topology.MetricSpace.Basic
+import Mathlib.Topology.Order.Basic
+-- This libary proves ℝ has the the orderedtopology
+import Mathlib.Topology.Order.Lattice
+import Mathlib.Topology.MetricSpace.PseudoMetric
 
 
 -- ℝ is not a complete lattice,
@@ -17,7 +21,8 @@ open Classical
 /-
 We use S to denote a mixed stratage
 -/
-
+@[simp]
+def Interval := { t: ℝ // 0 ≤ t ∧ t ≤ 1 }
 
 variable (I J : Type*)
 
@@ -103,22 +108,42 @@ noncomputable def lam.aux (A: I →J → ℝ ) (x : S I) :=
 
 noncomputable def lam0 (A : I →J → ℝ ):=  iSup (lam.aux A )
 
+lemma lam.aux_gt_iff_gt (A : I→ J →  ℝ ) (c:ℝ) (x: S I):
+ lam.aux A x > c ↔ (∀ j,    wsum x (fun i => A i j ) > c)
+:= by simp [lam.aux,Finset.lt_inf_iff]
+
 
 lemma lam.aux.continouse (A : I →J → ℝ ) : Continuous (lam.aux A) := by {
+  simp_rw [lam.aux]
+  let fj := fun j x => wsum x (fun i => A i j)
+  --have H1: ∀ j∈ Finset.univ , Continuous ((fun j x => wsum x (fun i => A i j))fj j) := by sorry
+  have H1: ∀ j∈ Finset.univ , Continuous (fj j) := by sorry
+  --have := Continuous.finset_inf'_apply
+  --have := Continuous.finset_inf'_apply -- (by {sorry}) H1
   sorry
 }
 
-instance Real.instClosedIciTopology : ClosedIicTopology ℝ := ⟨by {
-  intro a
-  rw [<-isSeqClosed_iff_isClosed,IsSeqClosed]
-  intro x p hx hp
-  simp only [Set.mem_setOf_eq] at hx
-  simp only [Set.mem_setOf_eq]
-  apply le_of_tendsto_of_tendsto' hp (tendsto_const_nhds) hx
-} ⟩
+#check Continuous.finset_inf'_apply
+#check Continuous.finset_inf'
 
 lemma lam.aux.bddAbove (A : I →J → ℝ ) : ∃ C, ∀ x , lam.aux A x ≤ C := by {
-  sorry
+  have NEI : Finset.Nonempty (Finset.univ : Finset I) := Inhabited.toFinsetNonempty I
+  have NEJ : Finset.Nonempty (Finset.univ : Finset J) := Inhabited.toFinsetNonempty J
+  let fi := fun i => Finset.sup'  Finset.univ NEJ (A i)
+  let C0 := Finset.sup' Finset.univ NEI fi
+  have Aij : ∀ i j,  A i j ≤ C0 := by {
+    intro i j
+    calc
+    _ ≤ Finset.sup'  Finset.univ NEJ (A i) :=  Finset.le_sup' _ (Finset.mem_univ _)
+    _ ≤ C0 := Finset.le_sup' fi (Finset.mem_univ _)
+  }
+  use C0 --* Fintype.card J
+  intro x
+  simp only [aux, ge_iff_le, Finset.mem_univ, Finset.inf'_le_iff,true_and]
+  use default
+  calc
+    _ ≤ wsum x fun _ => C0 := by apply wsum_le_of_le (fun a => Aij a default)
+    _ = C0 := wsum_const _ _
 }
 
 lemma lam.aux.le_lam0 (A : I →J → ℝ ) : ∀ x, lam.aux A x ≤ lam0 A :=
@@ -207,6 +232,139 @@ lemma singleton_of_card_one {I: Type*} [Fintype I] (H: Fintype.card I = 1) : ∃
     }
 }
 
+
+lemma wsum_comb_eq_comb_wsum (f : I → ℝ) (x y: S I) : ∀ t : Interval, wsum (linear_comb t x y) f = t.val * (wsum x f) + (1-t.val)*(wsum y f) := by {
+  intro a
+  simp [wsum,linear_comb,add_mul,Finset.sum_add_distrib,Finset.mul_sum,mul_assoc]
+}
+
+--lemma
+
+
+lemma linear_comb_gt_left {x y: ℝ}  (H : x < y ) {t : Interval} : t.val <1 → t.val * x + (1-t.val) *y > x:= by {
+  intro Ht
+  have P1:(1-t.val)>0 := by linarith
+  calc
+    _ =  x + (1-t.val)*(y-x) := by ring
+    _ > x :=by {
+      have : (1-t.val) * (y-x) >0 :=by {
+        have P2: (y-x) >0 := by linarith
+        calc
+          _ > _ :=  mul_lt_mul_of_pos_left P2 P1
+          _ = 0 := by simp
+      }
+      linarith
+    }
+}
+
+lemma linear_comb_gt_right {x y: ℝ} (H : x > y ) {t: Interval} : t.val > 0 → t.val * x + (1-t.val) *y > y:= by {
+  intro Ht
+  have := @linear_comb_gt_left y x (gt_iff_lt.1 H) ⟨1-t.val,by {
+   constructor; repeat simp [t.prop] }⟩ (by { dsimp; linarith })
+  calc
+  _ = (1-t.val) * y + (1-(1-t.val)) * x := by ring
+  _ > _ := this
+}
+
+lemma linear_comb_gt_of_ge_gt (x y: ℝ ) (c:ℝ) (H1 : x ≥ c ) (H2 : y >c)  (t : Interval) : t.val <1 → t.val * x + (1-t.val) *y > c:= by {
+  intro Ht
+  have V1: 0 ≤ x - c := by linarith
+  calc
+  _ ≥ t.val * c + (1-t.val) * y := by {
+    rw [ge_iff_le,<-le_neg_add_iff_le]
+    calc
+    _ ≤ t.val * (x-c) := by {exact mul_nonneg_iff.2 (Or.inl ⟨t.prop.1,V1⟩)
+    }
+    _ = _ := by ring }
+  _ > c := linear_comb_gt_left H2 Ht
+}
+
+
+lemma linear_comb_gt_of_gt_nbh (x y: ℝ ) (c:ℝ) (H : y > c ) : ∃ (t : Interval),  0 < t.val ∧ t.val <1 ∧  t.val * x + (1-t.val) *y > c:= by {
+  by_cases Hx : x≥ c
+  . {
+    let t :Interval := ⟨1/2, by norm_num⟩
+    use t
+    have :=linear_comb_gt_of_ge_gt x y c Hx H t (by norm_num)
+    exact ⟨by norm_num, by norm_num, this⟩
+  }
+  . {
+    rw [ge_iff_le, not_le] at Hx
+    have I1: x<y := by linarith
+    have I2: 0<y-x := by linarith
+    -- let t = (y-c)/y-x, then (1-t) = (c-x)/(y-x), and  t x + (1-t)*y = c
+    -- any point t' betwwen in (t,1) will work
+    -- I will take t' = (1+t)/2 = (y+y-x-c)/2(y-x)
+    -- Then 1-t' = (c-x) / 2(y-x)
+    let tv := (y+y-x-c)/(2*(y-x))
+    have H0 : 2*(y-x)≠0 := by linarith
+    have H1 : 0 < y+y-x-c := by linarith
+    have Ht1 : tv ≥ 0 := div_nonneg (by linarith) (by linarith)
+    have Ht2 : tv < 1 := by {
+      rw [<-lt_neg_add_iff_lt]
+      calc
+        _ < (c-x)/(2 *(y-x)) := by sorry
+        _ = _ := by {
+          apply div_eq_of_eq_mul (H0)
+          apply eq_of_sub_eq_zero
+          simp [tv,add_mul,div_mul_cancel _ H0]
+          ring
+        }
+    }
+    let t : Interval := ⟨tv,⟨Ht1,by linarith⟩ ⟩
+    use t
+    sorry
+    -- constructor
+    -- .  simp [Ht2]
+    -- . {
+    --   rw [gt_iff_lt,<-lt_neg_add_iff_lt]
+    --   sorry
+    -- }
+  }
+}
+
+lemma ContinuousAt_gt_of_gt_nbh {f : ℝ → ℝ} {c:ℝ} (H1: f x > c) (H2: ContinuousAt f x) {l :ℝ} (H3 : l < x): ∃ t, l < t ∧ t < x ∧ f t >c :=
+by {
+  let A := Set.Ioi c
+  have nbhA: A ∈ nhds (f x):= Ioi_mem_nhds (by linarith)
+  have Cfx:= (continuousAt_def.1 H2) A nbhA
+  have N1 := exists_Ioc_subset_of_mem_nhds' Cfx (H3)
+  obtain ⟨a,hl1,hl2⟩ := N1
+  rw [Set.mem_Ico] at hl1
+  let t := (a+x)/2
+  use t
+  exact ⟨by simp only [lt_div_iff]; linarith, by {
+    simp only [gt_iff_lt, zero_lt_two, div_lt_iff]
+    linarith
+  },
+    by {
+       have Ht1: t ∈ Set.Ioc a x:= by {
+          simp only [Set.mem_Ioc]
+          exact ⟨by linarith,by linarith ⟩
+       }
+       have Ht2: t ∈ f ⁻¹' A :=  Set.mem_of_subset_of_mem hl2 Ht1
+       simp only [Set.mem_preimage, Set.mem_Ioi] at Ht2
+       exact gt_iff_lt.2 Ht2
+    }
+  ⟩
+}
+
+lemma linear_comb_gt_of_gt_nbh' (x y: ℝ ) (c:ℝ) (H : x > c ) : ∃ (t : Interval),  0 < t.val ∧ t.val <1 ∧  t.val * x + (1-t.val) *y > c:= by {
+  let f := fun s => s*x +(1-s)*y
+  have Hfx : f 1 = x := by ring
+  have Hfx' : f 1 > c := by linarith
+  have Cf : Continuous f := by continuity
+  have Cfx : ContinuousAt f 1 := Continuous.continuousAt Cf
+  obtain ⟨a,ha1,ha2,ha3⟩ := ContinuousAt_gt_of_gt_nbh Hfx' Cfx (by linarith : (0:ℝ)<1)
+  use ⟨a,by linarith,by linarith⟩
+}
+
+
+lemma wsum_linear_comb_gt_of_ge_gt (f : I → ℝ) (x y: S I) (c : ℝ) (H1 : wsum x f ≥ c ) (H2 : wsum y f > c) (t : Interval) : t.val <1 → wsum (linear_comb t x y) f > c := by {
+  intro Ht; rw [wsum_comb_eq_comb_wsum]
+  exact linear_comb_gt_of_ge_gt _ _ c H1 H2 _ Ht
+}
+
 lemma minmax'_IJ_2 (Hn: 2 = Fintype.card I + Fintype.card J) (A : I →J→ ℝ): lam0 A = mu0 A := by {
         have  ⟨HSI,HSJ⟩  : Fintype.card I =1 ∧ Fintype.card J =1:= by {
           have p1 := @Fintype.card_pos I _ _
@@ -231,6 +389,8 @@ lemma minmax'_IJ_2 (Hn: 2 = Fintype.card I + Fintype.card J) (A : I →J→ ℝ)
         }
         linarith
 }
+
+
 
 theorem minmax' (Hgt : 2 ≤ n) (Hn: n = Fintype.card I + Fintype.card J) (A : I →J→ ℝ): lam0 A = mu0 A := by {
       induction' n, Hgt using Nat.le_induction with n hn IH generalizing I J  A
@@ -279,7 +439,32 @@ theorem minmax' (Hgt : 2 ≤ n) (Hn: n = Fintype.card I + Fintype.card J) (A : I
             obtain ⟨yy', Hyy'⟩ :=  exits_yy_mu0 A'
             have prop_st : ∃ t : {t: ℝ // 0≤ t ∧ t≤1},  lam.aux A (linear_comb t xx xx') > lam0 A := by {
               -- This is the most difficult part
-              sorry
+              -- use continuous_iff_continuousAt
+              -- use ContinuousAt.tendsto
+              have HJ0:∃ (t : { t:ℝ // 0 ≤ t ∧ t ≤ 1 }), 0< t.val ∧  t.val < 1 ∧ wsum (linear_comb t xx xx') (fun i => A i j0 ) > lam0 A
+                := by {
+                  simp only [wsum_comb_eq_comb_wsum _ xx xx']
+                  apply linear_comb_gt_of_gt_nbh' _ _ _ HJ
+                }
+              have HJ2: ∀  j:J , j≠ j0 → ∀ (t : { t:ℝ // 0 ≤ t ∧ t ≤ 1}), t.val < 1 →  wsum (linear_comb t xx xx') (fun i => A i j ) > lam0 A
+                := by {
+                   intro j Hj t Ht
+                   apply wsum_linear_comb_gt_of_ge_gt
+                   . exact (Hxx j)
+                   . {
+                    calc
+                    _ ≥ lam0 A' := Hxx' ⟨j, Hj⟩
+                    _ > lam0 A := by linarith
+                   }
+                   . exact Ht
+                }
+              obtain ⟨t0, HtJ0⟩ := HJ0
+              use t0
+              rw [lam.aux_gt_iff_gt]
+              intro j
+              by_cases Hj : j=j0
+              .  simp [Hj,HtJ0]
+              .  exact HJ2 j Hj t0 (HtJ0.2.1)
             }
             obtain ⟨t, Hst⟩ := prop_st
             have prop_iSup : ∀ x: S I, lam.aux A x ≤ lam0 A := lam.aux.le_lam0 A
