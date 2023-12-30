@@ -11,7 +11,7 @@ import Mathlib.Topology.MetricSpace.PseudoMetric
 
 
 -- ℝ is not a complete lattice,
---iSup may not exits le_iSup' (lam.aux A B)  (linear_comb t xx xx')
+-- iSup may not exits
 -- use theorems starts with ciSup etc.
 
 import GameTheory.Simplex
