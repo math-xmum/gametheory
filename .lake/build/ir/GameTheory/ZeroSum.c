@@ -1,5 +1,5 @@
 // Lean compiler output
-// Module: GameTheory.ZeroSum
+// Module: GameTheory.Zerosum
 // Imports: Init Mathlib.Data.Real.EReal Mathlib.Data.Real.NNReal Mathlib.Data.Fintype.Basic Mathlib.Algebra.BigOperators.Basic Mathlib.Topology.Algebra.Order.Compact Mathlib.Topology.MetricSpace.Basic Mathlib.Topology.Order.Basic Mathlib.Topology.Order.Lattice Mathlib.Topology.MetricSpace.PseudoMetric GameTheory.Simplex
 #include <lean/lean.h>
 #if defined(__clang__)
@@ -228,7 +228,7 @@ lean_object* initialize_Mathlib_Topology_Order_Lattice(uint8_t builtin, lean_obj
 lean_object* initialize_Mathlib_Topology_MetricSpace_PseudoMetric(uint8_t builtin, lean_object*);
 lean_object* initialize_GameTheory_Simplex(uint8_t builtin, lean_object*);
 static bool _G_initialized = false;
-LEAN_EXPORT lean_object* initialize_GameTheory_ZeroSum(uint8_t builtin, lean_object* w) {
+LEAN_EXPORT lean_object* initialize_GameTheory_Zerosum(uint8_t builtin, lean_object* w) {
 lean_object * res;
 if (_G_initialized) return lean_io_result_mk_ok(lean_box(0));
 _G_initialized = true;
