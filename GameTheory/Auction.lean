@@ -287,29 +287,28 @@ theorem valuation_is_dominant (i : a.I ) : dominant i (a.v i) := by {
 
 noncomputable def utility_first_price (i : a.I) : ℝ := if i = winner b then a.v i - b i else 0
 
+lemma utility_first_price_winner (i :a.I) (H : i = winner b) :
+utility_first_price b i = a.v i - b i := by sorry
+
+
+lemma utility_first_price_loser(i :a.I) (H : i ≠ winner b) :
+utility_first_price b i = 0 := by sorry
+
 def dominant_first_price (i : a.I) (bi : ℝ) : Prop :=
     ∀ b b': a.I → ℝ, (b i = bi) → (∀ j : a.I, j ≠ i → b j = b' j)
     → utility_first_price b i  ≥ utility_first_price b' i
 
 
-
 theorem first_price_no_dominant_strategy (i : a.I) (bi :  ℝ) : ¬ (dominant_first_price i bi) := by {
-   simp [dominant_first_price]
+   simp only [dominant_first_price, not_forall]
 
-   --intro h
-   --by_contra h_neg
+   let b := fun j => if j = i then (bi:ℝ) else bi-2
+   let b' := fun j => if j = i then (bi-1:ℝ) else bi-2
+   use b, b'
+   simp only [ne_eq, exists_prop, ite_true, exists_const]
 
---假设其他一堆人出价都与那堆人里的最高价相同，相当于我只与最高价进行比较
-   have h_b'i : ∀ j : a.I, j ≠ i → b j = b' j := by {
-      sorry
-   }
-   have h_bi : b i = bi := by {
-      sorry
-   }
-   have h_utility : utility_first_price b' i > utility_first_price b i := by {
-      sorry
-   }
-   by_contra h
+   sorry
+
 }
 
 end Auction
