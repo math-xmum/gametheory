@@ -283,5 +283,28 @@ theorem valuation_is_dominant (i : a.I ) : dominant i (a.v i) := by {
    }
 }
 
+noncomputable def utility_first_price (i : a.I) : ℝ := if i = winner b then a.v i - b i else 0
+
+def dominant_first_price (i : a.I) (bi : ℝ) : Prop :=
+    ∀ b b': a.I → ℝ, (b i = bi) → (∀ j : a.I, j ≠ i → b j = b' j)
+    → utility_first_price b i  ≥ utility_first_price b' i
+
+
+theorem first_price_no_dominant_strategy (i : a.I) : ¬dominant_first_price i (b i) := by {
+   intro h
+   by_contra h_neg
+
+--假设其他一堆人出价都与那堆人里的最高价相同，相当于我只与最高价进行比较
+   have h_b'i : ∀ j : a.I, j ≠ i → b j = b' j := by {
+      sorry
+   }
+   have h_bi : b i = bi := by {
+      sorry
+   }
+   have h_utility : utility_first_price b' i > utility_first_price b i := by {
+      sorry
+   }
+   by_contra h
+}
 
 end Auction
