@@ -293,28 +293,22 @@ theorem first_price_no_dominant_strategy (i : a.I) : ¬dominant_first_price i (b
    intro h
    by_contra h_neg
 
-   have b' : a.I → ℝ := c j: if j = i then bi - ε else b j :=by {
-      sorry
-   }
-  -- 其中 ε > 0，确保 b' i < bi 但仍然足够赢得拍卖（如果可能）
-  -- 确保这个新的出价函数满足假设条件
-
 --假设其他一堆人出价都与那堆人里的最高价相同，相当于我只与最高价进行比较
    have h_b'i : ∀ j : a.I, j ≠ i → b j = b' j := by {
+      sorry
+   }
+   have h_bi : b i = bi := by {
       sorry
    }
    have h_utility : utility_first_price b' i > utility_first_price b i := by {
       sorry
    }
-  contra
+   by_contra h
 }
 
 
 
-   have h_bi : b i = bi := by {
-      sorry
-   }
-   by_contra h
+
 
 
 
