@@ -288,11 +288,18 @@ theorem valuation_is_dominant (i : a.I ) : dominant i (a.v i) := by {
 noncomputable def utility_first_price (i : a.I) : ℝ := if i = winner b then a.v i - b i else 0
 
 lemma utility_first_price_winner (i :a.I) (H : i = winner b) :
-utility_first_price b i = a.v i - b i := by sorry
-
+utility_first_price b i = a.v i - b i := by {
+   rw[H]
+   simp only [utility_first_price]
+   simp only [if_true]
+}
 
 lemma utility_first_price_loser(i :a.I) (H : i ≠ winner b) :
-utility_first_price b i = 0 := by sorry
+utility_first_price b i = 0 := by {
+   rw[utility_first_price]
+   simp only [H]
+   simp only [if_false]
+}
 
 def dominant_first_price (i : a.I) (bi : ℝ) : Prop :=
     ∀ b b': a.I → ℝ, (b i = bi) → (∀ j : a.I, j ≠ i → b j = b' j)
@@ -306,8 +313,27 @@ theorem first_price_no_dominant_strategy (i : a.I) (bi :  ℝ) : ¬ (dominant_fi
    let b' := fun j => if j = i then (bi-1:ℝ) else bi-2
    use b, b'
    simp only [ne_eq, exists_prop, ite_true, exists_const]
+   simp only [true_and]
+   constructor
+   intro j hj
+   simp only [if_false, hj]
+   --能不能theorem Mathlib.Tactic.PushNeg.not_ge_eq
+   --have H : bi - 2 ≤ bi - 1 := by linarith
 
-   sorry
+   rw [utility_first_price]
+   rw [utility_first_price]
+
+   simp only [if_true]
+
+}
+
+
+
+   have utility_b: utility_first_price b i = a.v i - bi := by {
+      rw [utility_first_price_winner]
+      simp only [if_true]
+
+
 
 }
 
