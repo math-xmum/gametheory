@@ -282,50 +282,60 @@ theorem valuation_is_dominant (i : a.I ) : dominant i (a.v i) := by {
    }
 }
 
+
+#check valuation_is_dominant
+
 noncomputable def utility_first_price (i : a.I) : ℝ := if i = winner b then a.v i - b i else 0
+
+lemma utility_first_price_winner (i :a.I) (H : i = winner b) :
+utility_first_price b i = a.v i - b i := by {
+   rw[H]
+   simp only [utility_first_price]
+   simp only [if_true]
+}
+
+lemma utility_first_price_loser(i :a.I) (H : i ≠ winner b) :
+utility_first_price b i = 0 := by {
+   rw[utility_first_price]
+   simp only [H]
+   simp only [if_false]
+}
 
 def dominant_first_price (i : a.I) (bi : ℝ) : Prop :=
     ∀ b b': a.I → ℝ, (b i = bi) → (∀ j : a.I, j ≠ i → b j = b' j)
     → utility_first_price b i  ≥ utility_first_price b' i
 
 
-theorem first_price_no_dominant_strategy (i : a.I) : ¬dominant_first_price i (b i) := by {
-   intro h
-   by_contra h_neg
+theorem first_price_no_dominant_strategy (i : a.I) (bi :  ℝ) : ¬ (dominant_first_price i bi) := by {
+   simp only [dominant_first_price, not_forall]
 
---假设其他一堆人出价都与那堆人里的最高价相同，相当于我只与最高价进行比较
-   have h_b'i : ∀ j : a.I, j ≠ i → b j = b' j := by {
-      sorry
-   }
-   have h_bi : b i = bi := by {
-      sorry
-   }
-   have h_utility : utility_first_price b' i > utility_first_price b i := by {
-      sorry
-   }
-   by_contra h
+   let b := fun j => if j = i then (bi:ℝ) else bi-2
+   let b' := fun j => if j = i then (bi-1:ℝ) else bi-2
+   use b, b'
+   simp only [ne_eq, exists_prop, ite_true, exists_const]
+   simp only [true_and]
+   constructor
+   intro j hj
+   simp only [if_false, hj]
+   --能不能theorem Mathlib.Tactic.PushNeg.not_ge_eq
+   --have H : bi - 2 ≤ bi - 1 := by linarith
+
+   rw [utility_first_price]
+   rw [utility_first_price]
+
+   simp only [if_true]
+
 }
 
 
 
-
-
-
+   have utility_b: utility_first_price b i = a.v i - bi := by {
+      rw [utility_first_price_winner]
+      simp only [if_true]
 
 
 
 end Auction
-
-
-
-
-
-
-
-
-
-
-
 
 --什么是lean，什么是mathlib，怎么用mathlib，怎么用lean，什么是type
 --什么是structure，什么是instance，什么是lemma，什么是theorem，什么是def，什么是variable
