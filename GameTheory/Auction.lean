@@ -320,21 +320,21 @@ theorem first_price_no_dominant_strategy (i : a.I) (bi :  ℝ) : ¬ (dominant_fi
    --能不能theorem Mathlib.Tactic.PushNeg.not_ge_eq
    --have H : bi - 2 ≤ bi - 1 := by linarith
 
-   rw [utility_first_price]
-   rw [utility_first_price]
-
-   simp only [if_true]
-
+   have winner_b : i = winner b := by {
+      apply gt_wins b i
+      intro j hj
+      simp [Ne.symm hj]
+   }
+   have winner_b' : i = winner b' := by {
+      apply gt_wins b' i
+      intro j hj
+      simp only [ite_true, Ne.symm hj, ite_false, gt_iff_lt, sub_lt_sub_iff_left]
+      linarith
+   }
+   have h1 := utility_first_price_winner b i winner_b
+   have h2 := utility_first_price_winner b' i winner_b'
+   simp [h1,h2]
 }
 
-
-
-   have utility_b: utility_first_price b i = a.v i - bi := by {
-      rw [utility_first_price_winner]
-      simp only [if_true]
-
-
-
-}
 
 end Auction
