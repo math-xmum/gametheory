@@ -283,5 +283,58 @@ theorem valuation_is_dominant (i : a.I ) : dominant i (a.v i) := by {
    }
 }
 
+#check valuation_is_dominant
+
+noncomputable def utility_first_price (i : a.I) : ℝ := if i = winner b then a.v i - b i else 0
+
+lemma utility_first_price_winner (i :a.I) (H : i = winner b) :
+utility_first_price b i = a.v i - b i := by {
+   rw[H]
+   simp only [utility_first_price]
+   simp only [if_true]
+}
+
+lemma utility_first_price_loser(i :a.I) (H : i ≠ winner b) :
+utility_first_price b i = 0 := by {
+   rw[utility_first_price]
+   simp only [H]
+   simp only [if_false]
+}
+
+def dominant_first_price (i : a.I) (bi : ℝ) : Prop :=
+    ∀ b b': a.I → ℝ, (b i = bi) → (∀ j : a.I, j ≠ i → b j = b' j)
+    → utility_first_price b i  ≥ utility_first_price b' i
+
+
+theorem first_price_no_dominant_strategy (i : a.I) (bi :  ℝ) : ¬ (dominant_first_price i bi) := by {
+   simp only [dominant_first_price, not_forall]
+
+   let b := fun j => if j = i then (bi:ℝ) else bi-2
+   let b' := fun j => if j = i then (bi-1:ℝ) else bi-2
+   use b, b'
+   simp only [ne_eq, exists_prop, ite_true, exists_const]
+   simp only [true_and]
+   constructor
+   intro j hj
+   simp only [if_false, hj]
+   --能不能theorem Mathlib.Tactic.PushNeg.not_ge_eq
+   --have H : bi - 2 ≤ bi - 1 := by linarith
+
+   have winner_b : i = winner b := by {
+      apply gt_wins b i
+      intro j hj
+      simp [Ne.symm hj]
+   }
+   have winner_b' : i = winner b' := by {
+      apply gt_wins b' i
+      intro j hj
+      simp only [ite_true, Ne.symm hj, ite_false, gt_iff_lt, sub_lt_sub_iff_left]
+      linarith
+   }
+   have h1 := utility_first_price_winner b i winner_b
+   have h2 := utility_first_price_winner b' i winner_b'
+   simp [h1,h2]
+}
+
 
 end Auction
