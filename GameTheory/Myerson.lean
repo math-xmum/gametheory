@@ -37,12 +37,20 @@ def I' i:= {j : F.I // j ≠ i}
 @[simp]
 def Bids' (i : F.I) := I' i → ℝ
 
-noncomputable def combineBids {i : F.I} (x : ℝ) (b' : I' i →ℝ) : F.Bids
+noncomputable def combineBids {i : F.I} (x : ℝ) (b' : Bids' i) : F.Bids
 := fun j => if h:j=i then x else b' ⟨j, h⟩
 
-noncomputable instance  {i : F.I}: CoeOut (ℝ × (Bids' i)) F.Bids where
-  coe  b := combineBids b.1 b.2
+noncomputable def combineBidsPair {i : F.I} (b : ℝ × Bids' i) : F.Bids
+:= combineBids b.1 b.2
+attribute [coe] combineBidsPair
 
+noncomputable instance  {i : F.I}: CoeOut (ℝ × (Bids' i)) F.Bids where
+  coe := combineBidsPair
+
+
+variable (i : F.I) (b' : Bids' i) (x : ℝ)
+
+#check ((x,b'): F.Bids)
 
 @[simp]
 def Allocation := Π i, E.feasibleSet i
