@@ -1,6 +1,11 @@
 import Mathlib.Data.Real.EReal
 import Mathlib.Data.Fintype.Basic
 import Mathlib.Data.Fintype.Lattice
+import Mathlib.Data.Set.Lattice
+import Mathlib.Data.Nat.Prime
+import Mathlib.Data.Nat.Parity
+
+
 
 open Classical
 
@@ -36,6 +41,7 @@ lemma exists_max : ∃ i: a.I, b i = a.maxb b := by
 
 --defines the winner of the auction
 --i.e. the participant with the highest bid
+--use classical.choose选择公理 to define a function that returns the winner(do really exist)
 noncomputable def winner : a.I := Classical.choose (exists_max b)
 
 --states that the bid of the winner equals the highest bid

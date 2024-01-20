@@ -12,9 +12,7 @@ structure SingleParameterEnvironment where
    IFintype : Fintype I
    feasibleSet: I → Set ℝ -- feasibleSet
    feasibleSetInhabited: ∀ i, Inhabited (feasibleSet i)
-   val: I → ℝ  -- valuation of the item for each bidder
-
-
+   --val: I → ℝ  -- valuation of the item for each bidder
 
 namespace SingleParameterEnvironment
 variable (E: SingleParameterEnvironment)
@@ -24,18 +22,19 @@ instance : Inhabited E.I := E.IInhabited
 instance : Fintype E.I := E.IFintype
 instance : Inhabited (E.feasibleSet i) := E.feasibleSetInhabited _
 
+
+--new valuation
+abbrev Valuation := E.I → ℝ
+
 -- The type of bids
-@[simp]
-def Bids := E.I → ℝ
+abbrev Bids := E.I → ℝ
 
 
 -- The subtype delete i-th bidder
-@[simp]
-def I' i:= {j : F.I // j ≠ i}
+abbrev I' i:= {j : F.I // j ≠ i}
 
 
-@[simp]
-def Bids' (i : F.I) := I' i → ℝ
+abbrev Bids' (i : F.I) := I' i → ℝ
 
 noncomputable def combineBids {i : F.I} (x : ℝ) (b' : Bids' i) : F.Bids
 := fun j => if h:j=i then x else b' ⟨j, h⟩
@@ -65,26 +64,39 @@ def Monotone (ar : F.AllocationRule) := ∀ i (x1 x2: ℝ) (b': Bids' i), x1 ≤
 
 -- Payments
 
-@[simp]
-def Payment:= E.I → ℝ
+abbrev Payment:= E.I → ℝ
 
-@[simp]
-def PaymentRule := E.Bids → E.Payment
+abbrev PaymentRule := E.Bids → E.Payment
 
 -- Quasi_Linear utility
-def utility (ar : F.AllocationRule) (pr : F.PaymentRule) (b : F.Bids) :
-  F.I → ℝ := fun i => F.val i * (ar b i) - (pr b i)
+def utility (ar : F.AllocationRule) (pr : F.PaymentRule) (v : F.Valuation) (b : F.Bids) :
+  F.I → ℝ := fun i => v i * (ar b i) - (pr b i)
 
-def dominant (ar : F.AllocationRule) (pr : F.PaymentRule) (i : F.I) (bi : ℝ) := ∀ (b' :Bids' i), utility ar pr (bi,b') i ≥ utility ar pr (bi, b') i
+def dominant (ar : F.AllocationRule) (pr : F.PaymentRule) (v : F.Valuation) (i : F.I) (bi : ℝ) :=
+  ∀ (b' :Bids' i), utility ar pr v (bi,b') i ≥ utility ar pr v (bi, b') i
 
-def DSIC ar pr := ∀ i:F.I,
-  (dominant ar pr i (F.val i))
-  ∧ (∀ b' : Bids' i, utility ar pr ((F.val i),b') i ≥ 0)
+def DSIC ar pr v := ∀ i:F.I,
+  (dominant ar pr v i (v i))
+  ∧ (∀ b' : Bids' i, utility ar pr v ((v i),b') i ≥ 0)
 
-def Implementable (ar : F.AllocationRule) := ∃ pr : F.PaymentRule, DSIC ar pr
+--利用dsic找一个特定的p，确实存在这个p
+def Implementable (ar : F.AllocationRule) := ∀ v, ∃ pr : F.PaymentRule, DSIC ar pr v
 
 theorem MyersonLemma (ar :F.AllocationRule) :
-Implementable ar ↔ Monotone ar := sorry
+Implementable ar ↔ Monotone ar := by {
+  constructor
+  intro h hj
+  by_cases bv1: v > b' ≥ 0
+  .
 
 
-end SingleParameterEnvironment
+
+  --simp only [Implementable, DSIC, dominant, utility] at h
+
+}
+
+--感觉跟凸优化又有点关系，
+--feasible set X. Each element of X is a nonnegative nvector (x1, x2, . . . , xn),
+--where xi denotes the “amount of stuff” given to agent i.
+--∀ (x1 x2 : ℝ) (b' : Bids' hj), x1 ≤ x2 → ar (↑(x1, b')) hj ≤ ar (↑(x2, b')) hj
+--∀ (x1 x2 : ℝ) (b' : Bids' hj), x1 ≤ x2 → ar (b') hj ≤ ar (b') hj
