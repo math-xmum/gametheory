@@ -29,10 +29,8 @@ abbrev Valuation := E.I → ℝ
 -- The type of bids
 abbrev Bids := E.I → ℝ
 
-
--- The subtype delete i-th bidder
+-- The subtype of all bidders delete i-th bidder
 abbrev I' i:= {j : F.I // j ≠ i}
-
 
 abbrev Bids' (i : F.I) := I' i → ℝ
 
@@ -61,9 +59,7 @@ def AllocationRule := E.Bids → E.Allocation
 
 def Monotone (ar : F.AllocationRule) := ∀ i (x1 x2: ℝ) (b': Bids' i), x1 ≤ x2 →  (ar (x1,b') i) ≤  (ar (x2,b') i)
 
-
 -- Payments
-
 abbrev Payment:= E.I → ℝ
 
 abbrev PaymentRule := E.Bids → E.Payment
@@ -72,6 +68,7 @@ abbrev PaymentRule := E.Bids → E.Payment
 def utility (ar : F.AllocationRule) (pr : F.PaymentRule) (v : F.Valuation) (b : F.Bids) :
   F.I → ℝ := fun i => v i * (ar b i) - (pr b i)
 
+
 def dominant (ar : F.AllocationRule) (pr : F.PaymentRule) (v : F.Valuation) (i : F.I) (bi : ℝ) :=
   ∀ (b' :Bids' i), utility ar pr v (bi,b') i ≥ utility ar pr v (bi, b') i
 
@@ -79,24 +76,37 @@ def DSIC ar pr v := ∀ i:F.I,
   (dominant ar pr v i (v i))
   ∧ (∀ b' : Bids' i, utility ar pr v ((v i),b') i ≥ 0)
 
---利用dsic找一个特定的p，确实存在这个p
 def Implementable (ar : F.AllocationRule) := ∀ v, ∃ pr : F.PaymentRule, DSIC ar pr v
 
-theorem MyersonLemma (ar :F.AllocationRule) :
+--lemma eq_zero  (pr : F.PaymentRule)(i : F.I) (bi : ℝ):
+  --∀pr: F.PaymentRule, pr( 0, bi )= 0 := by {
+
+--}
+
+--An allocation rule X is implementable if and only if it is monotone
+theorem Myerson's_Lemma1 (ar :F.AllocationRule) :
 Implementable ar ↔ Monotone ar := by {
   constructor
   intro h hj
-  by_cases bv1: v > b' ≥ 0
-  .
-
-
-
-  --simp only [Implementable, DSIC, dominant, utility] at h
 
 }
+  --函数延展性 三元组相等 => 函数unique
+lemma function_extensionality {α β: Type} {f g : α → β} (h : ∀ x, f x = g x) : f = g :=by {
+  funext x
+  exact h x
+}
+
+example (α β : Type) (f g : α → β) (h : ∀ x, f x = g x) : f = g := by{
+  apply function_extensionality
+  exact h
+}
+
+
+--If X is monotone, then there is a unique payment rule such that the sealed-bid mechanism (X; P)
+--is DSIC [assuming the normalization that bi = 0 implies Pi(b) = 0].
+--theorem Myerson's_Lemma2(ar :F.AllocationRule)(pr : F.PaymentRule) :Implementable ar → (ar,pr) is unique  := by{
+
 
 --感觉跟凸优化又有点关系，
 --feasible set X. Each element of X is a nonnegative nvector (x1, x2, . . . , xn),
 --where xi denotes the “amount of stuff” given to agent i.
---∀ (x1 x2 : ℝ) (b' : Bids' hj), x1 ≤ x2 → ar (↑(x1, b')) hj ≤ ar (↑(x2, b')) hj
---∀ (x1 x2 : ℝ) (b' : Bids' hj), x1 ≤ x2 → ar (b') hj ≤ ar (b') hj
