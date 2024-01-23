@@ -70,7 +70,7 @@ def utility (ar : F.AllocationRule) (pr : F.PaymentRule) (v : F.Valuation) (b : 
 
 
 def dominant (ar : F.AllocationRule) (pr : F.PaymentRule) (v : F.Valuation) (i : F.I) (bi : ℝ) :=
-  ∀ (b' :Bids' i), utility ar pr v (bi,b') i ≥ utility ar pr v (bi, b') i
+  ∀ (bi' : ℝ) (b' :Bids' i), utility ar pr v (bi, b') i ≥ utility ar pr v (bi', b') i
 
 def DSIC ar pr v := ∀ i:F.I,
   (dominant ar pr v i (v i))
