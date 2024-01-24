@@ -126,8 +126,8 @@ Implementable ar → Monotone ar := by {
   have H3: (z - y)  * (x y - x z) ≤ 0 := by linarith
   have H4 : z - y < 0 := by linarith
   have H5 := ((@mul_nonpos_iff_neg_imp_nonneg _ _ (z-y) (x y - x z)).1 H3).1 H4
-  ----
-
+  simp [x] at H5
+  simp [H5]
 }
 
 
