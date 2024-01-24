@@ -77,7 +77,7 @@ def DSIC ar pr v := ∀ i:F.I,
   (dominant ar pr v i (v i))
   ∧ (∀ b' : Bids' i, utility ar pr v ((v i),b') i ≥ 0)
 
-def Implementable (ar : F.AllocationRule) := ∀ v, ∃ pr : F.PaymentRule, DSIC ar pr v
+def Implementable (ar : F.AllocationRule) := ∃ pr : F.PaymentRule, ∀ v, DSIC ar pr v
 
 
 lemma relation_h12(x1:ℝ )(x2:ℝ )(x3:ℝ )(x4:ℝ ): x1 -x2 ≤ x3 - x4 ↔ x1 -x3 ≤ x2 - x4:= by {
@@ -89,10 +89,23 @@ constructor
 }
 
 --dsic
+lemma implementable_imp_monotone (ar :F.AllocationRule) (v : F.Valuation):
+Implementable ar → Monotone ar := by {
+  rw [Implementable, Monotone]
+  intro H i z y b' Hx
+  obtain ⟨pr,Hpr⟩:= H
+  let x := fun (z:ℝ) => ar (z,b') i
+  let p := fun (z:ℝ) => pr (z,b') i
+  let zz : F.Valuation := fun _ => z
+  let yy : F.Valuation := fun _ => y
+  have H1 := (Hpr zz i).1  y b'
+  simp only [utility, ge_iff_le, tsub_le_iff_right] at H1
+  sorry
+
+}
 
 
-
-theorem MyersonLemma (ar :F.AllocationRule) (v : F.Valuation):
+theorem MyersonLemma (ar :F.AllocationRule) :
 Implementable ar ↔ Monotone ar := by {
   constructor
   · intro b b'
