@@ -88,8 +88,7 @@ constructor
 .intro h2
  linarith
 }
-lemma relation_h13(x1:ℝ )(x2:ℝ )(x3:ℝ )(x4:ℝ )(a:ℝ ):
-   a*x1-a*x2 ≤ x4 - x3 ↔ a*(x1 -x2) ≤ x4 - x3:= by {
+lemma relation_h13(x1:ℝ )(x2:ℝ )(x3:ℝ )(x4:ℝ )(a:ℝ ): a*x1 - a*x2 ≤ x4 - x3 ↔ a*(x1 -x2) ≤ x4 - x3:= by {
 constructor
 .intro h1
  linarith
@@ -97,12 +96,15 @@ constructor
  linarith
 }
 lemma relation_h14(x1:ℝ )(x2:ℝ )(x3:ℝ )(x4:ℝ )(a:ℝ ):
-   a*(x1 -x2) ≤ x4 - x3 ↔ a*(x2 -x1) ≥  x3 - x4:= by {
+ a*(x1 -x2) ≤ x4 - x3 ↔ a*(x2 -x1) ≥  x3 - x4 := by {
 constructor
 .intro h1
  linarith
 .intro h2
  linarith
+}
+lemma subnonneg_of_le (a b : ℝ) (h : a ≤ b) : a - b ≤ 0 := by {
+  linarith
 }
 
 --dsic
@@ -126,10 +128,22 @@ Implementable ar → Monotone ar := by {
   simp only [relation_h14] at H2
   simp[le_trans H1 H2]
 
+  have H3: ( z- y)  * (↑(ar (↑(y, b')) i) - ↑(ar (↑(z, b')) i)) ≤ 0 := by {
+    linarith
+  }
+  apply subnonneg_of_le at Hx
+  simp only [Hx,linarith] at H3
 
 
 
-a
+
+
+
+
+
+
+
+
 
 
 
@@ -139,11 +153,7 @@ a
 theorem MyersonLemma (ar :F.AllocationRule) :
 Implementable ar ↔ Monotone ar := by {
   constructor
-  · intro b b'
-        -- 定义两个取值为x1和x2的函数，用于后续代入得到不等式
-    have v_x1 : F.I → ℝ := fun _ => x1
-    have v_x2 : F.I → ℝ := fun _ => x2
-
+  · exact implementable_imp_monotone ar v
 
 
   · rintro hmon
@@ -167,11 +177,6 @@ lemma funext₃_extensionality(H : ∀ (a : ) (b : β), f a b = g a b) : f = g :
   apply funext₃
   exact h
 }
-
-
-
-
-
 
 --lemma eq_zero  (pr : F.PaymentRule)(i : F.I) (bi : ℝ):
   --∀pr: F.PaymentRule, pr( 0, bi )= 0 := by {
