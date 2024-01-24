@@ -80,7 +80,21 @@ def DSIC ar pr v := ∀ i:F.I,
 def Implementable (ar : F.AllocationRule) := ∃ pr : F.PaymentRule, ∀ v, DSIC ar pr v
 
 
-lemma relation_h12(x1:ℝ )(x2:ℝ )(x3:ℝ )(x4:ℝ ): x1 -x2 ≤ x3 - x4 ↔ x1 -x3 ≤ x2 - x4:= by {
+lemma relation_h12(x1:ℝ )(x2:ℝ )(x3:ℝ )(x4:ℝ ): x1 ≤ x2 - x3 + x4 ↔ x1 -x2 ≤ x4 - x3:= by {
+constructor
+.intro h1
+ linarith
+.intro h2
+ linarith
+}
+lemma relation_h13(x1:ℝ )(x2:ℝ )(x3:ℝ )(x4:ℝ )(a:ℝ ): a*x1-a*x2 ≤ x4 - x3 ↔ a*(x1 -x2) ≤ x4 - x3:= by {
+constructor
+.intro h1
+ linarith
+.intro h2
+ linarith
+}
+lemma relation_h14(x1:ℝ )(x2:ℝ )(x3:ℝ )(x4:ℝ )(a:ℝ ): a*(x1 -x2) ≤ x4 - x3 ↔ a*(x2 -x1) ≥  x3 - x4:= by {
 constructor
 .intro h1
  linarith
@@ -100,7 +114,21 @@ Implementable ar → Monotone ar := by {
   let yy : F.Valuation := fun _ => y
   have H1 := (Hpr zz i).1  y b'
   simp only [utility, ge_iff_le, tsub_le_iff_right] at H1
-  sorry
+  simp only [relation_h12] at H1
+  simp only [relation_h13] at H1
+  have H2 := (Hpr yy i).1  z b'
+  simp only [utility, ge_iff_le, tsub_le_iff_right] at H2
+  simp only [relation_h12] at H2
+  simp only [relation_h13] at H2
+  simp only [relation_h14] at H2
+  simp[le_trans H1 H2]
+
+
+
+
+
+
+
 
 }
 
