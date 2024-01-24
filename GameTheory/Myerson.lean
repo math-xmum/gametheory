@@ -55,7 +55,7 @@ def Allocation := Π i, E.feasibleSet i
 @[simp]
 def AllocationRule := E.Bids → E.Allocation
 
-def Monotone (ar : F.AllocationRule) := ∀ i (x1 x2: ℝ) (b': Bids' i), x1 ≤ x2 →  (ar (x1,b') i) ≤  (ar (x2,b') i)
+def Monotone (ar : F.AllocationRule) := ∀ i (x1 x2: ℝ) (b': Bids' i), x1 < x2 →  (ar (x1,b') i) ≤  (ar (x2,b') i)
 
 -- Payments
 abbrev Payment:= E.I → ℝ
@@ -119,33 +119,14 @@ Implementable ar → Monotone ar := by {
   let yy : F.Valuation := fun _ => y
   have H1 := (Hpr zz i).1  y b'
   simp only [utility, ge_iff_le, tsub_le_iff_right] at H1
-  simp only [relation_h12] at H1
-  simp only [relation_h13] at H1
+  have H1: z * (x y - x z) ≤ p y - p z := by linarith
   have H2 := (Hpr yy i).1  z b'
   simp only [utility, ge_iff_le, tsub_le_iff_right] at H2
-  simp only [relation_h12] at H2
-  simp only [relation_h13] at H2
-  simp only [relation_h14] at H2
-  simp[le_trans H1 H2]
-
-  have H3: ( z- y)  * (↑(ar (↑(y, b')) i) - ↑(ar (↑(z, b')) i)) ≤ 0 := by {
-    linarith
-  }
-  apply subnonneg_of_le at Hx
-  simp only [Hx,linarith] at H3
-
-
-
-
-
-
-
-
-
-
-
-
-
+  have H2 : p y - p z ≤ y * (x y - x z) := by linarith
+  have H3: (z - y)  * (x y - x z) ≤ 0 := by linarith
+  have H4 : z - y < 0 := by linarith
+  have H5 := ((@mul_nonpos_iff_neg_imp_nonneg _ _ (z-y) (x y - x z)).1 H3).1 H4
+  ----
 
 }
 
