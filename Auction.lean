@@ -291,6 +291,7 @@ theorem valuation_is_dominant (i : a.I ) : dominant i (a.v i) := by {
 
 #check valuation_is_dominant
 
+--next we will provide the proof of first price has no dominant strategy
 noncomputable def utility_first_price (i : a.I) : ℝ := if i = winner b then a.v i - b i else 0
 
 lemma utility_first_price_winner (i :a.I) (H : i = winner b) :

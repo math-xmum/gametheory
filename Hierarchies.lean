@@ -1,154 +1,143 @@
-class One₁ (α : Type) where
-  /-- The element one -/
-  one : α
+import Mathlib.Data.Real.EReal
+import Mathlib.Data.Fintype.Basic
+import Mathlib.Data.Fintype.Lattice
 
-#check One₁.one -- One₁.one {α : Type} [self : One₁ α] : α
+open Classical
+open BigOperators
 
-@[class] structure One₂ (α : Type) where
-  /-- The element one -/
-  one : α
+-- Single-parameter environments
+structure SingleParameterEnvironment where
+   I : Type* -- The set of bidders
+   IInhabited : Inhabited I
+   IFintype : Fintype I
+   feasibleSet: I → Set ℝ -- feasibleSet
+   feasibleSetInhabited: ∀ i, Inhabited (feasibleSet i)
+   --val: I → ℝ  -- valuation of the item for each bidder
 
-#check One₂.one
+namespace SingleParameterEnvironment
+variable (E: SingleParameterEnvironment)
+variable {F: SingleParameterEnvironment}
 
-example (α : Type) [One₁ α] : α := One₁.one
-
-example (α : Type) [One₁ α] := (One₁.one : α)
-
-@[inherit_doc]
-notation "𝟙" => One₁.one
-
-example {α : Type} [One₁ α] : α := 𝟙
-
-example {α : Type} [One₁ α] : (𝟙 : α) = 𝟙 := rfl
-
-class Dia₁ (α : Type) where
-  dia : α → α → α
-
-infixl:70 " ⋄ "   => Dia₁.dia
-
-class Semigroup₁ (α : Type) where
-  toDia₁ : Dia₁ α
-  /-- Diamond is associative -/
-  dia_assoc : ∀ a b c : α, a ⋄ b ⋄ c = a ⋄ (b ⋄ c)
-
-attribute [instance] Semigroup₁.toDia₁
-
-example {α : Type} [Semigroup₁ α] (a b : α) : α := a ⋄ b
-
-class Semigroup₂ (α : Type) extends Dia₁ α where
-  /-- Diamond is associative -/
-  dia_assoc : ∀ a b c : α, a ⋄ b ⋄ c = a ⋄ (b ⋄ c)
-
-example {α : Type} [Semigroup₂ α] (a b : α) : α := a ⋄ b
-
-class DiaOneClass₁ (α : Type) extends One₁ α, Dia₁ α where
-  /-- One is a left neutral element for diamond. -/
-  one_dia : ∀ a : α, 𝟙 ⋄ a = a
-  /-- One is a right neutral element for diamond -/
-  dia_one : ∀ a : α, a ⋄ 𝟙 = a
-
-set_option trace.Meta.synthInstance true in
-example {α : Type} [DiaOneClass₁ α] (a b : α) : Prop := a ⋄ b = 𝟙
-
-class Monoid₁ (α : Type) extends Semigroup₁ α, DiaOneClass₁ α
-
-class Monoid₂ (α : Type) where
-  toSemigroup₁ : Semigroup₁ α
-  toDiaOneClass₁ : DiaOneClass₁ α
+instance : Inhabited E.I := E.IInhabited
+instance : Fintype E.I := E.IFintype
+instance : Inhabited (E.feasibleSet i) := E.feasibleSetInhabited _
 
 
-example {α : Type} [Monoid₁ α] :
-  (Monoid₁.toSemigroup₁.toDia₁.dia : α → α → α) = Monoid₁.toDiaOneClass₁.toDia₁.dia := rfl
+--new valuation
+abbrev Valuation := E.I → ℝ
 
-  /- Monoid₂.mk {α : Type} (toSemigroup₁ : Semigroup₁ α) (toDiaOneClass₁ : DiaOneClass₁ α) : Monoid₂ α -/
-#check Monoid₂.mk
-
-/- Monoid₁.mk {α : Type} [toSemigroup₁ : Semigroup₁ α] [toOne₁ : One₁ α] (one_dia : ∀ (a : α), 𝟙 ⋄ a = a) (dia_one : ∀ (a : α), a ⋄ 𝟙 = a) : Monoid₁ α -/
-#check Monoid₁.mk
-
-#check Monoid₁.toSemigroup₁
-#check Monoid₁.toDiaOneClass₁
-
-class Inv₁ (α : Type) where
-  /-- The inversion function -/
-  inv : α → α
-
-@[inherit_doc]
-postfix:max "⁻¹" => Inv₁.inv
-
-class Group₁ (G : Type) extends Monoid₁ G, Inv₁ G where
-  inv_dia : ∀ a : G, a⁻¹ ⋄ a = 𝟙
-
-  lemma left_inv_eq_right_inv₁ {M : Type} [Monoid₁ M] {a b c : M} (hba : b ⋄ a = 𝟙) (hac : a ⋄ c = 𝟙) : b = c := by
-  rw [← DiaOneClass₁.one_dia c, ← hba, Semigroup₁.dia_assoc, hac, DiaOneClass₁.dia_one b]
+-- The type of bids
+abbrev Bids := E.I → ℝ
 
 
-lemma map_inv_of_inv [Monoid M] [Monoid N] [MonoidHomClass₂ F M N] (f : F) {m m' : M} (h : m*m' = 1) :
-    f m * f m' = 1 := by
-  rw [← MonoidHomClass₂.map_mul, h, MonoidHomClass₂.map_one]
-
-example [Monoid M] [Monoid N] (f : MonoidHom₁ M N) {m m' : M} (h : m*m' = 1) : f m * f m' = 1 :=
-map_inv_of_inv f h
-
-example [Ring R] [Ring S] (f : RingHom₁ R S) {r r' : R} (h : r*r' = 1) : f r * f r' = 1 :=
-map_inv_of_inv f h
-
-class MonoidHomClass₃ (F : Type) (M N : outParam Type) [Monoid M] [Monoid N] extends
-    FunLike F M (fun _ ↦ N) where
-  map_one : ∀ f : F, f 1 = 1
-  map_mul : ∀ (f : F) g g', f (g * g') = f g * f g'
-
-instance (M N : Type) [Monoid M] [Monoid N] : MonoidHomClass₃ (MonoidHom₁ M N) M N where
-  coe := MonoidHom₁.toFun
-  coe_injective' := MonoidHom₁.ext
-  map_one := MonoidHom₁.map_one
-  map_mul := MonoidHom₁.map_mul
+-- The subtype delete i-th bidder
+abbrev I' i:= {j : F.I // j ≠ i}
 
 
-@[ext]
-structure OrderPresHom (α β : Type) [LE α] [LE β] where
-  toFun : α → β
-  le_of_le : ∀ a a', a ≤ a' → toFun a ≤ toFun a'
+abbrev Bids' (i : F.I) := I' i → ℝ
 
-@[ext]
-structure OrderPresMonoidHom (M N : Type) [Monoid M] [LE M] [Monoid N] [LE N] extends
-MonoidHom₁ M N, OrderPresHom M N
+noncomputable def combineBids {i : F.I} (x : ℝ) (b' : Bids' i) : F.Bids
+:= fun j => if h:j=i then x else b' ⟨j, h⟩
 
-class OrderPresHomClass (F : Type) (α β : outParam Type) [LE α] [LE β]
+noncomputable def combineBidsPair {i : F.I} (b : ℝ × Bids' i) : F.Bids
+:= combineBids b.1 b.2
+attribute [coe] combineBidsPair
 
-instance (α β : Type) [LE α] [LE β] : OrderPresHomClass (OrderPresHom α β) α β where
-
-instance (α β : Type) [LE α] [Monoid α] [LE β] [Monoid β] :
-    OrderPresHomClass (OrderPresMonoidHom α β) α β where
-
-instance (α β : Type) [LE α] [Monoid α] [LE β] [Monoid β] :
-    MonoidHomClass₃ (OrderPresMonoidHom α β) α β
-  := sorry
+noncomputable instance  {i : F.I}: CoeOut (ℝ × (Bids' i)) F.Bids where
+  coe := combineBidsPair
 
 
+variable (i : F.I) (b' : Bids' i) (x : ℝ)
+
+#check ((x,b'): F.Bids)
+
+@[simp]
+def Allocation := Π i, E.feasibleSet i
+
+-- The type of allocation rule
+@[simp]
+def AllocationRule := E.Bids → E.Allocation
 
 
+def Monotone (ar : F.AllocationRule) := ∀ i (x1 x2: ℝ) (b': Bids' i), x1 ≤ x2 →  (ar (x1,b') i) ≤  (ar (x2,b') i)
+-- Payments
+
+abbrev Payment:= E.I → ℝ
+
+abbrev PaymentRule := E.Bids → E.Payment
+
+-- Quasi_Linear utility
+def utility (ar : F.AllocationRule) (pr : F.PaymentRule) (v : F.Valuation) (b : F.Bids) :
+  F.I → ℝ := fun i => v i * (ar b i) - (pr b i)
+
+-- `这里修改了一下定义中变量的顺序`，因为只有先固定 i 和 b' , 才能说一个对于vi的策略是dominant strategy
+-- def dominant (ar : F.AllocationRule) (pr : F.PaymentRule) (v : F.Valuation) (i : F.I) (bi : ℝ) :=
+--   ∀ (b' :Bids' i), utility ar pr v (bi,b') i ≥ utility ar pr v (bi, b') i
+def dominant (ar : F.AllocationRule) (pr : F.PaymentRule) (v : F.Valuation) (i : F.I) (b' :Bids' i):=
+  ∀ (bi : ℝ), utility ar pr v (v i ,b') i ≥ utility ar pr v (bi, b') i
 
 
+-- 这里也`根据 dominant 的定义修改了一下变量的排列顺序`
+-- def DSIC ar pr v := ∀ i:F.I,
+--   (dominant ar pr v i (v i))
+--   ∧ (∀ b' : Bids' i, utility ar pr v ((v i),b') i ≥ 0)
+def DSIC ar pr v := ∀ (i:F.I) (b' : Bids' i),
+  (dominant ar pr v i b') ∧ (utility ar pr v ((v i),b') i ≥ 0)
 
-@[ext]
-structure Submonoid₁ (M : Type) [Monoid M] where
-  /-- The carrier of a submonoid. -/
-  carrier : Set M
-  /-- The product of two elements of a submonoid belongs to the submonoid. -/
-  mul_mem {a b} : a ∈ carrier → b ∈ carrier → a * b ∈ carrier
-  /-- The unit element belongs to the submonoid. -/
-  one_mem : 1 ∈ carrier
+--利用dsic找一个特定的p，确实存在这个p
+-- def Implementable (ar : F.AllocationRule) := ∀ v, ∃ pr : F.PaymentRule, DSIC ar pr v
+-- `这里关于Implementable修改了一下 ∃ 和 ∀ 的顺序`，因为Paymentrule不会随着Valuation的改变而改变
+-- Paymentrule一定是先于agents的存在而存在的
+def Implementable (ar : F.AllocationRule) := ∃ pr : F.PaymentRule, ∀ v, DSIC ar pr v
 
-/-- Submonoids in `M` can be seen as sets in `M`. -/
-instance [Monoid M] : SetLike (Submonoid₁ M) M where
-  coe := Submonoid₁.carrier
-  coe_injective' := Submonoid₁.ext
+lemma relation_h12(x1:ℝ )(x2:ℝ ): x1 ≤ x2 ↔ x1 - x2 ≤ 0 := by {
+  constructor
+  · intro h
+    linarith
+  · intro h
+    linarith
+}
 
-example [Monoid M] (N : Submonoid₁ M) : 1 ∈ N := N.one_mem
+theorem MyersonLemma (ar :F.AllocationRule) (v : F.Valuation):
+Implementable ar ↔ Monotone ar := by {
+  constructor
+  · rintro h hj b'
 
-example [Monoid M] (N : Submonoid₁ M) : 1 ∈ N := N.one_mem
+    -- 定义两个取值为x1和x2的函数，用于后续代入得到不等式
+    have v_x1 : F.I → ℝ := fun _ => x1
+    have v_x2 : F.I → ℝ := fun _ => x2
+    -- 分解 `har: Implementable ar`, 得到Implementable的等价条件
+    obtain ⟨pr, h_DSIC⟩ := har
+    -- 获得当valuation为 `v i = x1` 和 `v i = x2` 时，两个关于DSIC的论断
+    have ⟨h_dom_x1, h_util_nonneg_x1⟩ := h_DSIC v_x1 i b'
+    have ⟨h_dom_x2, h_util_nonneg_x2⟩ := h_DSIC v_x2 i b'
 
-example [Monoid M] (N : Submonoid₁ M) (α : Type) (f : M → α) := f '' N
+    -- 得到当 x1 ≤ x2 时两个关于效用的不等式
+    have h_ux1_ge_ux2 := h_dom_x1 x2
+    have h1 : x1 * (ar (x1, b') i) - (pr (x1, b') i) >= x1 * (ar (x2, b') i) - (pr (x2, b') i)
+      := sorry
 
-example [Monoid M] (N : Submonoid₁ M) (α : Type) (f : M → α) := f '' N
+      -- 是`h_ux1_ge_ux2`的变形
+    have h_ux2_ge_ux1 := h_dom_x2 x1
+    have h2 : x2 * (ar (v_x2 i, b') i) - (pr (v_x2 i, b') i) >= x2 * (ar (x1, b') i) - (pr (x1, b') i)
+      := sorry -- 是`h_ux2_ge_ux1`的变形
+
+    -- 对两个不等式进行变形
+    have h1' : x1 * ((ar (x2, b') i) - (ar (x1, b') i)) ≤ (pr (x2, b') i) - (pr (x1, b') i)
+      := sorry -- 用 `h1` 和 `h2` 得到的不等式左端
+    have h2' : (pr (x2, b') i) - (pr (x1, b') i) ≤ x2 * ((ar (x2, b') i) - (ar (x1, b') i))
+      := sorry -- 用 `h1` 和 `h2` 得到的不等式右端
+
+    -- 得到最终关于单调性的不等式
+    have h : x1 * ((ar (x2, b') i) - (ar (x1, b') i)) ≤  x2 * ((ar (x2, b') i) - (ar (x1, b') i))
+      := by apply le_trans h1' h2'
+    have h' : (ar (x2, b') i) >= (ar (x1, b') i)
+      := by sorry --用基本运算进行化简
+
+    -- 得到单调性
+    apply h'
+  · rintro hmon
+    use λ b i => b i
+    rintro v i b'
+    constructor
+}

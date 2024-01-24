@@ -44,7 +44,6 @@ attribute [coe] combineBidsPair
 noncomputable instance  {i : F.I}: CoeOut (ℝ × (Bids' i)) F.Bids where
   coe := combineBidsPair
 
-
 variable (i : F.I) (b' : Bids' i) (x : ℝ)
 
 #check ((x,b'): F.Bids)
@@ -55,7 +54,6 @@ def Allocation := Π i, E.feasibleSet i
 -- The type of allocation rule
 @[simp]
 def AllocationRule := E.Bids → E.Allocation
-
 
 def Monotone (ar : F.AllocationRule) := ∀ i (x1 x2: ℝ) (b': Bids' i), x1 ≤ x2 →  (ar (x1,b') i) ≤  (ar (x2,b') i)
 
@@ -68,9 +66,12 @@ abbrev PaymentRule := E.Bids → E.Payment
 def utility (ar : F.AllocationRule) (pr : F.PaymentRule) (v : F.Valuation) (b : F.Bids) :
   F.I → ℝ := fun i => v i * (ar b i) - (pr b i)
 
-
+--错的domnant定义
+--def dominant (ar : F.AllocationRule) (pr : F.PaymentRule) (v : F.Valuation) (i : F.I) (bi : ℝ) :=
+ -- ∀ (b' :Bids' i), utility ar pr v (bi,b') i ≥ utility ar pr v  (bi', b') i
+--正确的dominant定义
 def dominant (ar : F.AllocationRule) (pr : F.PaymentRule) (v : F.Valuation) (i : F.I) (bi : ℝ) :=
-  ∀ (b' :Bids' i), utility ar pr v (bi,b') i ≥ utility ar pr v (bi, b') i
+  ∀ (bi' : ℝ) (b' :Bids' i), utility ar pr v (bi, b') i ≥ utility ar pr v (bi', b') i
 
 def DSIC ar pr v := ∀ i:F.I,
   (dominant ar pr v i (v i))
@@ -78,20 +79,37 @@ def DSIC ar pr v := ∀ i:F.I,
 
 def Implementable (ar : F.AllocationRule) := ∀ v, ∃ pr : F.PaymentRule, DSIC ar pr v
 
---lemma eq_zero  (pr : F.PaymentRule)(i : F.I) (bi : ℝ):
-  --∀pr: F.PaymentRule, pr( 0, bi )= 0 := by {
 
---}
+lemma relation_h12(x1:ℝ )(x2:ℝ )(x3:ℝ )(x4:ℝ ): x1 -x2 ≤ x3 - x4 ↔ x1 -x3 ≤ x2 - x4:= by {
+constructor
+.intro h1
+ linarith
+.intro h2
+ linarith
+}
 
---An allocation rule X is implementable if and only if it is monotone
-theorem Myerson's_Lemma1 (ar :F.AllocationRule) :
+--dsic
+
+
+
+theorem MyersonLemma (ar :F.AllocationRule) (v : F.Valuation):
 Implementable ar ↔ Monotone ar := by {
   constructor
-  intro h hj
+  · intro b b'
+        -- 定义两个取值为x1和x2的函数，用于后续代入得到不等式
+    have v_x1 : F.I → ℝ := fun _ => x1
+    have v_x2 : F.I → ℝ := fun _ => x2
 
+
+
+  · rintro hmon
+    use λ b i => b i
+    rintro v i b'
+    constructor
 }
+
   --函数延展性 三元组相等 => 函数unique
-lemma function_extensionality {α β: Type} {f g : α → β} (h : ∀ x, f x = g x) : f = g :=by {
+lemma function_extensionality {α β : Type} {f g : α → β} (h : ∀ x, f x = g x) : f = g :=by {
   funext x
   exact h x
 }
@@ -101,6 +119,20 @@ example (α β : Type) (f g : α → β) (h : ∀ x, f x = g x) : f = g := by{
   exact h
 }
 
+lemma funext₃_extensionality(H : ∀ (a : ) (b : β), f a b = g a b) : f = g :=by{
+  apply funext₃
+  exact h
+}
+
+
+
+
+
+
+--lemma eq_zero  (pr : F.PaymentRule)(i : F.I) (bi : ℝ):
+  --∀pr: F.PaymentRule, pr( 0, bi )= 0 := by {
+
+--}
 
 --If X is monotone, then there is a unique payment rule such that the sealed-bid mechanism (X; P)
 --is DSIC [assuming the normalization that bi = 0 implies Pi(b) = 0].
