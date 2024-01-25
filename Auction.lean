@@ -1,10 +1,6 @@
 import Mathlib.Data.Real.EReal
 import Mathlib.Data.Fintype.Basic
 import Mathlib.Data.Fintype.Lattice
-import Mathlib.Data.Set.Lattice
-import Mathlib.Data.Nat.Prime
-import Mathlib.Data.Nat.Parity
-
 
 
 open Classical
@@ -25,8 +21,6 @@ variable {a : Auction} (b : a.I → ℝ )
 
 instance : Fintype a.I := a.hF
 
-
-
 --Helper Functions and Definitions
 @[simp]
 --maxb computes the highest bid given a bidding function b
@@ -35,7 +29,8 @@ def maxb : ℝ  := Finset.sup' Finset.univ (⟨ a.hI.default ,  (Finset.mem_univ
 --there exists a participant i whose bid equals the highest bid
 lemma exists_max : ∃ i: a.I, b i = a.maxb b := by
 {
-   obtain ⟨  i , _ ,h2⟩ := Finset.exists_mem_eq_sup' (⟨ a.hI.default, (Finset.mem_univ _)⟩ ) b
+   obtain ⟨  i , _ ,h2⟩ :=
+   Finset.exists_mem_eq_sup' (⟨ a.hI.default, (Finset.mem_univ _)⟩ ) b
    exact ⟨ i, symm h2⟩
 }
 
@@ -58,7 +53,8 @@ lemma delete_i_nonempty (i:a.I) :Finset.Nonempty (Finset.erase  Finset.univ i ) 
 }
 
 --B is the maximal bid of all but i
-noncomputable def B (i: a.I) : ℝ  := Finset.sup' (Finset.erase Finset.univ i) (delete_i_nonempty i) b
+noncomputable def B (i: a.I) : ℝ  :=
+     Finset.sup' (Finset.erase Finset.univ i) (delete_i_nonempty i) b
 
 --defines the second highest bid
 --i.e.the highest bid excluding the winner’s bid.

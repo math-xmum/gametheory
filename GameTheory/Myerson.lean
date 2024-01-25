@@ -7,10 +7,10 @@ open BigOperators
 
 -- Single-parameter environments
 structure SingleParameterEnvironment where
-   I : Type* -- The set of bidders
-   IInhabited : Inhabited I
+   I : Type* -- The set of bidders 智能体
+   IInhabited : Inhabited I--At least one element exist
    IFintype : Fintype I
-   feasibleSet: I → Set ℝ -- feasibleSet
+   feasibleSet: I → Set ℝ -- feasibleSet可行解集
    feasibleSetInhabited: ∀ i, Inhabited (feasibleSet i)
    --val: I → ℝ  -- valuation of the item for each bidder
 
@@ -24,7 +24,8 @@ instance : Inhabited (E.feasibleSet i) := E.feasibleSetInhabited _
 
 
 --new valuation
-abbrev Valuation := E.I → ℝ
+--abbrev Valuation := E.I → ℝ
+def Valuation := E.I → ℝ
 
 -- The type of bids
 abbrev Bids := E.I → ℝ
@@ -125,7 +126,9 @@ Implementable ar → Monotone ar := by {
   have H2 : p y - p z ≤ y * (x y - x z) := by linarith
   have H3: (z - y)  * (x y - x z) ≤ 0 := by linarith
   have H4 : z - y < 0 := by linarith
+
   have H5 := ((@mul_nonpos_iff_neg_imp_nonneg _ _ (z-y) (x y - x z)).1 H3).1 H4
+
   simp [x] at H5
   simp [H5]
 }
@@ -134,7 +137,8 @@ Implementable ar → Monotone ar := by {
 theorem MyersonLemma (ar :F.AllocationRule) :
 Implementable ar ↔ Monotone ar := by {
   constructor
-  · exact implementable_imp_monotone ar v
+  · intro h
+    exact implementable_imp_monotone ar hj
 
 
   · rintro hmon
