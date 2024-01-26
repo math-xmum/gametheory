@@ -4,13 +4,21 @@ import Mathlib.Data.Fintype.Lattice
 
 open Classical
 
+lemma two_different_elements {I : Type*} (h : ∃ (i j : I), i≠ j) : ∀ (i:I), ∃ j, i≠ j := by {
+   obtain ⟨i0,j0,hij⟩  := h
+   intro i
+   by_cases H : i=i0
+   . use j0;simp [H,hij]
+   . use i0
+}
+
 --Structure Definition
 structure Auction where
    I : Type*
    hF : Fintype I
    hI: Inhabited I
    hP : ∃ i j : I , i ≠ j
-   hP' :  ∀ i : I , ∃ j, i ≠  j
+   hP' :  ∀ i : I , ∃ j, i ≠  j := two_different_elements hP
    v : I → ℝ -- The value of each clients
 
 
