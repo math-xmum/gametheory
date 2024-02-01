@@ -189,7 +189,7 @@ noncomputable def with_magic (ar : (E.I → ℝ) → E.feasibleSet)
   { allocationRule := ar, paymentRule := magic_payment_rule ar }
 
 theorem magic_payment_rule_works (ar : (E.I → ℝ) → E.feasibleSet)
-  : (mon : monotone ar) → @dsic E (with_magic ar) := by
+  : (monotone ar) → @dsic E (with_magic ar) := by
   -- Suppose `ar` is monotone and let `i` be the bidder in consideration.
   -- Let `v` be the valuation of the bidders.
   -- Let `b` and `b'` be bids such that `b j = b' j` for all `j ≠ i`,
@@ -277,9 +277,15 @@ theorem magic_payment_rule_works (ar : (E.I → ℝ) → E.feasibleSet)
     simp at this
     exact this }
 
+theorem magic_payment_bid_zero_implies_payment_zero
+  (ar : (E.I → ℝ) → E.feasibleSet) :
+  ∀ b : E.I → ℝ, ∀ i : E.I, b i = 0 → magic_payment_rule ar b i = 0 := by
+  intro b i hyp; rw [magic_payment_rule, hyp]; simp
+
 -- Goal here: Works → "Explicit formula"
 -- TODO: figure out a proof and then finish this
 theorem magic_payment_rule_unique (ar : (E.I → ℝ) → E.feasibleSet)
   : ∀ p : ((E.I → ℝ) → E.I → ℝ),
   @dsic E (@with_magic E ar) → p = magic_payment_rule ar := by
+
   sorry
