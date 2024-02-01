@@ -1,3 +1,4 @@
+import Mathlib.Data.Real.Basic
 import Mathlib.Data.Fintype.Basic
 import Mathlib.Data.Fintype.Lattice
 import Mathlib.MeasureTheory.Integral.IntervalIntegral
@@ -284,8 +285,47 @@ theorem magic_payment_bid_zero_implies_payment_zero
 
 -- Goal here: Works → "Explicit formula"
 -- TODO: figure out a proof and then finish this
+
+-- need to define piecewise constant functions
+def piecewise_constant (f : ℝ → ℝ) : Prop :=
+  sorry
+
+-- prove that piecewise functions are integrable
+theorem piecewise_constant_integrable {f : ℝ → ℝ} (a b : ℝ):
+  IntervalIntegrable f MeasureTheory.volume a b :=
+  sorry
+
+-- figure this out first
+lemma magic_payment_rule_unique_for_pc (ar : (E.I → ℝ) → E.feasibleSet)
+  : ∀ p : ((E.I → ℝ) → E.I → ℝ),
+  (monotone ar)
+  → piecewise_constant f
+  → @dsic E (@with_magic E ar)
+  → (∀ b : E.I → ℝ, ∀ i : E.I, b i = 0 → p b i = 0)
+  → p = magic_payment_rule ar := by
+  /- Will follow the text here -/
+  sorry
+
 theorem magic_payment_rule_unique (ar : (E.I → ℝ) → E.feasibleSet)
   : ∀ p : ((E.I → ℝ) → E.I → ℝ),
-  @dsic E (@with_magic E ar) → p = magic_payment_rule ar := by
+  (monotone ar)
+  → @dsic E (@with_magic E ar)
+  → (∀ b : E.I → ℝ, ∀ i : E.I, b i = 0 → p b i = 0)
+  → p = magic_payment_rule ar := by
+  /- Plan -/
+  /- Let ε > 0 and let f be a piecewise constant approximation of
+  g := ar (with_hole b i _) i
+  such that |g - f| < ε / (g b - g a).-/
 
+  /- Then
+  |p b i - (b i) * g (b i) + ∫ x in 0..(b i), g x |
+  ≤ |p b i - (b i) * g (b i) + ∫ x in 0..(b i), f x |
+  + |∫ x in 0..(b i), (f - g) x |
+  -/
+
+  /- The former of which can be made 0 by the previous theorem, -/
+
+  /- and the latter of which is < ε by definition of f. -/
+
+  /- Since this holds for all ε > 0, our proof is complete -/
   sorry
