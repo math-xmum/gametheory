@@ -47,19 +47,15 @@ variable {I:Type*}
 variable (f: I → Sort*)
 
 @[simp]
-def lifti {i j:I}  (h : j=i) (x : f i): f j :=  by {
+noncomputable abbrev lifti {i j:I}  (h : j=i) (x : f i): f j :=  by {
   rw [h]
-  use x
+  exact x
 }
 
 variable {i j:I} (h : j=i)
 
 
-noncomputable example : lifti f (Eq.symm h) (lifti f  h (x : f i)) = x  :=  by {
-  --repeat rw [lifti]
-  simp
-}
-
+noncomputable example : lifti f (Eq.symm h) (lifti f  h (x : f i)) = x  :=  by simp
 
 
 
