@@ -38,12 +38,13 @@ end Game
 
 open Game
 
-section comma_notation
-
+namespace aux
 universe u v
 
 variable {I:Type u}
 variable {f: I → Type v}
+
+
 
 /-
 @[simp]
@@ -63,46 +64,65 @@ abbrev IFun (f : I → Sort*) :=  (i:I) → f i
 @[simp]
 abbrev IFun' (f : I → Sort*) (i:I) := (j : I' i) → f j
 
+@[simp]
+noncomputable def with_hole (x : IFun f) (i : I) (y: f i) : IFun f :=
+fun j =>  if h : j = i then (by rw [h];exact y) else x j
+
+
+@[simp]
 noncomputable def combineSubtypeFun (x : f i) (y : IFun' f i ) : IFun f := fun j =>  (if h : j=i then (by rw [h];exact x) else  y ⟨j, h⟩)
 
+@[simp]
 noncomputable def combinePair(b : (f i) × (IFun' f i)) : IFun f := combineSubtypeFun b.1 b.2
+
+
 
 attribute [coe] combinePair
 
-noncomputable instance  {i : I}: CoeOut ((f i) × (IFun' f i)) (IFun f) where
+noncomputable instance combinePair.general {i : I}: CoeOut ((f i) × (IFun' f i)) (IFun f) where
   coe := combinePair
+
+@[simp]
+lemma comma_eval  {x : f i} {y : IFun' f i } : ((x,y): IFun f) i = x := by simp
+
+@[simp]
+lemma comma_eval' {i j:I} {x : f i} {y : IFun' f i } :
+(h : j≠i) →  ((x,y): IFun f) j = y ⟨j,h⟩  := by intro h; simp [h]
+
+
 
 variable (i : I) (b' : I' i → ℝ ) (x : ℝ)
 
---#check ((x,b'): I→ ℝ)
+variable {α : Type*}
+#check IFun' (fun _ => α) i
+#check IFun (fun _ => α)
 
-end comma_notation
+noncomputable instance combinePair.mono  {i :I}: CoeOut ((α) × (I' i→ α )) (I → α ) where
+  coe := @combinePair I (fun _=> α) i
+
+#check ((x,b'): I→ ℝ)
+
+
+noncomputable instance {G:Game} {i : G.I} : CoeOut  ((G.SS i)×(@IFun' G.I G.SS i)) (IFun G.SS) where
+  coe := @combinePair G.I G.SS i
+
+
+end aux
 
 
 structure FinGame extends Game where
   FinI : Fintype I
   FinSS : ∀ i:I , Fintype (SS i)
 
- --def mixed_g  := fun i => fun m => ∑ᶠ (s : (j:G.I)→ G.SS j), (∏ᶠ (j:G.I), m j (s j)) * (G.g i s)
-
-
-
---noncomputable def mixed_g {G: FinGame} := fun (i : G.I) => (fun (x : Π i, S (G.SS i) ) =>  Finset.sum Finset.univ fun (s : (Π j, G.SS j)) => (finprod (fun j => x j (s j)) * (G.g i s)))
-
-
-
 
 namespace FinGame
 
+open aux
 
 
 instance {G: FinGame} : Fintype G.I := G.FinI
 instance {G: FinGame} {i : G.I}: Fintype (G.SS i) := G.FinSS i
-
 noncomputable instance mixed_SS_i_Inhabited {G: FinGame} {i : G.I}: Inhabited (S (G.SS i)) := S.SInhabited_of_Inhabited
-
-
-noncomputable def mixed_g {G: FinGame} (i : G.I) (x : Π i, S (G.SS i) ) : ℝ := ∑ s : (Π j, G.SS j) , ∏ j,  x j (s j) * (G.g i s)
 
 @[simp]
 abbrev mixedSSi (G : FinGame) (i : G.I) := S (G.SS i)
@@ -110,33 +130,41 @@ abbrev mixedSSi (G : FinGame) (i : G.I) := S (G.SS i)
 @[simp]
 abbrev mixedS (G : FinGame) := (i:G.I) → S (G.SS i)
 
+@[simp]
+noncomputable def with_hole {G: FinGame} (s : G.mixedS) (i : G.I) (x : S (G.SS i)) := @aux.with_hole G.I (fun i =>S (G.SS i)) s i x
+
+-- comma_notation for mixed game
+noncomputable instance comma.mixed {G:FinGame} {i : G.I} : CoeOut  ((S (G.SS i))×(@IFun' G.I (fun i => S (G.SS i )) i)) (IFun (fun i => S (G.SS i))) where
+  coe := @combinePair G.I (fun i=> S (G.SS i)) i
+
+
+noncomputable def mixed_g {G: FinGame} (i : G.I) (x : Π i, S (G.SS i) ) : ℝ := ∑ s : (Π j, G.SS j) , ∏ j,  x j (s j) * (G.g i s)
+
+
 
 
 def mixedNashEquilibrium {G: FinGame} (x : G.mixedS) :=
   ∀ (i:G.I)
-    (y : Π i, G.SS i ),
+    (y : G.mixedS ),
     (∀ j: G.I, i≠j → (x j = y j) ) →
-     G.g i x ≥ G.g i y
-
-
-
-noncomputable def FinGame2MixedGame (G : FinGame) : Game where
-  I := G.I
-  HI := G.HI
-  SS := fun (i:G.I) => S (G.SS i)
-  HSS := fun _ => mixed_SS_i_Inhabited
-  g := mixed_g
-  --g := fun i => fun m => ∑ᶠ (s : (j:G.I)→ G.SS j), (∏ᶠ (j:G.I), m j (s j)) * (G.g i s)
+     G.mixed_g i x ≥ G.mixed_g i y
 
 end FinGame
 
-notation:999 "μ" rhs:100 => (FinGame2MixedGame rhs)
+section Brouwer.mixedGame
+variable {G: FinGame}
 
+
+theorem Brouwer.mixedGame (f : G.mixedS → G.mixedS) (hf : Continuous f) : ∃ x : G.mixedS, f x = x := sorry
+
+end Brouwer.mixedGame
+
+section mixedNashEquilibrium
 variable (G : FinGame)
+open FinGame
 
-
-variable (f : (μ G).SS  →(μ G).SS)
-
-theorem ExistsNashEq : ∃ x :  Π i, (μ G).SS i, NashEquilibrium x := by {
+theorem ExistsNashEq : ∃ x : G.mixedS , mixedNashEquilibrium x := by {
   sorry
 }
+
+end mixedNashEquilibrium
