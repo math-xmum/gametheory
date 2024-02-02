@@ -40,38 +40,41 @@ open Game
 
 section comma_notation
 
---abbrev I' i:= {j : F.I // j ≠ i}
+universe u v
 
---abbrev Bids' (i : F.I) := I' i → ℝ
-variable {I:Type*}
-variable (f: I → Sort*)
+variable {I:Type u}
+variable {f: I → Type v}
 
+/-
 @[simp]
-noncomputable abbrev lifti {i j:I}  (h : j=i) (x : f i): f j :=  by {
-  rw [h]
-  exact x
-}
+noncomputable abbrev lifti {i j:I}  (h : j=i) (x : f i): f j :=  by rw [h]; exact x
 
 variable {i j:I} (h : j=i)
 
-
 noncomputable example : lifti f (Eq.symm h) (lifti f  h (x : f i)) = x  :=  by simp
 
+-/
+@[simp]
+abbrev I' (i:I) := {j // j≠ i}
 
+@[simp]
+abbrev IFun (f : I → Sort*) :=  (i:I) → f i
 
+@[simp]
+abbrev IFun' (f : I → Sort*) (i:I) := (j : I' i) → f j
 
-noncomputable def combineSubtypeFun.{u,v} {I : Type u} {i : I} (x : f i) (y : (j : {j : I// j≠i}) → f j) : (i:I)→ f i := fun j => if h:j=i then x else  ⟨y, h⟩
+noncomputable def combineSubtypeFun (x : f i) (y : IFun' f i ) : IFun f := fun j =>  (if h : j=i then (by rw [h];exact x) else  y ⟨j, h⟩)
 
-noncomputable def combineBidsPair {i : F.I} (b : ℝ × Bids' i) : F.Bids
-:= combineBids b.1 b.2
-attribute [coe] combineBidsPair
+noncomputable def combinePair(b : (f i) × (IFun' f i)) : IFun f := combineSubtypeFun b.1 b.2
 
-noncomputable instance  {i : F.I}: CoeOut (ℝ × (Bids' i)) F.Bids where
-  coe := combineBidsPair
+attribute [coe] combinePair
 
-variable (i : F.I) (b' : Bids' i) (x : ℝ)
+noncomputable instance  {i : I}: CoeOut ((f i) × (IFun' f i)) (IFun f) where
+  coe := combinePair
 
-#check ((x,b'): F.Bids)
+variable (i : I) (b' : I' i → ℝ ) (x : ℝ)
+
+--#check ((x,b'): I→ ℝ)
 
 end comma_notation
 
