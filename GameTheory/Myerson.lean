@@ -1,11 +1,13 @@
+import Mathlib.Algebra.Order.Group.Abs
 import Mathlib.Data.Real.Basic
 import Mathlib.Data.Fintype.Basic
 import Mathlib.Data.Fintype.Lattice
 import Mathlib.MeasureTheory.Integral.IntervalIntegral
 import Mathlib.MeasureTheory.Integral.Lebesgue
+import Mathlib.Topology.MetricSpace.Basic
 
 open Classical
-open BigOperators
+open BigOperators Finset
 
 /-- A single parameter environment has
 - some number n of agents, and
@@ -137,35 +139,45 @@ section myerson
 
 variable {E : SingleParameterEnvironment}
 
+theorem payment_sandwich
+  (ar : (E.I → ℝ) → E.feasibleSet)
+  (p : (E.I → ℝ) → E.I → ℝ) (y z : ℝ):
+  @dsic E {allocationRule := ar, paymentRule := p}
+  → ∀ i : E.I,
+  z * (ar (with_hole b i y) i - ar (with_hole b i z) i)
+  ≤ p (with_hole b i y) i - p (with_hole b i z) i
+  ∧ p (with_hole b i y) i - p (with_hole b i z) i
+  ≤ y * (ar (with_hole b i y) i - ar (with_hole b i z) i) := by
+  intro d i
+  have h1 :
+    y * (ar (with_hole b i z)) i ≤ y * (ar (with_hole b i y)) i
+    - p (with_hole b i y) i + p (with_hole b i z) i
+    := by
+    have h : (with_hole b i y i = if i = i then y else 0) := by simp
+    specialize d i (fun j => if j = i then y else 0)
+      (with_hole b i y) (with_hole b i z) h filled_hole_almost_equal
+    rw [utility] at d
+    simp at d
+    exact d
+  -- Set z to be the valuation of i here
+  have h2 :
+    z * (ar (with_hole b i y)) i ≤ z * (ar (with_hole b i z)) i
+    - p (with_hole b i z) i + p (with_hole b i y) i
+    := by
+    have h : (with_hole b i z i = if i = i then z else 0) := by simp
+    specialize d i (fun j => if j = i then z else 0)
+      (with_hole b i z) (with_hole b i y) h filled_hole_almost_equal
+    rw [utility] at d
+    simp at d
+    exact d
+  constructor; { linarith }; { linarith }
+
 -- Goal here: Implementable → Monotone
 theorem implementable_impl_monotone (ar : (E.I → ℝ) → E.feasibleSet) :
   implementable ar → monotone ar := by
   rintro ⟨p, impl⟩ i b x1 x2 xhyp
-  -- Set x1 to be the valuation of i here
-  have h1 :
-    x1 * (ar (with_hole b i x2)) i ≤ x1 * (ar (with_hole b i x1)) i
-    - p (with_hole b i x1) i + p (with_hole b i x2) i
-    := by
-    have h : (with_hole b i x1 i = if i = i then x1 else 0) := by simp
-    specialize impl i (fun j => if j = i then x1 else 0)
-      (with_hole b i x1) (with_hole b i x2) h filled_hole_almost_equal
-    rw [utility] at impl
-    simp at impl
-    exact impl
-  -- Set x2 to be the valuation of i here
-  have h2 :
-    x2 * (ar (with_hole b i x1)) i ≤ x2 * (ar (with_hole b i x2)) i
-    - p (with_hole b i x2) i + p (with_hole b i x1) i
-    := by
-    have h : (with_hole b i x2 i = if i = i then x2 else 0) := by simp
-    specialize impl i (fun j => if j = i then x2 else 0)
-      (with_hole b i x2) (with_hole b i x1) h filled_hole_almost_equal
-    rw [utility] at impl
-    simp at impl
-    exact impl
-  -- combine the two obtained inequalities
-  have y :
-  (x2 - x1) * (ar (with_hole b i x1) i - ar (with_hole b i x2) i) ≤ 0
+  have := @payment_sandwich E b ar p x1 x2 impl i
+  have y : (x2 - x1) * (ar (with_hole b i x1) i - ar (with_hole b i x2) i) ≤ 0
   := by linarith
   by_cases l : x2 - x1 > 0
   { have := nonpos_of_mul_nonpos_right y l
@@ -189,6 +201,12 @@ noncomputable def with_magic (ar : (E.I → ℝ) → E.feasibleSet)
   : DirectRevelationMechanism E :=
   { allocationRule := ar, paymentRule := magic_payment_rule ar }
 
+def utility_exp {v : E.I → ℝ} (b : E.I → ℝ) :
+  @utility E (with_magic ar) v b i
+    = (v i - b i) * ar b i
+    + ∫ x in (0)..(b i), (fun t' => ar (with_hole b i t') i) x := by
+      rw [utility]; simp; ring_nf
+
 theorem magic_payment_rule_works (ar : (E.I → ℝ) → E.feasibleSet)
   : (monotone ar) → @dsic E (with_magic ar) := by
   -- Suppose `ar` is monotone and let `i` be the bidder in consideration.
@@ -198,12 +216,6 @@ theorem magic_payment_rule_works (ar : (E.I → ℝ) → E.feasibleSet)
   intro mon i v b b' b_i_eq_v_i almost_eq
   push_neg at almost_eq
   -- The goal now is to show that `utility v b i ≥ utility v b' i`.
-  -- First we show that we have the following result:
-  have utility_exp b :
-    @utility E (@with_magic E ar) v b i
-    = (v i - b i) * ar b i
-    + ∫ x in (0)..(b i), (fun t' => ar (with_hole b i t') i) x := by
-      rw [utility]; simp; ring_nf
 
   -- We establish a bunch of integrability statements here, no content here
   have func_is_monotone : Monotone (fun x => ar (with_hole b' i x) i):= by
@@ -285,47 +297,131 @@ theorem magic_payment_bid_zero_implies_payment_zero
 
 -- Goal here: Works → "Explicit formula"
 -- TODO: figure out a proof and then finish this
-
--- need to define piecewise constant functions
-def piecewise_constant (f : ℝ → ℝ) : Prop :=
-  sorry
-
--- prove that piecewise functions are integrable
-theorem piecewise_constant_integrable {f : ℝ → ℝ} (a b : ℝ):
-  IntervalIntegrable f MeasureTheory.volume a b :=
-  sorry
-
--- figure this out first
-lemma magic_payment_rule_unique_for_pc (ar : (E.I → ℝ) → E.feasibleSet)
-  : ∀ p : ((E.I → ℝ) → E.I → ℝ),
-  (monotone ar)
-  → piecewise_constant f
-  → @dsic E (@with_magic E ar)
-  → (∀ b : E.I → ℝ, ∀ i : E.I, b i = 0 → p b i = 0)
-  → p = magic_payment_rule ar := by
-  /- Will follow the text here -/
-  sorry
-
 theorem magic_payment_rule_unique (ar : (E.I → ℝ) → E.feasibleSet)
-  : ∀ p : ((E.I → ℝ) → E.I → ℝ),
+  : ∀ p q : ((E.I → ℝ) → E.I → ℝ),
   (monotone ar)
-  → @dsic E (@with_magic E ar)
+  → @dsic E {allocationRule := ar, paymentRule := p}
+  → @dsic E {allocationRule := ar, paymentRule := q}
   → (∀ b : E.I → ℝ, ∀ i : E.I, b i = 0 → p b i = 0)
-  → p = magic_payment_rule ar := by
-  /- Plan -/
-  /- Let ε > 0 and let f be a piecewise constant approximation of
-  g := ar (with_hole b i _) i
-  such that |g - f| < ε / (g b - g a).-/
+  → (∀ b : E.I → ℝ, ∀ i : E.I, b i = 0 → q b i = 0)
+  → p = q := by
+  intro p q _ dp dq hyp hyq
+  funext b i
 
-  /- Then
-  |p b i - (b i) * g (b i) + ∫ x in 0..(b i), g x |
-  ≤ |p b i - (b i) * g (b i) + ∫ x in 0..(b i), f x |
-  + |∫ x in 0..(b i), (f - g) x |
-  -/
+  -- Set d = p - q.
+  set d := p - q
+  -- It suffices to show that d b i ≤ ε for all ε ≥ 0.
+  suffices : ∀ ε > 0, |d b i| ≤ ε
+  { exact eq_of_forall_dist_le this }
 
-  /- The former of which can be made 0 by the previous theorem, -/
+  -- Therefore let ε ≥ 0.
+  intro ε hε
+  -- For notational simplicity let c _ := d (with_hole b i _) i
+  set c := fun (y : ℝ) => d (with_hole b i y) i
+  -- For notational simplicity let c' _ := ar (with_hole b i _) i
+  set c' := fun (y : ℝ) => ar (with_hole b i y) i
 
-  /- and the latter of which is < ε by definition of f. -/
+  have : d b i = c (b i) := by simp; conv => lhs; rw [@unfill_fill_hole E b i]
+  rw [this]
 
-  /- Since this holds for all ε > 0, our proof is complete -/
-  sorry
+  have useful : ∀ y z : ℝ, y ≥ z → |c y - c z| ≤ (y - z) * (c' y - c' z) := by
+    intro y z _; rw [abs_le]
+    obtain ⟨h1, h2⟩ := @payment_sandwich E b ar p y z dp i
+    obtain ⟨h3, h4⟩ := @payment_sandwich E b ar q y z dq i
+    simp; constructor <;> linarith
+
+  have c_zero_is_zero : c 0 = 0 := by
+    specialize hyp (with_hole b i 0) i (by simp)
+    specialize hyq (with_hole b i 0) i (by simp)
+    simp; rw [hyp, hyq]; simp
+
+  -- deal first with the situation where the allocation is equal.
+  by_cases r : c' (b i) - c' 0 = 0
+  { by_cases b i ≥ 0
+    { specialize useful (b i) 0 (by assumption)
+      rw [c_zero_is_zero, r] at useful; simp at useful
+      simp; rw [useful]; simp; linarith }
+    { specialize useful  0 (b i) (by linarith)
+      have : c' 0 - c' (b i) = 0 := by linarith
+      rw [c_zero_is_zero, this] at useful; simp at useful
+      simp; rw [abs_sub_comm, useful]; simp; linarith }}
+
+  -- Let N be large so that the bottom holds. This makes sense since we can
+  -- assume the denominator is not 0.
+  obtain ⟨N, Nhyp⟩ := exists_nat_ge (|b i| * |c' (b i) - c' 0| / ε)
+
+  have c'_diff_gt_zero : 0 < |c' (b i) - c' 0| := by
+    rw [lt_abs]; push_neg at r; rw [ne_iff_lt_or_gt, or_comm] at r
+    conv => rhs; rw [lt_neg, neg_zero]
+    conv => lhs; rw [← GT.gt]
+    exact r
+
+  have N_gt_zero : N > 0 := by
+    rw [div_le_iff hε] at Nhyp
+    have : b i ≠ 0 := by by_contra r'; rw [r'] at r; simp at r
+    have : 0 < |b i| * |c' (b i) - c' 0| := by
+      apply mul_pos
+      { rw [lt_abs, or_comm]
+        conv => left; rw [lt_neg]; simp
+        have := ne_iff_lt_or_gt.mp this
+        exact this }
+      { exact c'_diff_gt_zero }
+    have : 0 < N * ε := by linarith
+    have := (mul_pos_iff_of_pos_right hε).mp this
+    simp at this
+    exact this
+
+  have sane : N * (b i / N) = b i := by
+    rw [← mul_div_assoc, mul_comm]
+    apply mul_div_cancel
+    simp
+    linarith
+
+
+  have : c (b i) = c (N * (b i / N)) - c (0 * (b i / N)) := by
+    rw [sane]
+    have : 0 * (b i / N) = 0 := by ring_nf
+    rw [this, c_zero_is_zero]
+    simp
+  rw [this]
+
+  have := sum_range_sub (fun l => c (l * (b i / N))) N
+  simp at this; simp
+  rw [← this]
+
+  have := Finset.abs_sum_le_sum_abs
+    (fun (l : ℕ) => c ((l + 1) * (b i / N)) - c (l * (b i / N))) (range N)
+  simp at this; apply le_trans this
+
+  have : ∀ x ∈ range N, |c ((x + 1) * (b i / N)) - c (x * (b i / N))|
+    ≤ (b i / N) * (c' ((x + 1) * (b i / N)) - c' (x * (b i / N))) := by
+    intro x _
+    by_cases r : b i ≥ 0
+    { have : (x + 1) * (b i / N) ≥ x * (b i / N) := by
+        ring_nf; simp; rw [← div_eq_mul_inv]; exact div_nonneg r (by linarith)
+      specialize useful ((x + 1) * (b i / N)) (x * (b i / N)) this
+      apply le_trans useful; ring_nf; simp }
+    { push_neg at r
+      have : x * (b i / N) ≥ (x + 1) * (b i / N) := by
+        ring_nf; simp; rw [← div_eq_mul_inv]
+        exact div_nonpos_of_nonpos_of_nonneg (by linarith) (by linarith)
+      specialize useful (x * (b i / N)) ((x + 1) * (b i / N)) this
+      rw [abs_sub_comm]
+      apply le_trans useful; ring_nf; simp }
+  have := Finset.sum_le_sum this
+  apply le_trans this
+  rw [← Finset.mul_sum]
+  have := sum_range_sub (fun x => c' (x * (b i / N))) N
+  simp
+  simp at this
+  rw [this, sane, div_mul_eq_mul_div]
+  apply (div_le_iff _).mpr
+  apply (div_le_iff hε).mp at Nhyp
+  conv => right; rw [mul_comm]
+  apply le_trans' Nhyp
+  rw [← abs_mul]
+  simp
+  apply le_trans' (le_abs_self _)
+  rfl
+  simp
+  assumption
