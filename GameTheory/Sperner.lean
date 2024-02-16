@@ -40,20 +40,19 @@ def barycentric_subdivision (x : SC) : SC where
 
 end Subdivision
 
-section SimplicialSimplex
 
 class SimplicialSimplex (sc : SimplicialComplex k E) where
-  extrema : Finset E
-  extrema_in_vertices : extrea ⊆ sc.vertices
-  extrema_indep : AffineIndependent k ((↑) : extrema → E)
+  extremes : Finset E
+  extreme_in_vertices : extrea ⊆ sc.vertices
+  extreme_indep : AffineIndependent k ((↑) : extreme → E)
   spanning : ∀ x:E, x ∈ convexHull k ↑extrema ↔ ∃ s ∈ sc.faces, x ∈ convexHull k s
 
-section SimplicialSimplex
+namespace SimplicialSimplex
 
 instance  subdivision (sc : SC) [hsc: SimplicialSimplex k sc]: SimplicialSimplex k (barycentric_subdivision k sc) where
-  extrema := hsc.extrema
-  extrema_in_vertices := by sorry
-  extrema_indep := hsc.extrema_indep
+  extremes := hsc.extremes
+  extreme_in_vertices := by sorry
+  extreme_indep := hsc.extreme_indep
   spanning := by sorry
 
 -- TODO: define boundary SimplicialSimplex, show that it is also a SimplicialSimplex
@@ -69,5 +68,6 @@ instance  subdivision (sc : SC) [hsc: SimplicialSimplex k sc]: SimplicialSimplex
 
 
 end SimplicialSimplex
+
 
 end Geometry
