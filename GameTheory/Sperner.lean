@@ -66,6 +66,8 @@ instance  subdivision (sc : SC) [hsc: SimplicialSimplex k sc]: SimplicialSimplex
 
 -- TODO: State the Sperner's Lemma
 
+
+
 end SimplicialSimplex
 
 end Geometry
