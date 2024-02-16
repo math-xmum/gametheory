@@ -44,7 +44,7 @@ end Subdivision
 class SimplicialSimplex (sc : SimplicialComplex k E) where
   extremes : Finset E
   extreme_in_vertices : extrea ⊆ sc.vertices
-  extreme_indep : AffineIndependent k ((↑) : extreme → E)
+  extreme_indep : AffineIndependent k ((↑) : extremes → E)
   spanning : ∀ x:E, x ∈ convexHull k ↑extrema ↔ ∃ s ∈ sc.faces, x ∈ convexHull k s
 
 namespace SimplicialSimplex
