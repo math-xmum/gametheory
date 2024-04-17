@@ -32,26 +32,23 @@ namespace zerosumGame
 variable {I J : Type*}
 variable (A : zerosumGame I J)
 
-noncomputable def maxmin : EReal := @iSup EReal _ I (fun i => @iInf EReal _ J (fun  j: J => ((A i j ):EReal)))
+noncomputable def maxmin : EReal := iSup (fun (i:I) => iInf (fun  (j: J) => ((A i j ):EReal)))
+
+noncomputable def minmax : EReal := iInf (fun (j:J) => iSup (fun  (i: I) => ((A i j):EReal)))
 
 
-noncomputable def minmax : EReal := @iInf EReal _ J (fun j => @iSup EReal _ I (fun  i: I => ((A i j):EReal)))
+lemma maxmin_le_minmax : maxmin A ≤ minmax A := by
+  have H1 : ∀ j i,  iInf (fun (j :J) => (A i j:EReal)) ≤ (A i j:EReal):= by
+    intro j i
+    simp [iInf_le]
+  rw [minmax,maxmin]
+  have H2 : ∀ j, iSup (fun (i:I) => iInf (fun (j:J) => (A i j:EReal)) )
+    ≤ iSup (fun (i:I) => (A i j:EReal)) := by
+    intro j
+    apply iSup_mono
+    exact H1 j
+  exact le_iInf H2
 
-
-lemma maxmin_le_minmax : maxmin A ≤ minmax A := by {
-have H1 : ∀ j i,  @iInf EReal _ J (fun j => A i j) ≤ A i j:= by {
- intro j i
- apply iInf_le
-}
-rw [minmax,maxmin]
-have H2 : ∀ j, @iSup EReal _ I (fun i => @iInf EReal _ J (fun j => A i j)
-) ≤ @iSup EReal _ I (fun i => A i j) := by {
-  intro j
-  apply iSup_mono
-  exact H1 j
-}
-exact le_iInf H2
-}
 
 
 def guarantees1 (w : ℝ) := ∃ i: I, ∀ j : J , (A i j) ≥ w
