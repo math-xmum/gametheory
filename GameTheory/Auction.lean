@@ -33,9 +33,6 @@ This file formalizes core concepts and results in auction theory.
 - `|b|`: Represents a bidding function.
 - `maxb(b)`: The highest bid in the function `b`.
 - `B i` is the maximal bid of all participants but `i`.
-- 
-- 
-- 
 
 ## Implementation Notes
 
