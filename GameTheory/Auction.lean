@@ -1,3 +1,49 @@
+/-
+Copyright (c) 2024 Wang Haocheng. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Author: Wang Haocheng.
+-/
+
+/-
+# Auction Theory
+
+This Lean file formalizes core concepts and results in auction theory.
+
+## Overview
+
+- `Auction` structure: Defines an auction with bidders and their valuations.
+- `winner`: Identifies the winner of the auction as the bidder with the highest bid.
+- `utility`: Computes the utility of each bidder based on the outcome of the auction.
+- `dominant`: Establishes whether a strategy is dominant for a bidder.
+- `valuation_is_dominant`: Proves that bidding one's valuation is a dominant strategy.
+
+## Key Results
+
+- `exists_max`: Proof that there exists a participant whose bid matches the highest bid.
+- `winner_take_max`: Shows that the winner's bid is the highest.
+- `b_winner`: Verifies that the winner's bid is at least the second highest bid.
+- `valuation_is_dominant`: Demonstrates that bidding one's valuation is a dominant strategy in the auction setup.
+
+## Notation
+
+- `|b|`: Represents a bidding function.
+- `maxb(b)`: The highest bid in the function `b`.
+
+## Dependencies
+
+- `Mathlib.Data.Real.EReal`: Used for real number operations.
+- `Mathlib.Data.Fintype.Basic`: Basic finite type operations.
+- `Mathlib.Data.Fintype.Lattice`: Lattice operations on finite types.
+
+## References
+
+- Theoretical foundations can be linked back to classical auction theory texts and papers, adapting general proofs to the formalized environment of Lean.
+
+Author: Wang Haocheng
+Copyright: 2024 Wang Haocheng. All rights reserved.
+License: Released under Apache 2.0 license as described in the file LICENSE.
+-/
+
 import Mathlib.Data.Real.EReal
 import Mathlib.Data.Fintype.Basic
 import Mathlib.Data.Fintype.Lattice
