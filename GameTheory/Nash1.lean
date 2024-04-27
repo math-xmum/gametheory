@@ -177,7 +177,8 @@ noncomputable def mixed_strategy_of_pure (i : G.I) (a : G.SS i) : S (G.SS i) := 
   use f
   refine And.intro ?_ ?_
   aesop
-  simp
+  aesop
+
 
 noncomputable def g_function (i : G.I) (σ : G.mixedS) (a : G.SS i) : ℝ :=
   σ i a + max 0 (mixed_g i (with_hole σ i (mixed_strategy_of_pure G i a)) - mixed_g i σ)
