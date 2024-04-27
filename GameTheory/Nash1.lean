@@ -186,6 +186,8 @@ variable (sigma : G.mixedS ) (i : G.I) (a : G.SS i)
 --#check evaluate_at_mixed G i sigma
 --#check (sigma i a) --G.g i (sigma i) (a)
 
+variable {G}
+
 noncomputable def mixed_strategy (σ : G.mixedS) (i : G.I) (a : G.SS i) : ℝ :=
   g_function G i σ a / ∑ b : G.SS i, g_function G i σ b
    --G.g i / Fintype.sum
@@ -207,28 +209,30 @@ lemma zero_le_g_function (σ : G.mixedS) (i : G.I) (a : G.SS i) : 0 ≤ g_functi
   simp only [g_function]
   linarith [(σ i).2.1 a, le_max_left 0 (mixed_g i (with_hole σ i (mixed_strategy_of_pure G i a)) - mixed_g i σ)]
 
+lemma one_le_sum_g_function (σ : G.mixedS) (i : G.I) :
+    1 ≤ ∑ j, g_function G i σ j := by
+  simp only [g_function]
+  trans ∑ j, σ i j
+  · exact ge_of_eq (σ i).2.2
+  · apply Finset.sum_le_sum
+    simp
 
-
-lemma mixed_strategy_simplex_cert (σ : G.mixedS) (i : G.I) : (mixed_strategy G σ i) ∈ S'' (G.SS i) := by
+lemma mixed_strategy_simplex_cert (σ : G.mixedS) (i : G.I) : (mixed_strategy σ i) ∈ S'' (G.SS i) := by
   simp [S'', mixed_strategy] -- g_function, mixed_g
   constructor
   · intro h
-    sorry
-  · simp_rw [div_eq_mul_inv]
-    calc
-      _ =  ∑ x : G.toGame.SS i, (∑ b : G.toGame.SS i, g_function G i σ b)⁻¹ * g_function G i σ x := by
-        simp_rw [mul_comm]
-      _ = (∑ b : G.toGame.SS i, g_function G i σ b)⁻¹ * ∑ x : G.toGame.SS i, g_function G i σ x := by
-        have := Finset.mul_sum (@Finset.univ (G.SS i) (G.FinSS i)) (fun x ↦ g_function G i σ x) ((∑ b : G.SS i, g_function G i σ b)⁻¹)
-        simp_rw [this]
-      _ = 1 := by
-        rw [inv_mul_eq_one₀]
-        sorry
+    apply div_nonneg
+    · exact zero_le_g_function σ i h
+    · apply Finset.sum_nonneg
+      intro j _
+      exact zero_le_g_function σ i j
+  · rw [← Finset.sum_div]
+    exact div_self (zero_lt_one.trans_le (one_le_sum_g_function σ i)).ne'
 
   -- // (∀ i:α, 0 ≤ x i)  ∧  Finset.sum Finset.univ x = 1}
 
 noncomputable def f_function (σ: G.mixedS) : G.mixedS :=
-  fun (i : G.I) ↦ ⟨mixed_strategy G σ i, mixed_strategy_simplex_cert G σ i⟩
+  fun (i : G.I) ↦ ⟨mixed_strategy σ i, mixed_strategy_simplex_cert σ i⟩
 
 theorem ExistsNashEq : ∃ x : G.mixedS , mixedNashEquilibrium x := by {
   sorry
