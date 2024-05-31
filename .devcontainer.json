@@ -1,0 +1,8 @@
+{
+    "extensions": ["leanprover.lean4"],
+    "postCreateCommand": "curl https://raw.githubusercontent.com/leanprover/elan/master/elan-init.sh -sSf | sh -s -- --default-toolchain leanprover/lean4:nightly -y ; echo 'export PATH="$HOME/.elan/bin:$PATH"' >> $HOME/.bashrc ; source $HOME/.bashrc; lake exe cache get;",
+    "settings": {
+      "terminal.integrated.shell.linux": "/bin/bash",
+      "lean4.executablePath": "/home/codespace/.elan/bin/lean"
+    }
+  }
