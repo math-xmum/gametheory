@@ -174,10 +174,14 @@ lemma mixed_g_eq_evaluate (i : G.I) (σ : G.mixedS) : evaluate_at_mixed G i σ =
 noncomputable def mixed_strategy_of_pure (i : G.I) (a : G.SS i) : S (G.SS i) := by
   let f := fun t ↦ if t = a then (1 : ℝ) else 0
   use f
-  refine And.intro ?_ ?_
-  aesop
-  aesop
+  refine And.intro ?_ ?_ <;> aesop
 
+lemma mixed_g_eq_wsum_pure (i : G.I) (y : G.mixedS) :
+  mixed_g i y = ∑ t, (y i t) * mixed_g i (with_hole y i (mixed_strategy_of_pure G i t))
+:= by sorry
+
+lemma mixed_g_eq_wsum_le (i : G.I) (y : G.mixedS) (f : G.SS i → ℝ ) (H :∀ t, f t ≤ c):
+   ∑ t, (y i t) * f t ≤ c := by sorry
 
 noncomputable def g_function (i : G.I) (σ : G.mixedS) (a : G.SS i) : ℝ :=
   σ i a + max 0 (mixed_g i (with_hole σ i (mixed_strategy_of_pure G i a)) - mixed_g i σ)
@@ -261,6 +265,20 @@ lemma Sum_Eq_zero_iff_all_zero {α : Type*}  {s : Finset α } {f : α → ℝ}
   · intro h
     rw [Finset.sum_eq_zero h]
 
+lemma Sum_Eq_zero_iff_all_zero' {α : Type*} [Fintype α]  {f : α → ℝ}
+  (H : ∀ i, 0 ≤ f i) :
+  ∑ i, f i = 0 ↔ ∀ i, f i = 0 := by
+  have H : ∀ i∈ Finset.univ, 0 ≤ f i := by intro i _; exact H i
+  constructor
+  . intro h
+    have := (Sum_Eq_zero_iff_all_zero (s := Finset.univ) (H)).1 h
+    exact fun i => this i (Finset.mem_univ i)
+  . intro h
+    apply Finset.sum_eq_zero
+    intro i _
+    exact h i
+
+
 
 theorem ExistsNashEq : ∃ x : G.mixedS , mixedNashEquilibrium x := by
   obtain ⟨x, hx⟩ := Brouwer.mixedGame (G := G) f (f_continous)
@@ -270,13 +288,29 @@ theorem ExistsNashEq : ∃ x : G.mixedS , mixedNashEquilibrium x := by
   intro i y hy
   let sumgi := ∑ t : (G.SS i), max 0 (mixed_g i (with_hole x i (mixed_strategy_of_pure G i t)) - mixed_g i x)
   by_cases hsum: sumgi = 0
-  . have h : ∀ t : (G.SS i), mixed_g i (with_hole x i (mixed_strategy_of_pure G i t))
-    ≤ mixed_g i x := by sorry
-
+  . have h : ∀ t : (G.SS i), mixed_g i (with_hole x i (mixed_strategy_of_pure G i t)) ≤ mixed_g i x
+      := by
+        have hh :∀ t,  0 ≤ max 0 (mixed_g i (with_hole x i (mixed_strategy_of_pure G i t)) - mixed_g i x) := by simp
+        intro t
+        have hhh := (Sum_Eq_zero_iff_all_zero' hh).1 hsum t
+        simp only [max_eq_left_iff, tsub_le_iff_right, zero_add] at hhh
+        exact hhh
+    rw [mixed_g_eq_wsum_pure (y:=y)]
+    apply mixed_g_eq_wsum_le
+    have yyxx : ∀ t, with_hole y i (mixed_strategy_of_pure G i t) = with_hole x i (mixed_strategy_of_pure G i t)
+    := by
+      intro t
+      simp [aux.with_hole,mixed_strategy_of_pure]
+      funext ii
+      simp only [aux.with_hole, eq_mpr_eq_cast]
+      by_cases hh : i=ii <;> aesop
+    intro t
+    rw [yyxx t]
+    exact h t
 
   . have : ∑ t : G.SS i, y i t * max 0 (mixed_g i (with_hole x i (mixed_strategy_of_pure G i t))
     - mixed_g i x) = 0 := by sorry
-
+    sorry
 
 
 end mixedNashEquilibrium
