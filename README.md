@@ -15,10 +15,10 @@ This project is configured to run on Gitpod. Simply open the repository in Gitpo
 ## Contributors
 Current contributors to this project are:
 
-. Ma Jiajun
-. Wang Haocheng
-. Wang Xuhui
-. Zhang Xinyuan
+- Ma Jiajun
+- Wang Haocheng
+- Wang Xuhui
+- Zhang Xinyuan
 
 ## Contributions
 Contributions are welcome! Please fork the repository and create a pull request with your changes. Ensure to follow the coding standards and include tests for any new features.
