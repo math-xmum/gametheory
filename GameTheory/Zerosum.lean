@@ -14,6 +14,7 @@ import Mathlib.Topology.Order.Basic
 import Mathlib.Topology.Order.Lattice
 import Mathlib.Topology.MetricSpace.PseudoMetric
 
+import Mathlib.Algebra.Function.Indicator
 
 -- ℝ is not a complete lattice,
 -- iSup may not exits
@@ -21,7 +22,9 @@ import Mathlib.Topology.MetricSpace.PseudoMetric
 
 import GameTheory.Simplex
 
+open BigOperators
 open Classical
+open Finset
 
 /-
 We use S to denote a mixed stratage
@@ -29,10 +32,10 @@ We use S to denote a mixed stratage
 @[simp]
 def Interval := { t: ℝ // 0 ≤ t ∧ t ≤ 1 }
 
-variable (I J : Type*)
+variable {I J : Type*}
 
 @[ext]
-structure zerosumGame where
+structure zerosumGame (I J : Type*) where
   g : I → J → ℝ
   HI : Inhabited I
   HJ : Inhabited J
@@ -44,29 +47,24 @@ attribute [coe] zerosumGame.g
 
 
 namespace zerosumGame
-variable {I J : Type*}
 variable (A : zerosumGame I J)
 
-noncomputable def maxmin : EReal := @iSup EReal _ I (fun i => @iInf EReal _ J (fun  j: J => ((A i j ):EReal)))
+noncomputable def maxmin : EReal := iSup (fun (i:I) => iInf (fun  (j: J) => ((A i j ):EReal)))
+
+noncomputable def minmax : EReal := iInf (fun (j:J) => iSup (fun  (i: I) => ((A i j):EReal)))
 
 
-noncomputable def minmax : EReal := @iInf EReal _ J (fun j => @iSup EReal _ I (fun  i: I => ((A i j):EReal)))
-
-
-lemma maxmin_le_minmax : maxmin A ≤ minmax A := by {
-have H1 : ∀ j i,  @iInf EReal _ J (fun j => A i j) ≤ A i j:= by {
- intro j i
- apply iInf_le
-}
-rw [minmax,maxmin]
-have H2 : ∀ j, @iSup EReal _ I (fun i => @iInf EReal _ J (fun j => A i j)
-) ≤ @iSup EReal _ I (fun i => A i j) := by {
-  intro j
-  apply iSup_mono
-  exact H1 j
-}
-exact le_iInf H2
-}
+lemma maxmin_le_minmax : maxmin A ≤ minmax A := by
+  have H1 : ∀ j i,  iInf (fun (j :J) => (A i j:EReal)) ≤ (A i j:EReal):= by
+    intro j i
+    simp [iInf_le]
+  rw [minmax,maxmin]
+  have H2 : ∀ j, iSup (fun (i:I) => iInf (fun (j:J) => (A i j:EReal)) )
+    ≤ iSup (fun (i:I) => (A i j:EReal)) := by
+    intro j
+    apply iSup_mono
+    exact H1 j
+  exact le_iInf H2
 
 
 def guarantees1 (w : ℝ) := ∃ i: I, ∀ j : J , (A i j) ≥ w
@@ -82,7 +80,7 @@ namespace zerosumFGame
 
 open S
 
-variable {I J : Type*}  [Inhabited I] [Inhabited J] [Fintype I] [Fintype J]
+variable [Inhabited I] [Inhabited J] [Fintype I] [Fintype J]
 variable (A : I → J → ℝ )
 
 
@@ -102,13 +100,16 @@ section Loomis
 open S
 open zerosumFGame
 
-variable (n : ℕ) {I J: Type*} [Inhabited I] [Inhabited J] [Fintype I] [Fintype J]
+variable  [Inhabited I] [Inhabited J] [Fintype I] [Fintype J]
 
 
 noncomputable def lam.aux (A: I →J → ℝ ) (x : S I) :=
   Finset.inf' Finset.univ (Inhabited.toFinsetNonempty J) (fun j =>
    wsum x (fun i => A i j ))
 
+noncomputable def mu.aux (A : I →J → ℝ ) (y : S J) :=
+  Finset.sup' Finset.univ (Inhabited.toFinsetNonempty I) (fun i =>
+    wsum y (fun j => A i j ))
 
 
 noncomputable def lam0 (A : I →J → ℝ ):=  iSup (lam.aux A )
@@ -117,10 +118,14 @@ lemma lam.aux_gt_iff_gt (A : I→ J →  ℝ ) (c:ℝ) (x: S I):
  lam.aux A x > c ↔ (∀ j,    wsum x (fun i => A i j ) > c)
 := by simp [lam.aux,Finset.lt_inf_iff]
 
+--
+lemma mu.aux_lt_iff_lt (A : I→ J →  ℝ ) (c:ℝ) (y: S J):
+ mu.aux A y < c ↔ (∀ i,    wsum y (fun j => A i j ) < c)
+:= by simp [mu.aux, Finset.inf'_lt_iff]
+--
 
 lemma lam.aux.continouse (A : I →J → ℝ ) : Continuous (lam.aux A) := by {
   let fj := fun j x => wsum x (fun i => A i j)
-  --have H1: ∀ j∈ Finset.univ , Continuous ((fun j x => wsum x (fun i => A i j))fj j) := by sorry
   have H1: ∀ j∈ Finset.univ , Continuous (fj j) := by simp [wsum_isContinous]
   exact Continuous.finset_inf'_apply (Inhabited.toFinsetNonempty J) H1
 }
@@ -151,9 +156,8 @@ lemma lam.aux.bddAbove (A : I →J → ℝ ) : ∃ C, ∀ x , lam.aux A x ≤ C 
 lemma lam.aux.le_lam0 (A : I →J → ℝ ) : ∀ x, lam.aux A x ≤ lam0 A :=
   le_ciSup (bddAbove_def.2 (by simp [lam.aux.bddAbove A]))
 
-
 lemma exits_xx_lam0 (A : I →J → ℝ ) :
-   ∃ (xx : S I), ∀ j, (wsum xx (fun i => A i j)) ≥  lam0 A := by {
+   ∃ (xx : S I), ∀ j, (wsum xx (fun i => A i j)) ≥  lam0 A := by
     have hs : IsCompact (Set.univ : Set (S I)) := isCompact_univ
     have clam.aux : ContinuousOn (lam.aux A) (Set.univ)
       := continuous_iff_continuousOn_univ.1 (lam.aux.continouse A)
@@ -162,30 +166,79 @@ lemma exits_xx_lam0 (A : I →J → ℝ ) :
     use xx
     intro j
     calc
-      lam0 A ≤ lam.aux A xx:= by {
+      lam0 A ≤ lam.aux A xx:= by
         simp only [Set.mem_univ, forall_true_left] at Hxx
         simp [lam0, ciSup_le Hxx]
-      }
       _ ≤ _ :=by  rw [lam.aux]; apply Finset.inf'_le _ (by simp)
-   }
 
 
 
-noncomputable def mu.aux (A : I →J → ℝ ) (y : S J) :=
-  Finset.sup' Finset.univ (Inhabited.toFinsetNonempty I) (fun i =>
-    wsum y (fun j => A i j ))
 
 noncomputable def mu0 (A : I →J → ℝ ):=  iInf (mu.aux A )
 
 lemma mu.aux.continouse (A : I →J → ℝ ) : Continuous (mu.aux A) := by {
   -- the proof is the same as that of lam
-  sorry
+  let fi := fun i x => wsum x (fun j => A i j)
+  have H1: ∀ i∈ Finset.univ , Continuous (fi i) := by simp [wsum_isContinous]
+  exact Continuous.finset_sup'_apply (Inhabited.toFinsetNonempty I) H1
 }
 
 -- use IsCompact.exists_isMaxOn
 
+--
+lemma wsum_le_of_le [Fintype I]  {f g: I→ℝ} (H: ∀ (a:I), (f a) ≤ g a) : ∀ x: S I, (wsum x f) ≤ (wsum x g)  := by
+  intro x
+  have : ∀ i∈ Finset.univ, x i * f i ≤ x i * g i := fun i _ =>
+    mul_le_mul_of_nonneg_left (H i) (non_neg)
+  simp [wsum,Finset.sum_le_sum this]
 
-lemma exits_yy_mu0 (A : I →J → ℝ )  : ∃ (yy : S J), ∀ i, (wsum yy (A i)) ≤  mu0 A := by sorry
+lemma wsum_ge_of_ge [Fintype I]  {f g: I→ℝ} (H: ∀ (a:I), (f a) ≥ g a) : ∀ x: S I, (wsum x f) ≥ (wsum x g)  := by
+  intro x
+  have : ∀ i∈ Finset.univ, x i * f i ≥ x i * g i := fun i _ =>
+    mul_le_mul_of_nonneg_left (H i) (non_neg)
+  simp [wsum,Finset.sum_le_sum this]
+
+lemma mu.aux.bddBelow (A : I →J → ℝ ) : ∃ C, ∀ y , mu.aux A y ≥ C := by
+  have NEI : Finset.Nonempty (Finset.univ : Finset I) := Inhabited.toFinsetNonempty I
+  have NEJ : Finset.Nonempty (Finset.univ : Finset J) := Inhabited.toFinsetNonempty J
+  let fj := fun j => Finset.inf' Finset.univ NEI (fun i =>A i j)
+  let C0 := Finset.inf' Finset.univ NEJ fj
+  have Aij : ∀ i j,  A i j ≥ C0 := by
+    intro i j
+    calc
+    _ ≥ Finset.inf'  Finset.univ NEI (fun i =>A i j) :=  Finset.inf'_le _ (Finset.mem_univ _)
+    _ ≥ C0 := Finset.inf'_le fj (Finset.mem_univ _)
+  use C0 --* Fintype.card J
+  intro y
+  simp only [mu.aux, ge_iff_le, Finset.mem_univ, Finset.le_sup'_iff,true_and]
+  use default
+  calc
+    _ ≥ wsum y fun _ => C0 := by apply wsum_ge_of_ge (fun a => Aij default a)
+    _ = C0 := wsum_const _ _
+
+
+lemma mu.aux.ge_mu0 (A : I →J → ℝ ) : ∀ y, mu.aux A y ≥ mu0 A :=
+  ciInf_le (bddBelow_def.2 (by simp [mu.aux.bddBelow A]))
+
+--
+
+lemma exits_yy_mu0 (A : I →J → ℝ )  :
+∃ (yy : S J), ∀ i, (wsum yy (fun j => A i j)) ≤  mu0 A := by
+    have hs : IsCompact (Set.univ : Set (S J)) := isCompact_univ
+    have cmu.aux : ContinuousOn (mu.aux A) (Set.univ)
+      := continuous_iff_continuousOn_univ.1 (mu.aux.continouse A)
+    obtain ⟨yy,_,Hyy⟩ := IsCompact.exists_isMinOn (hs) (by simp [SNonempty_of_Inhabited]) (cmu.aux)
+    rw [isMinOn_iff] at Hyy
+    use yy
+    intro i
+    calc
+      mu0 A ≥ mu.aux A yy:= by
+        simp only [Set.mem_univ, forall_true_left] at Hyy
+        simp [mu0, le_ciInf Hyy]
+      _ ≥ _ :=by
+        rw [mu.aux]
+        apply Finset.le_sup' (fun i:I => wsum yy (fun j => A i j)) (Finset.mem_univ i)
+
 -- the proof is the same as that of xx_lam0
 
 
@@ -259,7 +312,7 @@ lemma linear_comb_gt_left {x y: ℝ}  (H : x < y ) {t : Interval} : t.val <1 →
     }
 }
 
-lemma linear_comb_gt_right {x y: ℝ} (H : x > y ) {t: Interval} : t.val > 0 → t.val * x + (1-t.val) *y > y:= by {
+lemma linear_comb_gt_right {x y: ℝ} (H : x > y ) {t: Interval} : 0< t.val → t.val * x + (1-t.val) *y > y:= by {
   intro Ht
   have := @linear_comb_gt_left y x (gt_iff_lt.1 H) ⟨1-t.val,by {
    constructor; repeat simp [t.prop] }⟩ (by { dsimp; linarith })
@@ -281,6 +334,21 @@ lemma linear_comb_gt_of_ge_gt (x y: ℝ ) (c:ℝ) (H1 : x ≥ c ) (H2 : y >c)  (
   _ > c := linear_comb_gt_left H2 Ht
 }
 
+--
+lemma linear_comb_lt_of_ge_gt (x y: ℝ ) (c:ℝ) (H1 : x ≤ c ) (H2 : y < c)  (t : Interval) : t.val <1 → t.val * x + (1-t.val) *y < c:= by
+  intro Ht
+  have V1 : x - c ≤ 0 := by linarith
+  calc
+  _ ≤ t.val * c + (1-t.val) * y := by
+    have hh : x = c + (x-c) := by simp
+    rw [hh,mul_add]
+    have : t.val * (x-c) ≤ 0 := mul_nonpos_of_nonneg_of_nonpos t.prop.1 V1
+    linarith
+  _ < c := by
+    have : (1-t.val) * y < (1-t.val) *c := by
+      have : 0 < (1-t.val) := by linarith
+      aesop
+    linarith
 
 lemma ContinuousAt_gt_of_gt_nbh {f : ℝ → ℝ} {c:ℝ} (H1: f x > c) (H2: ContinuousAt f x) {l :ℝ} (H3 : l < x): ∃ t, l < t ∧ t < x ∧ f t >c :=
 by {
@@ -308,6 +376,34 @@ by {
   ⟩
 }
 
+--
+lemma ContinuousAt_lt_of_lt_nbh {f : ℝ → ℝ} {c:ℝ} (H1: f x < c) (H2: ContinuousAt f x) {l :ℝ} (H3 :  l < x ): ∃ t, l < t ∧ t < x ∧ f t <c :=
+by {
+  let A := Set.Iio c
+  have nbhA: A ∈ nhds (f x):= Iio_mem_nhds (by linarith)
+  have Cfx:= (continuousAt_def.1 H2) A nbhA
+  have N1 := exists_Ioc_subset_of_mem_nhds' Cfx (H3)
+  obtain ⟨a,hl1,hl2⟩ := N1
+  rw [Set.mem_Ico] at hl1
+  let t := (a+x)/2
+  use t
+  exact ⟨by simp only [lt_div_iff]; linarith, by {
+    simp only [gt_iff_lt, zero_lt_two, div_lt_iff]
+    linarith
+  },
+    by {
+       have Ht1: t ∈ Set.Ioc a x:= by {
+          simp only [Set.mem_Ico]
+          exact ⟨by linarith,by linarith ⟩
+       }
+       have Ht2: t ∈ f ⁻¹' A :=  Set.mem_of_subset_of_mem hl2 Ht1
+       simp only [Set.mem_preimage, Set.mem_Ioi] at Ht2
+       exact gt_iff_lt.2 Ht2
+    }
+  ⟩
+}
+--
+
 lemma linear_comb_gt_of_gt_nbh' (x y: ℝ ) (c:ℝ) (H : x > c ) : ∃ (t : Interval),  0 < t.val ∧ t.val <1 ∧  t.val * x + (1-t.val) *y > c:= by {
   let f := fun s => s*x +(1-s)*y
   have Hfx : f 1 = x := by ring
@@ -318,11 +414,28 @@ lemma linear_comb_gt_of_gt_nbh' (x y: ℝ ) (c:ℝ) (H : x > c ) : ∃ (t : Inte
   use ⟨a,by linarith,by linarith⟩
 }
 
+--
+lemma linear_comb_lt_of_lt_nbh' (x y: ℝ ) (c:ℝ) (H : x < c ) : ∃ (t : Interval),  0 < t.val ∧ t.val <1 ∧  t.val * x + (1-t.val) *y < c:= by
+  let f := fun s => s*x +(1-s)*y
+  have Hfx : f 1 = x := by ring
+  have Hfx' : f 1 < c := by linarith
+  have Cf : Continuous f := by continuity
+  have Cfx : ContinuousAt f 1 := Continuous.continuousAt Cf
+  obtain ⟨a,ha1,ha2,ha3⟩ := ContinuousAt_lt_of_lt_nbh Hfx' Cfx (by linarith : (0:ℝ)<1 )
+  use ⟨a,by linarith,by linarith⟩
+--
 
 lemma wsum_linear_comb_gt_of_ge_gt (f : I → ℝ) (x y: S I) (c : ℝ) (H1 : wsum x f ≥ c ) (H2 : wsum y f > c) (t : Interval) : t.val <1 → wsum (linear_comb t x y) f > c := by {
   intro Ht; rw [wsum_comb_eq_comb_wsum]
   exact linear_comb_gt_of_ge_gt _ _ c H1 H2 _ Ht
 }
+
+--
+lemma wsum_linear_comb_gt_of_ge_lt (f : I → ℝ) (x y: S I) (c : ℝ) (H1 : wsum x f ≤ c ) (H2 : wsum y f < c) (t : Interval) : t.val <1 → wsum (linear_comb t x y) f < c := by {
+  intro Ht; rw [wsum_comb_eq_comb_wsum]
+  exact linear_comb_lt_of_ge_gt _ _ c H1 H2 _ Ht
+}
+--
 
 lemma minmax'_IJ_2 (Hn: 2 = Fintype.card I + Fintype.card J) (A : I →J→ ℝ): lam0 A = mu0 A := by {
         have  ⟨HSI,HSJ⟩  : Fintype.card I =1 ∧ Fintype.card J =1:= by {
@@ -342,16 +455,45 @@ lemma minmax'_IJ_2 (Hn: 2 = Fintype.card I + Fintype.card J) (A : I →J→ ℝ)
           }
           rw [lam0,iSup_congr this,ciSup_const]
         }
-        have H2 : mu0 A = A i0 j0 := by {
+        have H2 : mu0 A = A i0 j0 := by
           -- The proof is the same as that of H1
-          sorry
-        }
+          have :∀ y, mu.aux A y = A i0 j0 := by
+            intro y
+            simp only [mu.aux,hi1,Finset.sup'_singleton]
+            have : y = S.pure j0 := Set.mem_singleton_iff.1 (by
+              simp_rw [<-hj2,Set.mem_univ])
+            rw [this,wsum_pure]
+          rw [mu0,iInf_congr this,ciInf_const]
         linarith
 }
 
+@[simp]
+def subtypecongr {α : Type*} {p : α → Prop} {q : α → Prop} (h : ∀ x, p x ↔ q x) : {x // p x} ≃ {x // q x} := {
+  toFun := fun x => ⟨x.1, (h x.1).1 x.2⟩,
+  invFun := fun x => ⟨x.1, (h x.1).2 x.2⟩,
+  left_inv := by {rintro ⟨x, hx⟩; simp},
+  right_inv := by {rintro ⟨x, hx⟩; simp}
+}
 
 
-theorem minmax' (Hgt : 2 ≤ n) (Hn: n = Fintype.card I + Fintype.card J) (A : I →J→ ℝ): lam0 A = mu0 A := by {
+theorem Finset.prod_extend_by_one' {α : Type*} {β : Type*} [Fintype α] [CommMonoid β] [DecidableEq α] (s : Finset α) (f : s → β) : ∏ i, (fun i  => if  h: i∈s then f ⟨i, h⟩ else 1) i =  ∏ j , f j:= by
+  simp only [prod_dite, Subtype.forall,implies_true, prod_eq_one, mul_one,attach_eq_univ]
+  let e : {x // x ∈ filter (· ∈ s) univ } ≃ {x // x ∈ s}:= subtypecongr (by simp)
+  apply Finset.prod_equiv e (by simp)
+  intro i _ ; congr
+
+theorem Finset.sum_extend_by_zero' {α : Type*} {β : Type*} [Fintype α] [AddCommMonoid β] [DecidableEq α] (s : Finset α) (f : s → β) : ∑ i, (fun i  => if  h: i∈s then f ⟨i, h⟩ else 0) i =  ∑  j , f j:= by
+  simp only [sum_dite, Subtype.forall,implies_true, sum_eq_zero, add_zero,attach_eq_univ]
+  let e : {x // x ∈ filter (· ∈ s) univ } ≃ {x // x ∈ s}:= subtypecongr (by simp)
+  apply Finset.sum_equiv e (by simp)
+  intro i _ ; congr
+
+theorem dite_mul {β : Type*} [Mul β] (p : Prop) [Decidable p] (a : β ) (b : p → β) (c : ¬p → β) :
+(if h : p then b h else c h) * a = if h : p then (b h) * a else (c h) * a :=
+  by split_ifs <;> rfl
+
+
+theorem minmax' (n :ℕ) (Hgt : 2 ≤ n) (Hn: n = Fintype.card I + Fintype.card J) (A : I →J→ ℝ): lam0 A = mu0 A := by {
       induction' n, Hgt using Nat.le_induction with n hn IH generalizing I J  A
       .  apply minmax'_IJ_2 Hn
       . {
@@ -380,20 +522,89 @@ theorem minmax' (Hgt : 2 ≤ n) (Hn: n = Fintype.card I + Fintype.card J) (A : I
               linarith
             }
           apply Or.elim exits_ij
-          .  {
+          . {
             intro HJ
             obtain ⟨j0,HJ⟩:= HJ
             let J' := {j : J // j≠j0}
-            have inhabited_J' : Inhabited J':= by sorry
-            have cardn : n = Fintype.card I + Fintype.card J' := by {
+            have cardJ_ne_one: Fintype.card J ≠ 1 := by
+              intro H
+              obtain ⟨j, hj⟩ := Finset.card_eq_one.1 H
+              have HJ0 : j0 ∈ (Finset.univ : Finset J) := by simp
+              have j0j : j0 = j := by
+                rw [hj] at HJ0
+                exact Finset.mem_singleton.1 HJ0
+              have this: lam0 A ≥  (wsum xx fun i => A i j0) := by
+                calc
+                _ ≥ lam.aux A xx := by apply lam.aux.le_lam0
+                _ = wsum xx fun i => A i j0 := by
+                  simp [lam.aux,j0j,hj]
+              linarith
+            have inhabited_J' : Inhabited J':= by
+              have HJ0 : ∃ j, (j ≠ j0) := by
+                by_contra H1
+                push_neg at H1
+                have Jj0 : (Finset.univ : Finset J) = {j0} := by
+                  ext;simp [H1]
+                have : Fintype.card J = 1 := by
+                  simp [<-Finset.card_univ,Jj0]
+                exact cardJ_ne_one this
+              have jj : J' := ⟨choose HJ0, choose_spec HJ0⟩
+              exact {default:=jj}
+            have cardn : n = Fintype.card I + Fintype.card J' := by
               have : Fintype.card J'  = Fintype.card J -1 := by simp only [ne_eq, Fintype.card_subtype_compl, Fintype.card_ofSubsingleton, ge_iff_le]
               have cardposJ: 1≤ Fintype.card J := @Fintype.card_pos J _ _
               rw [this,<-Nat.add_sub_assoc cardposJ _,<-Hn]
               simp only [ge_iff_le, add_le_iff_nonpos_left, nonpos_iff_eq_zero, add_tsub_cancel_right]
-            }
             let A' := fun i: I => fun j : J' => A i j
             have HIJ' := IH cardn A'
-            have lam0_lt_lam0' : lam0 A  < lam0 A' := by {sorry}
+            have lam0_lt_lam0' : lam0 A  < lam0 A' := by
+              have h1 : lam0 A < mu0 A := lam0_lt_mu0
+              have h2 : mu0 A = iInf (mu.aux A) := rfl
+              have h3 : mu0 A' = iInf (mu.aux A') := rfl
+              have h4 : iInf (mu.aux A') ≥ iInf (mu.aux A) := by
+                rw [ge_iff_le]
+                let tau : S J' → S J := fun y' : S J' =>
+                   ⟨fun j:J => if h: j≠ j0 then (y' ⟨j,h⟩) else 0 ,(by
+                    constructor
+                    . intro j
+                      by_cases hj : j = j0
+                      . simp [hj]
+                      . simp [hj,y'.prop]
+                    . simp only [dite_not, Finset.sum_dite, Finset.sum_const_zero, zero_add,Finset.attach_eq_univ]
+                      let e : { x // x ∈ Finset.filter (¬ ·=j0) Finset.univ} ≃ J' := subtypecongr (by simp)
+                      apply Eq.symm
+                      calc
+                        _ = _ := Eq.symm y'.2.2
+                        _ = _ := by
+                          apply Eq.symm
+                          apply Finset.sum_equiv e (by simp)
+                          intro i _;congr)⟩
+                have SJ' := {y : S J | y j0 =0 }
+                nth_rw 2 [iInf]
+                apply le_csInf
+                . apply Set.range_nonempty
+                . rintro b ⟨y',Hy'⟩
+                  have h6 : mu.aux A' y' = mu.aux A (tau y') := by
+                    simp_rw [mu.aux,wsum,dite_mul]
+                    congr;ext i
+                    simp only [ne_eq, zero_mul, dite_not, Finset.sum_dite, Finset.sum_const_zero,
+                      zero_add]
+                    rw [attach_eq_univ]
+                    let e : { x // x ∈ Finset.filter (¬ ·=j0) Finset.univ} ≃ J' := subtypecongr (by simp)
+                    apply Eq.symm
+                    apply Finset.sum_equiv e (by simp)
+                    intro i hi; simp
+                  rw [h6] at Hy'
+                  rw [<-Hy']
+                  apply ciInf_le
+                  rw [bddBelow_def]
+                  obtain ⟨C, HC⟩ := mu.aux.bddBelow A
+                  use C
+                  intro D ⟨y, hy⟩
+                  rw [<-hy]
+                  exact HC y
+              rw [<-h2, <-h3, <-HIJ'] at h4
+              apply gt_of_ge_of_gt h4 h1
             obtain ⟨xx', Hxx'⟩ :=  exits_xx_lam0 A'
             obtain ⟨yy', Hyy'⟩ :=  exits_yy_mu0 A'
             have prop_st : ∃ t : {t: ℝ // 0≤ t ∧ t≤1},  lam.aux A (linear_comb t xx xx') > lam0 A := by {
@@ -432,7 +643,121 @@ theorem minmax' (Hgt : 2 ≤ n) (Hn: n = Fintype.card I + Fintype.card J) (A : I
           }
           . {
             -- The proof is similar to the above
-            sorry
+            intro HI
+            obtain ⟨i0,HI⟩:= HI
+            let I' := {i : I // i≠i0}
+            have cardI_ne_one: Fintype.card I ≠ 1 := by
+              intro H
+              obtain ⟨i, hi⟩ := Finset.card_eq_one.1 H
+              have HI0 : i0 ∈ (Finset.univ : Finset I) := by simp
+              have i0i : i0 = i := by
+                rw [hi] at HI0
+                exact Finset.mem_singleton.1 HI0
+              have this: mu0 A ≤  (wsum yy fun j => A i0 j) := by
+                calc
+                _ ≤ mu.aux A yy := by apply mu.aux.ge_mu0
+                _ = wsum yy fun j => A i0 j := by
+                  simp [mu.aux,i0i,hi]
+              linarith
+            have inhabited_I' : Inhabited I':= by
+              have HI0 : ∃ i, (i ≠ i0) := by
+                by_contra H1
+                push_neg at H1
+                have Ii0 : (Finset.univ : Finset I) = {i0} := by
+                  ext;simp [H1]
+                have : Fintype.card I = 1 := by
+                  simp [<-Finset.card_univ,Ii0]
+                exact cardI_ne_one this
+              have ii : I' := ⟨choose HI0, choose_spec HI0⟩
+              exact {default:=ii}
+            have cardn : n = Fintype.card I' + Fintype.card J := by
+              have : Fintype.card I'  = Fintype.card I -1 := by simp only [ne_eq, Fintype.card_subtype_compl, Fintype.card_ofSubsingleton, ge_iff_le]
+              have cardposI: 1≤ Fintype.card I:= @Fintype.card_pos I _ _
+              rw [this,add_comm,<-Nat.add_sub_assoc cardposI _]
+              nth_rewrite 2 [add_comm] at Hn
+              rw [<-Hn]
+              simp only [ge_iff_le, add_le_iff_nonpos_left, nonpos_iff_eq_zero, add_tsub_cancel_right]
+            let A' := fun i: I' => fun j : J => A i j
+            have HIJ' := IH cardn A'
+            have mu0_lt_mu0' : mu0 A'  < mu0 A := by
+              have h1 : lam0 A < mu0 A := lam0_lt_mu0
+              have h2 : lam0 A = iSup (lam.aux A) := rfl
+              have h3 : lam0 A' = iSup (lam.aux A') := rfl
+              have h4 : iSup (lam.aux A') ≤ iSup (lam.aux A) := by
+                let tau : S I' → S I := fun x' =>
+                   ⟨fun i:I => if h: i≠ i0 then (x' ⟨i,h⟩) else 0 ,(by
+                    constructor
+                    . intro i
+                      by_cases hi : i = i0
+                      . simp [hi]
+                      . simp [hi,x'.prop]
+                    . simp only [dite_not, Finset.sum_dite, Finset.sum_const_zero, zero_add,Finset.attach_eq_univ]
+                      let e : { y // y ∈ Finset.filter (¬ ·=i0) Finset.univ} ≃ I' := subtypecongr (by simp)
+                      apply Eq.symm
+                      calc
+                        _ = _ := Eq.symm x'.2.2
+                        _ = _ := by
+                          apply Eq.symm
+                          apply Finset.sum_equiv e (by simp)
+                          intro j _;congr)⟩
+                have SI' := {x : S I | x i0 =0 }
+                nth_rw 2 [iSup]
+                apply csSup_le
+                . apply Set.range_nonempty
+                . rintro b ⟨x',Hx'⟩
+                  have h6 : lam.aux A' x' = lam.aux A (tau x') := by
+                    simp_rw [lam.aux,wsum,dite_mul]
+                    congr;ext j
+                    simp only [ne_eq, zero_mul, dite_not, Finset.sum_dite, Finset.sum_const_zero,
+                      zero_add]
+                    rw [attach_eq_univ]
+                    let e : { y // y ∈ Finset.filter (¬ ·=i0) Finset.univ} ≃ I' := subtypecongr (by simp)
+                    apply Eq.symm
+                    apply Finset.sum_equiv e (by simp)
+                    intro j hj; simp
+                  rw [h6] at Hx'
+                  rw [<-Hx']
+                  apply le_ciSup
+                  rw [bddAbove_def]
+                  obtain ⟨C, HC⟩ := lam.aux.bddAbove A
+                  use C
+                  intro D ⟨x, hx⟩
+                  rw [<-hx]
+                  exact HC x
+              rw [<-h2, <-h3, HIJ'] at h4
+              apply lt_of_le_of_lt h4 h1
+            obtain ⟨_, _⟩ :=  exits_xx_lam0 A'
+            obtain ⟨yy', Hyy'⟩ :=  exits_yy_mu0 A'
+            have prop_st : ∃ t : {t: ℝ // 0≤ t ∧ t≤1},  mu.aux A (linear_comb t yy yy') < mu0 A := by {
+              have HI0:∃ (t : { t:ℝ // 0 ≤ t ∧ t ≤ 1 }), 0< t.val ∧  t.val < 1 ∧ wsum (linear_comb t yy yy') (fun j => A i0 j ) < mu0 A
+                := by {
+                  simp only [wsum_comb_eq_comb_wsum _ yy yy']
+                  apply linear_comb_lt_of_lt_nbh' _ _ _ HI
+                }
+              have HI2: ∀  i:I , i≠i0 → ∀ (t : { t:ℝ // 0 ≤ t ∧ t ≤ 1}), t.val < 1 →  wsum (linear_comb t yy yy') (fun j => A i j ) < mu0 A
+                := by {
+                   intro i Hi t Ht
+                   apply wsum_linear_comb_gt_of_ge_lt
+                   . exact (Hyy i)
+                   . {
+                    calc
+                    _ ≤ mu0 A' := Hyy' ⟨i, Hi⟩
+                    _ < mu0 A := by linarith
+                   }
+                   . exact Ht
+                }
+              obtain ⟨t0, HtI0⟩ := HI0
+              use t0
+              rw [mu.aux_lt_iff_lt]
+              intro i
+              by_cases Hi : i=i0
+              .  simp [Hi,HtI0]
+              .  exact HI2 i Hi t0 (HtI0.2.1)
+            }
+            obtain ⟨t, Hst⟩ := prop_st
+            have prop_iInf : ∀ y: S J, mu.aux A y ≥ mu0 A := mu.aux.ge_mu0 A
+            have := prop_iInf (linear_comb t yy yy')
+            linarith
           }
         }
       }
