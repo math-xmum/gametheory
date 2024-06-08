@@ -171,20 +171,22 @@ lemma mixed_g_eq_evaluate (i : G.I) (σ : G.mixedS) : evaluate_at_mixed G i σ =
 
   sorry-/
 
-noncomputable def mixed_strategy_of_pure (i : G.I) (a : G.SS i) : S (G.SS i) := by
+noncomputable def mixed_s_of_pure (i : G.I) (a : G.SS i) : S (G.SS i) := by
   let f := fun t ↦ if t = a then (1 : ℝ) else 0
   use f
   refine And.intro ?_ ?_ <;> aesop
 
 lemma mixed_g_eq_wsum_pure (i : G.I) (y : G.mixedS) :
-  mixed_g i y = ∑ t, (y i t) * mixed_g i (with_hole y i (mixed_strategy_of_pure G i t))
-:= by sorry
+  mixed_g i y = ∑ t, (y i t) * mixed_g i (with_hole y i (mixed_s_of_pure G i t))
+  := by
+
+  sorry
 
 lemma mixed_g_eq_wsum_le (i : G.I) (y : G.mixedS) (f : G.SS i → ℝ ) (H :∀ t, f t ≤ c):
    ∑ t, (y i t) * f t ≤ c := by sorry
 
 noncomputable def g_function (i : G.I) (σ : G.mixedS) (a : G.SS i) : ℝ :=
-  σ i a + max 0 (mixed_g i (with_hole σ i (mixed_strategy_of_pure G i a)) - mixed_g i σ)
+  σ i a + max 0 (mixed_g i (with_hole σ i (mixed_s_of_pure G i a)) - mixed_g i σ)
 
 --variable (sigma : G.mixedS ) --(i : G.I) (a : G.SS i)
 --#check evaluate_at_mixed G i sigma
@@ -211,7 +213,7 @@ noncomputable def mixed_strategy (σ : G.mixedS) (i : G.I) (a : G.SS i) : ℝ :=
 
 lemma zero_le_g_function (σ : G.mixedS) (i : G.I) (a : G.SS i) : 0 ≤ g_function G i σ a := by
   simp only [g_function]
-  linarith [(σ i).2.1 a, le_max_left 0 (mixed_g i (with_hole σ i (mixed_strategy_of_pure G i a)) - mixed_g i σ)]
+  linarith [(σ i).2.1 a, le_max_left 0 (mixed_g i (with_hole σ i (mixed_s_of_pure G i a)) - mixed_g i σ)]
 
 lemma one_le_sum_g_function (σ : G.mixedS) (i : G.I) :
     1 ≤ ∑ j, g_function G i σ j := by
@@ -278,29 +280,27 @@ lemma Sum_Eq_zero_iff_all_zero' {α : Type*} [Fintype α]  {f : α → ℝ}
     intro i _
     exact h i
 
-
-
 theorem ExistsNashEq : ∃ x : G.mixedS , mixedNashEquilibrium x := by
   obtain ⟨x, hx⟩ := Brouwer.mixedGame (G := G) f (f_continous)
   use x
   rw [mixedNashEquilibrium]
   simp only [mixedS, ne_eq, ge_iff_le]
   intro i y hy
-  let sumgi := ∑ t : (G.SS i), max 0 (mixed_g i (with_hole x i (mixed_strategy_of_pure G i t)) - mixed_g i x)
+  let sumgi := ∑ t : (G.SS i), max 0 (mixed_g i (with_hole x i (mixed_s_of_pure G i t)) - mixed_g i x)
   by_cases hsum: sumgi = 0
-  . have h : ∀ t : (G.SS i), mixed_g i (with_hole x i (mixed_strategy_of_pure G i t)) ≤ mixed_g i x
+  . have h : ∀ t : (G.SS i), mixed_g i (with_hole x i (mixed_s_of_pure G i t)) ≤ mixed_g i x
       := by
-        have hh :∀ t,  0 ≤ max 0 (mixed_g i (with_hole x i (mixed_strategy_of_pure G i t)) - mixed_g i x) := by simp
+        have hh :∀ t,  0 ≤ max 0 (mixed_g i (with_hole x i (mixed_s_of_pure G i t)) - mixed_g i x) := by simp
         intro t
         have hhh := (Sum_Eq_zero_iff_all_zero' hh).1 hsum t
         simp only [max_eq_left_iff, tsub_le_iff_right, zero_add] at hhh
         exact hhh
     rw [mixed_g_eq_wsum_pure (y:=y)]
     apply mixed_g_eq_wsum_le
-    have yyxx : ∀ t, with_hole y i (mixed_strategy_of_pure G i t) = with_hole x i (mixed_strategy_of_pure G i t)
+    have yyxx : ∀ t, with_hole y i (mixed_s_of_pure G i t) = with_hole x i (mixed_s_of_pure G i t)
     := by
       intro t
-      simp [aux.with_hole,mixed_strategy_of_pure]
+      simp [aux.with_hole,mixed_s_of_pure]
       funext ii
       simp only [aux.with_hole, eq_mpr_eq_cast]
       by_cases hh : i=ii <;> aesop
@@ -308,7 +308,7 @@ theorem ExistsNashEq : ∃ x : G.mixedS , mixedNashEquilibrium x := by
     rw [yyxx t]
     exact h t
 
-  . have : ∑ t : G.SS i, y i t * max 0 (mixed_g i (with_hole x i (mixed_strategy_of_pure G i t))
+  . have : ∑ t : G.SS i, y i t * max 0 (mixed_g i (with_hole x i (mixed_s_of_pure G i t))
     - mixed_g i x) = 0 := by sorry
     sorry
 
