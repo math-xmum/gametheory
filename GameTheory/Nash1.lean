@@ -45,17 +45,6 @@ universe u v
 variable {I : Type u}
 variable {f : I → Type v}
 
-
-
-/-
-@[simp]
-noncomputable abbrev lifti {i j:I}  (h : j=i) (x : f i): f j :=  by rw [h]; exact x
-
-variable {i j:I} (h : j=i)
-
-noncomputable example : lifti f (Eq.symm h) (lifti f  h (x : f i)) = x  :=  by simp
-
--/
 @[simp]
 abbrev I' (i : I) := {j // j ≠ i}
 
@@ -75,8 +64,6 @@ noncomputable def combineSubtypeFun (x : f i) (y : IFun' f i ) : IFun f := fun j
 @[simp]
 noncomputable def combinePair(b : (f i) × (IFun' f i)) : IFun f := combineSubtypeFun b.1 b.2
 
-
-
 attribute [coe] combinePair
 
 noncomputable instance combinePair.general {i : I}: CoeOut ((f i) × (IFun' f i)) (IFun f) where
@@ -89,8 +76,6 @@ lemma comma_eval  {x : f i} {y : IFun' f i } : ((x,y): IFun f) i = x := by simp
 lemma comma_eval' {i j:I} {x : f i} {y : IFun' f i } :
 (h : j≠i) →  ((x,y): IFun f) j = y ⟨j,h⟩  := by intro h; simp [h]
 
-
-
 variable (i : I) (b' : I' i → ℝ ) (x : ℝ)
 
 variable {α : Type*}
@@ -102,10 +87,8 @@ noncomputable instance combinePair.mono  {i : I} : CoeOut ((α) × (I' i→ α )
 
 #check ((x,b'): I→ ℝ)
 
-
 noncomputable instance {G:Game} {i : G.I} : CoeOut  ((G.SS i)×(@IFun' G.I G.SS i)) (IFun G.SS) where
   coe := @combinePair G.I G.SS i
-
 
 end aux
 
@@ -140,9 +123,6 @@ noncomputable instance comma.mixed {G : FinGame} {i : G.I} : CoeOut  ((S (G.SS i
 
 noncomputable def mixed_g {G: FinGame} (i : G.I) (x : Π i, S (G.SS i) ) : ℝ := ∑ s : (Π j, G.SS j) , ∏ j,  x j (s j) * (G.g i s)
 
-
-
-
 def mixedNashEquilibrium {G: FinGame} (x : G.mixedS) :=
   ∀ (i:G.I)
     (y : G.mixedS ),
@@ -154,8 +134,7 @@ end FinGame
 section Brouwer.mixedGame
 variable {G : FinGame}
 
-
-theorem Brouwer.mixedGame (f : G.mixedS → G.mixedS) (hf : Continuous f) : ∃ x : G.mixedS, f x = x := sorry
+theorem Brouwer.mixedGame (f : G.mixedS → G.mixedS) (hf : Continuous f) : ∃ x : G.mixedS, f x = x := by sorry
 
 end Brouwer.mixedGame
 
@@ -163,46 +142,35 @@ section mixedNashEquilibrium
 variable (G : FinGame)
 open FinGame
 
-/-noncomputable def evaluate_at_mixed (i : G.I) (σ : G.mixedS) : ℝ :=
-  ∑ pureS : (Π i, G.SS i), (∏ i : G.I, σ i (pureS i)) * G.g i pureS
-
-lemma mixed_g_eq_evaluate (i : G.I) (σ : G.mixedS) : evaluate_at_mixed G i σ = mixed_g i σ := by
-  simp [evaluate_at_mixed, mixed_g]
-
-  sorry-/
-
 noncomputable def mixed_s_of_pure (i : G.I) (a : G.SS i) : S (G.SS i) := by
   let f := fun t ↦ if t = a then (1 : ℝ) else 0
   use f
   refine And.intro ?_ ?_ <;> aesop
 
 lemma mixed_g_eq_wsum_pure (i : G.I) (y : G.mixedS) :
-  mixed_g i y = ∑ t, (y i t) * mixed_g i (with_hole y i (mixed_s_of_pure G i t))
-  := by
-
+  mixed_g i y = ∑ t, (y i t) * mixed_g i (with_hole y i (mixed_s_of_pure G i t)) := by
+  rw [mixed_g]
+  let f := fun (s : Π j, G.SS j) => (∏ j, y j (s j)) * G.g i s
   sorry
 
 lemma mixed_g_eq_wsum_le (i : G.I) (y : G.mixedS) (f : G.SS i → ℝ ) (H :∀ t, f t ≤ c):
-   ∑ t, (y i t) * f t ≤ c := by sorry
+   ∑ t, (y i t) * f t ≤ c := by
+  let sum_y := ∑ t, y i t
+  have sum_y_eq_one : sum_y = 1 := by
+    exact (y i).property.2
+  have sum_le : ∑ t, (y i t) * f t ≤ ∑ t, (y i t) * c := by
+    apply Finset.sum_le_sum
+    intros t ht
+    sorry
+  sorry
 
 noncomputable def g_function (i : G.I) (σ : G.mixedS) (a : G.SS i) : ℝ :=
   σ i a + max 0 (mixed_g i (with_hole σ i (mixed_s_of_pure G i a)) - mixed_g i σ)
-
---variable (sigma : G.mixedS ) --(i : G.I) (a : G.SS i)
---#check evaluate_at_mixed G i sigma
---#check (sigma i a) --G.g i (sigma i) (a)
 
 variable {G}
 
 noncomputable def mixed_strategy (σ : G.mixedS) (i : G.I) (a : G.SS i) : ℝ :=
   g_function G i σ a / ∑ b : G.SS i, g_function G i σ b
-   --G.g i / Fintype.sum
-
---variable (σ : G.mixedS) (i : G.I)
---#check mixed_strategy G σ i
--- certificate: nonneg, sum to 1
-
---lemma g_function_nonneg (σ : G.mixedS)
 
 #check map_sum
 #check Finset.mul_sum
@@ -235,14 +203,13 @@ lemma mixed_strategy_simplex_cert (σ : G.mixedS) (i : G.I) : (mixed_strategy σ
   · rw [← Finset.sum_div]
     exact div_self (zero_lt_one.trans_le (one_le_sum_g_function σ i)).ne'
 
-  -- // (∀ i:α, 0 ≤ x i)  ∧  Finset.sum Finset.univ x = 1}
-
 noncomputable def f (σ: G.mixedS) : G.mixedS :=
   fun (i : G.I) ↦ ⟨mixed_strategy σ i, mixed_strategy_simplex_cert σ i⟩
 
 #check f
 
-lemma f_continous : (Continuous (f (G := G))) := by sorry
+lemma f_continous : (Continuous (f (G := G))) := by
+  sorry
 
 lemma Sum_Eq_zero_iff_all_zero {α : Type*}  {s : Finset α } {f : α → ℝ}
   (H : ∀ i ∈ s, 0 ≤ f i) :
@@ -309,7 +276,10 @@ theorem ExistsNashEq : ∃ x : G.mixedS , mixedNashEquilibrium x := by
     exact h t
 
   . have : ∑ t : G.SS i, y i t * max 0 (mixed_g i (with_hole x i (mixed_s_of_pure G i t))
-    - mixed_g i x) = 0 := by sorry
+    - mixed_g i x) = 0 := by
+      apply Finset.sum_eq_zero
+      intros t ht
+      sorry
     sorry
 
 

@@ -6,19 +6,18 @@ import Mathlib.Topology.Algebra.Order.Compact
 import Mathlib.Topology.MetricSpace.Basic
 import Mathlib.Topology.MetricSpace.Bounded
 import Mathlib.Analysis.NormedSpace.FiniteDimension
-import Mathlib.Topology.Separation
 import Mathlib.Data.Finset.Lattice
 import Mathlib.Topology.Algebra.Order.Compact
 
 open Classical
 
 /-
-We use S to denote a mixed stratage
+We use S to denote a mixed strategy
 -/
 
 variable (α : Type*) [Fintype α]
 
-def S := { x : α→ ℝ // (∀ i:α, 0 ≤ x i)  ∧  Finset.sum Finset.univ x = 1}
+def S := { x : α → ℝ // (∀ i:α, 0 ≤ x i)  ∧  Finset.sum Finset.univ x = 1}
 def S'' := {x :α → ℝ  | (∀ i:α, 0 ≤ x i)  ∧  (Finset.sum (Finset.univ) x = 1)}
 
 namespace S
@@ -169,8 +168,6 @@ lemma x_le_one {x : α → ℝ} {b:α} (h : x ∈ S'' α ): x b ≤ 1 := by {
   )
 }
 
-
-
 lemma Simplex.isBounded [Inhabited α] : Bornology.IsBounded (S'' α) := by {
   rw [Metric.isBounded_iff_subset_ball (fun _ => 0)]
   use (2:ℝ)
@@ -189,7 +186,6 @@ lemma Simplex.isBounded [Inhabited α] : Bornology.IsBounded (S'' α) := by {
   apply x_ge_zero
   exact hx
 }
-
 
 lemma SisClosed :IsClosed (S'' α):= by {
   rw [<-isSeqClosed_iff_isClosed]
@@ -229,10 +225,7 @@ instance SisCompactSpace [Inhabited α]: CompactSpace (S α) := by {
   exact ⟨SisClosed, Simplex.isBounded⟩
 }
 
-
-
 end S
-
 
 lemma Inhabited.toFinsetNonempty (α : Type*) [Inhabited α] [Fintype α ]: Finset.Nonempty (@Finset.univ α  _)  := by {
   use Inhabited.default
@@ -241,7 +234,6 @@ lemma Inhabited.toFinsetNonempty (α : Type*) [Inhabited α] [Fintype α ]: Fins
 
 namespace S
 variable {I: Type*} [Fintype I]
-
 
 lemma sum_pure [Fintype I] {f: I→ℝ} {a:I} :
   Finset.sum Finset.univ (fun i => (S.pure a i) * f i) = f a :=
@@ -260,13 +252,8 @@ lemma sum_pure [Fintype I] {f: I→ℝ} {a:I} :
     }
   }
 
---lemma wsum_pure [Fintype I] {f: I→ℝ} {a:I} :
---  wsum (S.pure a) f = f a := by rw [wsum,sum_pure]
-
-
 lemma wsum_pure [Fintype I] (f: I→ℝ) (a:I) :
   wsum (S.pure a) f = f a := by rw [wsum,sum_pure]
-
 
 lemma wsum_const [Fintype I] (b:ℝ) :
   ∀ x: S I, wsum x (fun _ => b) = b :=
@@ -278,7 +265,6 @@ lemma wsum_const' [Fintype I] {b:ℝ}  {f: I→ℝ} (H: ∀ a:I, f a = b) :
   ∀ x: S I, wsum x f = b :=
     by intro x; simp [wsum,H,<-Finset.sum_mul,sum_one]
 
-
 lemma wsum_le_of_le [Fintype I]  {f g: I→ℝ} (H: ∀ (a:I), (f a) ≤ g a) : ∀ x: S I, (wsum x f) ≤ (wsum x g)  := by {
   intro x
   have : ∀ i∈ Finset.univ, x i * f i ≤ x i * g i := fun i _ =>
@@ -288,7 +274,6 @@ lemma wsum_le_of_le [Fintype I]  {f g: I→ℝ} (H: ∀ (a:I), (f a) ≤ g a) : 
 
 lemma wsum_isContinous [Fintype I] {f: I→ℝ} : Continuous (fun x : S I => wsum x f) :=
  continuous_finset_sum _ (fun _ _ => (Continuous.mul (projection_isContinuous) (continuous_const)))
-
 
 lemma ge_iff_simplex_ge {f : I → ℝ} {v : ℝ}: (∀ i:I , f i ≥ v) ↔ ∀ x : S I, (wsum x f) ≥ v := by {
   constructor
@@ -315,7 +300,6 @@ lemma ge_iff_simplex_ge {f : I → ℝ} {v : ℝ}: (∀ i:I , f i ≥ v) ↔ ∀
   }
 }
 
-
 lemma le_iff_simplex_le {f : I → ℝ} {v : ℝ}: (∀ i:I , f i ≤  v) ↔ ∀ x : S I, (wsum x f) ≤  v := by {
   constructor
   . {
@@ -341,17 +325,12 @@ lemma le_iff_simplex_le {f : I → ℝ} {v : ℝ}: (∀ i:I , f i ≤  v) ↔ �
   }
 }
 
-
 variable [Inhabited I]
-
 
 lemma fintypenonempty (α : Type*) [Inhabited α] [Fintype α ]: Finset.Nonempty (@Finset.univ α  _)  := by {
   use Inhabited.default
   simp only [Finset.mem_univ]
 }
-
-
--- The following lemmas compare sup on i and weighted sum sup
 
 lemma Finset.exists_sup'_image' (f : I → ℝ) (H: Finset.Nonempty s) : ∃ i∈ s,
 (Finset.sup' s H f = f i ∧ ∀ j ∈ s, f j ≤ f i)  := by {
@@ -394,11 +373,5 @@ lemma sup_eq_wsum_sup {f : I → ℝ} {v : ℝ}: Finset.sup' Finset.univ (Inhabi
   }
   . exact ciSup_le Hi3'
 }
-
-
--- lemma inf_eq_wsum_inf {f : I → ℝ} {v : ℝ}: Finset.inf' Finset.univ (Inhabited.toFinsetNonempty I) f = iInf (fun (x: S I) => wsum x f) := by {
---   sorry
--- }
-
 
 end S
