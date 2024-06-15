@@ -127,7 +127,7 @@ def linear_comb {α : outParam Type*} [Fintype α] (t: {t :ℝ // 0≤ t ∧  t�
       rw [<-fg_eq]
       rw [Finset.sum_add_distrib]
       rw [sumf,sumg]
-      simp only [add_sub_cancel'_right]
+      simp only [add_sub_cancel]
     }}⟩
 
 
