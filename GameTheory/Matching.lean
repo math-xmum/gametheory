@@ -15,7 +15,8 @@ variable {n : ℕ} [NeZero n]
 structure Preferences (n : ℕ) :=
   prefs : Fin n → List (Fin n)
   -- the pref is a
-  valid : ∀ i, (prefs i) ∈ (List.finRange n).permutations
+  valid : ∀ i, (prefs i).Nodup ∧ (prefs i).length = n
+  --valid : ∀ i, (prefs i) ∈ (List.finRange n).permutations'
 
 -- A matching is a bijection between Fin n
 def Matching (n : ℕ) := Equiv (Fin n)  (Fin n)
@@ -29,19 +30,21 @@ variable (FW FM : List (Fin n))
 
 -- propos of Men to Free Womens.
 def proposeMen (i : Fin n) : Fin n :=
-  m.prefs i |>.filter (· ∈ FW) |>.headI
+  (m.prefs i).filter (· ∈ FW) |>.headI
 
 -- the list of women have been proposed
+-- It could be duplicated
 def proposedWomen :=
+  --(FM.map $ proposeMen (m:=m) FW ).dedup
   FM.map $ proposeMen (m:=m) FW
 
 -- All proposals recived by women i
 def proposalsWomen (i : Fin n):=
-  FM.filter (proposeMen (m:=m) FW · = i)
+  FM.filter (fun j => (proposeMen (m:=m) FW j) = i)
 
 def rank (prefs : List (Fin n)) (x : Fin n) : ℕ :=
   indexOf x prefs
-  
+
 -- accept the prefered mem for women i
 -- Chat GPT 4o sugguest to use argmin
 def acceptWomen (i : Fin n) :=
@@ -56,7 +59,10 @@ def acceptWomen (i : Fin n) :=
 lemma mem_FM (h: i ∈ FW) : acceptWomen (w:=w) (m:=m) FW FM i ∈ FM := by sorry
 
 -- newly married men
-def marriedMen : List (Fin n) := FW.map $ acceptWomen (w:=w) (m:=m) FW FM
+def marriedMen : List (Fin n) :=
+  -- pW is the list of all free women who have been proposed
+  let pW := proposedWomen (m:=m) FW FM
+  pW.map $ acceptWomen (w:=w) (m:=m) FW FM
 
 
 def restWomen :=
@@ -66,9 +72,9 @@ def restWomen :=
 
 def restMen :=
   let mm := marriedMen (w:=w) (m:=m) FW FM
-  FW.filter (¬ · ∈  mm)
+  FM.filter (¬ · ∈  mm)
 
-lemma FM_dec (h : 0<FW.length ): (restWomen (m:=m) FW FM).length < FW.length := by sorry
+lemma FM_dec (h : FW ≠ []): (restWomen (m:=m) FW FM).length < FW.length := by sorry
 
 -- The map from FW to FM
 -- if i ∉ FW then return the default value
@@ -89,7 +95,6 @@ def gs_aux (FW FM : List (Fin n))
       gs_aux FW' FM' i
 termination_by FW.length
 decreasing_by
-  simp_wf
   sorry
 
 variable (w m) in
@@ -99,27 +104,43 @@ end
 
 section EX
 
-abbrev n : ℕ := 3
+abbrev n : ℕ := 4
 
 abbrev w : Preferences n :=
 {
-  prefs := fun i => match i with
-    | 0 => [1,2,0]
-    | 1 => [0,2,1]
-    | 2 => [0,2,1]
+  prefs := ![
+    [1,2,0,3],
+    [0,3,2,1],
+    [0,2,3,1],
+    [0,2,3,1]]
   valid := by decide
 }
 
 abbrev m : Preferences n :=
 {
-  prefs := fun i => match i with
-    | 0 => [0,1,2]
-    | 1 => [0,2,1]
-    | 2 => [1,2,0]
+  prefs := ![
+    [3,0,1,2],
+    [0,1,3,2],
+    [0,2,3,1],
+    [1,2,3,0]]
   valid := by decide
 }
 
-#eval (finRange n).map $ gs w m
+#print w
+#print m
+
+
+#eval! proposeMen (m:=m) (finRange n)
+#eval! proposedWomen (m:=m) (finRange n) (finRange n)
+#eval! proposalsWomen (m:=m) (finRange n) (finRange n)
+
+
+#eval! proposeMen (m:=m) [1,2]
+#eval! acceptWomen (w:=w) (m:=m) (finRange n) (finRange n)
+
+
+#eval! (finRange n).map $ gs w m
+
 
 
 end EX
