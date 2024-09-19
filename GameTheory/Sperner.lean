@@ -53,6 +53,15 @@ class SimplicialSimplex (sc : SimplicialComplex k E) where
 
 namespace SimplicialSimplex
 
+instance  subdivision (sc : SC) [hsc: SimplicialSimplex k sc]: SimplicialSimplex k (barycentric_subdivision k sc) where
+  extremes := hsc.extremes
+  extreme_in_vertices := by sorry
+  extreme_indep := hsc.extreme_indep
+  spanning := by sorry
+
+
+
+
 noncomputable section support
 -- Suppose t is a set of points, x is in the convexHull of t
 -- define the support of x to be the smallest subset of t such that x in the convexHull of t.
@@ -147,12 +156,6 @@ def Rainbowfacet  (c : Coloring sc E) (f : sc.facets)
 theorem Sperner {c : Coloring sc E} (h : ProperColoring c) : ∃ f : sc.facets, Rainbowfacet c f := sorry
 
 
-
-instance  subdivision (sc : SC) [hsc: SimplicialSimplex k sc]: SimplicialSimplex k (barycentric_subdivision k sc) where
-  extremes := hsc.extremes
-  extreme_in_vertices := by sorry
-  extreme_indep := hsc.extreme_indep
-  spanning := by sorry
 
 
 
