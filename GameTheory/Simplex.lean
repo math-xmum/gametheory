@@ -1,14 +1,15 @@
-import Mathlib.Data.Real.EReal
-import Mathlib.Data.Real.NNReal
-import Mathlib.Data.Fintype.Basic
-import Mathlib.Algebra.BigOperators.Basic
-import Mathlib.Topology.Algebra.Order.Compact
-import Mathlib.Topology.MetricSpace.Basic
-import Mathlib.Topology.MetricSpace.Bounded
-import Mathlib.Analysis.NormedSpace.FiniteDimension
-import Mathlib.Topology.Separation
-import Mathlib.Data.Finset.Lattice
-import Mathlib.Topology.Algebra.Order.Compact
+-- import Mathlib.Data.Real.EReal
+-- import Mathlib.Data.NNReal
+-- import Mathlib.Data.Fintype.Basic
+-- import Mathlib.Algebra.BigOperators
+-- import Mathlib.Topology.Algebra.Order.Compact
+-- import Mathlib.Topology.MetricSpace.Basic
+-- import Mathlib.Topology.MetricSpace.Bounded
+-- import Mathlib.Analysis.NormedSpace.FiniteDimension
+-- import Mathlib.Topology.Separation
+-- import Mathlib.Data.Finset.Lattice
+-- import Mathlib.Topology.Algebra.Order.Compact
+import Mathlib
 
 open Classical
 
