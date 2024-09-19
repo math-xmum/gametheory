@@ -1,14 +1,18 @@
 import Mathlib.Analysis.Convex.SimplicialComplex.Basic
 
 open BigOperators
+open Classical
+
 
 namespace Geometry
+open SimplicialComplex
 
-variable (k : Type*) {E : Type*} [DecidableEq E] {ι : Type*} [hLO: LinearOrderedField k] [hCZ: CharZero k] [AddCommGroup E] [Module k E]
+variable (k : Type*) {E : Type*} {ι : Type*} [hLO: LinearOrderedField k]  [AddCommGroup E] [Module k E]
 
 local notation "SC" => SimplicialComplex k E
 
-section Subdivision
+noncomputable section Subdivision
+variable [hCZ: CharZero k]
 
 abbrev barycenter (s : Finset E) : E :=  (s.card:k)⁻¹ • (∑ x in s, x)
 
@@ -43,17 +47,114 @@ end Subdivision
 
 class SimplicialSimplex (sc : SimplicialComplex k E) where
   extremes : Finset E
-  extreme_in_vertices : extrea ⊆ sc.vertices
-  extreme_indep : AffineIndependent k ((↑) : extremes → E)
-  spanning : ∀ x:E, x ∈ convexHull k ↑extrema ↔ ∃ s ∈ sc.faces, x ∈ convexHull k s
+  extreme_in_vertices : ↑extremes ⊆ sc.vertices
+  extreme_indep : AffineIndependent k (Subtype.val : extremes → E)
+  spanning : ∀ x:E, x ∈ convexHull k ↑extremes ↔ ∃ s ∈ sc.faces, x ∈ convexHull k s
 
 namespace SimplicialSimplex
+
+noncomputable section support
+-- Suppose t is a set of points, x is in the convexHull of t
+-- define the support of x to be the smallest subset of t such that x in the convexHull of t.
+abbrev Support (t: Finset E) (x : E) : Set E :=
+  if x ∈ convexHull k ↑t then
+    ⋂ (s : Set E) (_ : s ⊆ t) (_ : x ∈ convexHull k s), s
+  else
+    ∅
+
+
+/-
+Show that support is a subset of t if x is contained in
+the convexHull of t
+-/
+lemma support_subset_face {t: Finset E} {x : E} : Support k t x ⊆ t:= by sorry
+
+instance support.fintype {t: Finset E} {x : E}: Fintype (Support k t x) := by
+  let s := {e ∈ t | e ∈ Support k t x}
+  apply Fintype.ofFinset s
+  intro e
+  rw [Finset.mem_filter]
+  constructor
+  · intro h; exact h.2
+  · intro hx; exact ⟨support_subset_face k hx,hx⟩
+
+abbrev Support' (t: Finset E) (x : E) : Finset E := Support k t x |>.toFinset
+
+/-
+Show that support is a subset of t if x is contained in
+the convexHull of t
+-/
+
+lemma mem_convexHullsupport {t: Finset E} {x : E}
+  (h1: x ∈ convexHull k ↑t)
+  (h2 : AffineIndependent k ((↑):t → E)):
+   x ∈ convexHull k (Support k t x):= by sorry
+
+
+end support
+
+variable {k} in
+abbrev Coloring (sc : SimplicialComplex k E) (ι : Type*) := sc.vertices → ι
+
+variable {k} in
+def ProperColoring {sc : SimplicialComplex k E} [ss : SimplicialSimplex k sc] (c : Coloring sc E) :=
+  ∀ x : sc.vertices, c x ∈ Support k ss.extremes x
+
+variable {sc : SimplicialComplex k E}
+
+section restriction
+
+variable {α β : Type*} {s t: Set α} (h : s ⊆ t)
+
+def res  (f : t→ β) : s → β := fun s => f ⟨s.1,h s.2 ⟩
+
+lemma res_def : res h f x = f ⟨x.1, h x.2⟩ := rfl
+
+
+
+end restriction
+
+
+def iota (f : sc.faces) : f.1 → sc.vertices :=
+  fun x => ⟨x.1, by
+    rw [Geometry.SimplicialComplex.vertices_eq]
+    have :∃ i ∈ sc.faces, ↑x ∈ i := by
+      use f.1; exact ⟨f.2,x.2⟩
+    simp [this]
+    ⟩
+
+variable {k} in
+lemma faces_subset_vertices (f : sc.faces) : ↑f.1 ⊆ sc.vertices
+  := by
+    rw [Geometry.SimplicialComplex.vertices_eq]
+    intro x hx
+    have :∃ i ∈ sc.faces, ↑x ∈ i := by
+      use f.1; exact ⟨f.2,hx⟩
+    simp [this]
+
+
+variable {k} in
+def res_coloring (c : Coloring sc ι) (f : sc.faces) : f.1 → ι
+  := res (faces_subset_vertices f: ↑f.1 ⊆ sc.vertices) c
+
+variable [ss : SimplicialSimplex k sc]
+
+variable {k} in
+def Rainbowfacet  (c : Coloring sc E) (f : sc.facets)
+ := res_coloring c ⟨f.1, facets_subset
+ f.2⟩  '' Set.univ  = ss.extremes
+
+theorem Sperner {c : Coloring sc E} (h : ProperColoring c) : ∃ f : sc.facets, Rainbowfacet c f := sorry
+
+
 
 instance  subdivision (sc : SC) [hsc: SimplicialSimplex k sc]: SimplicialSimplex k (barycentric_subdivision k sc) where
   extremes := hsc.extremes
   extreme_in_vertices := by sorry
   extreme_indep := hsc.extreme_indep
   spanning := by sorry
+
+
 
 -- TODO: define boundary SimplicialSimplex, show that it is also a SimplicialSimplex
 
@@ -63,11 +164,25 @@ instance  subdivision (sc : SC) [hsc: SimplicialSimplex k sc]: SimplicialSimplex
 
 -- TODO: define proper coloring on a SimplicialSimplex
 
--- TODO: State the Sperner's Lemma
 
 
 
 end SimplicialSimplex
 
 
+
+
 end Geometry
+
+
+section Sperner
+
+
+-- Define the notion of coloring.
+
+
+
+-- TODO: State the Sperner's Lemma
+
+
+end Sperner
