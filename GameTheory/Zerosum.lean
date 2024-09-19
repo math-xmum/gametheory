@@ -3,6 +3,7 @@ Our reference is
 [LRS] Rida Laraki, Jérôme Renault, Sylvain Sorin, Mathematical Foundations of Game Theory (Universitext), 2019
 -/
 
+/-
 import Mathlib.Data.Real.EReal
 import Mathlib.Data.Real.NNReal
 import Mathlib.Data.Fintype.Basic
@@ -15,6 +16,8 @@ import Mathlib.Topology.Order.Lattice
 import Mathlib.Topology.MetricSpace.PseudoMetric
 
 import Mathlib.Algebra.Function.Indicator
+-/
+import Mathlib
 
 -- ℝ is not a complete lattice,
 -- iSup may not exits
@@ -26,6 +29,7 @@ open BigOperators
 open Classical
 open Finset
 
+namespace zerosum
 /-
 We use S to denote a mixed stratage
 -/
@@ -822,3 +826,4 @@ theorem minmax_theorem : ∃ (xx : S I) (yy : S J) (v : ℝ),
 }
 
 end zerosumFGame
+end zerosum

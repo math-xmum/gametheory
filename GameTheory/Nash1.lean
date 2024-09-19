@@ -1,10 +1,11 @@
-import Mathlib.Algebra.BigOperators.Basic
-import Mathlib.Data.Fintype.Basic
-import Mathlib.Data.Real.EReal
-import Mathlib.Data.Set.Basic
-import Mathlib.Algebra.BigOperators.Finprod
-import GameTheory.Simplex
-import Mathlib.Algebra.Group.Defs
+-- import Mathlib.Algebra.BigOperators.Basic
+-- import Mathlib.Data.Fintype.Basic
+-- import Mathlib.Data.Real.EReal
+-- import Mathlib.Data.Set.Basic
+-- import Mathlib.Algebra.BigOperators.Finprod
+-- import GameTheory.Simplex
+-- import Mathlib.Algebra.Group.Defs
+import Mathlib
 
 open Classical
 open BigOperators
@@ -20,7 +21,6 @@ structure Game.{u,v} where
     g : I → (Π i, SS i) →  ℝ
     -- an elements in Π i, SS is a move of all players.
     -- g i is the payoff of the i-th player
-#align game Game
 
 
 namespace Game
