@@ -214,7 +214,7 @@ theorem magic_payment_rule_works (ar : (E.I → ℝ) → E.feasibleSet)
   -- Let `b` and `b'` be bids such that `b j = b' j` for all `j ≠ i`,
   -- and `b i = v i`.
   intro mon i v b b' b_i_eq_v_i almost_eq
-  push_neg at almost_eq
+  --push_neg at almost_eq
   -- The goal now is to show that `utility v b i ≥ utility v b' i`.
 
   -- We establish a bunch of integrability statements here, no content here
@@ -272,7 +272,7 @@ theorem magic_payment_rule_works (ar : (E.I → ℝ) → E.feasibleSet)
       := by funext x; linarith
     rw [t] at this
     exact this }
-  { simp
+  { --simp
     have : ∀ u ∈ Set.Icc (b i) (b' i),
     0 ≤ (fun x => - (ar (with_hole b' i x)) i + (ar b') i) u := by
       intro x; simp
