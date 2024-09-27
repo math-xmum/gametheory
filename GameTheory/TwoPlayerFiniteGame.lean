@@ -16,12 +16,26 @@ class Doubleton (α : Type*) [DecidableEq α]:=
   x_ne_y : x ≠ y
   x_or_y : ∀ a : α, a=x ∨ a=y
 
+
+
 namespace Doubleton
-variable {α : Type*} [DecidableEq α] [Doubleton α ]
+variable {α : Type*} [DecidableEq α] [Doubleton α]
 
 lemma x_or_y_def : ∀ a : α, a= Doubleton.x ∨ a = Doubleton.y := Doubleton.x_or_y
 
 lemma x_ne_y_def : (Doubleton.x :α) ≠  Doubleton.y := Doubleton.x_ne_y
+
+def other (a : α) : α := if a = (Doubleton.x : α) then Doubleton.y else Doubleton.x
+
+#print other
+instance fin2.doubleton : Doubleton (Fin 2) where
+  x := 0
+  y := 1
+  x_ne_y := by decide
+  x_or_y := by sorry
+
+#eval! Doubleton.other (0 : Fin 2)
+#eval! Doubleton.other (1: Fin 2)
 
 end Doubleton
 
@@ -174,7 +188,7 @@ termination_by (subgame p x).card
 decreasing_by
   exact subgame_decrease p hxy
 
-variable (a : players) (R : α → players)
+variable [Doubleton players] [LinearOrder α] (a : players) (R : α → players)
 
 def gen_sstrategy_aux  [Doubleton players] [LinearOrder α]  (x : α) (c : List α) : Option (SStrategy p x) :=
   if h : x ∈ leaves p then
@@ -231,54 +245,25 @@ decreasing_by
   · left ; exact subgame_decrease p h
   · right; simp
 
-def dominant_strategy
 
-
-/- Return the stratagy if there is one otherwise return none
-To make this into a determinstic algorithm we need to have a Linear Order on α
--/
-def gen_sstrategy [Doubleton players] [LinearOrder α]  (x :α) : Option (SStrategy p x) :=
-  if h : x ∈ leaves p then SStrategy.singleton h
-  else
-    let c : List α  := Finset.sort (· ≤ · ) (children p x)
-    let rec rc_aux (y:α) (c: List α) : Option (SStrategy p y) :=
-      match c with
-      | [] => none
-      | y :: tail  =>
-        -- let res : SStrategy p y := gen_sstrategy y
-        match gen_sstrategy ↑y with
-        | none =>  match tail with
-                  | [] => none
-                  | [] rc_aux tail
-        | some γ => some γ
-    match rc_aux c  with
-    | none => none
-    | some γ => none
-termination_by (subgame p x).card
-decreasing_by
-  sorry
-
-
-
+def gen_sstrategy [Doubleton players] [LinearOrder α]  (x : α) : Option (SStrategy p x) :=
+  gen_sstrategy_aux p a R x (children_list p x)
 
 /-
-
-        some {
-            s := γ.update x y
-            prop := sorry
-        }
-
+A strategy σ is dominant stragegy of "a" if for any valid move of other players, "a" is always the winner
+of the game
 -/
+variable {p} in
+def dominant_strategy (σ : SStrategy p x) := ∀ (γ: SStrategy p x), R (outcome x (σ.piecewise γ R a )) = a
+
+
+lemma gen_strategy_is_dominant  {σ : SStrategy p x} (h : gen_sstrategy p a R x = some σ) : dominant_strategy a R σ := sorry
 
 
 
-
-
-
-
-lemma determined [Doubleton players] :
+theorem determined [Doubleton players] :
   ∃ a : players,
-  ∃ (σ : SStrategy p x), (∀ (γ: SStrategy p x), R (outcome x (σ.piecewise γ R a )) = a ) := sorry
+  ∃ (σ : SStrategy p x), dominant_strategy a R σ := sorry
 
 
 end GameSpace
