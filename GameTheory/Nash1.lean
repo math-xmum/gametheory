@@ -1,11 +1,5 @@
--- import Mathlib.Algebra.BigOperators.Basic
--- import Mathlib.Data.Fintype.Basic
--- import Mathlib.Data.Real.EReal
--- import Mathlib.Data.Set.Basic
--- import Mathlib.Algebra.BigOperators.Finprod
--- import GameTheory.Simplex
--- import Mathlib.Algebra.Group.Defs
 import Mathlib
+import GameTheory.Simplex1
 
 open Classical
 open BigOperators
@@ -13,15 +7,16 @@ open BigOperators
 /-
 A game is a set of maps g^i : Πᵢ S i → ℝ
 -/
-structure Game.{u,v} where
-    I : Type u           -- The set of player
+structure Game where
+    I : Type*           -- The set of player
     HI : Inhabited I     -- at least one player
-    SS : I → Type v       -- S is the set of strategies
-    HSS : ∀ (i: I), Inhabited (SS i) -- The set of strategies is nonempty
+    SS : I → Type*       -- S is the set of strategies
+    HSS (i :I): Inhabited (SS i) -- The set of strategies is nonempty
     g : I → (Π i, SS i) →  ℝ
     -- an elements in Π i, SS is a move of all players.
     -- g i is the payoff of the i-th player
 
+attribute [instance] Game.HI Game.HSS
 
 namespace Game
 
@@ -39,12 +34,12 @@ end Game
 
 open Game
 
+/-
 namespace aux
 universe u v
 
 variable {I : Type u}
 variable {f : I → Type v}
-
 
 
 /-
@@ -111,19 +106,21 @@ noncomputable instance {G:Game} {i : G.I} : CoeOut  ((G.SS i)×(@IFun' G.I G.SS 
 end aux
 
 
+-/
+
 structure FinGame extends Game where
   FinI : Fintype I
   FinSS : ∀ i : I , Fintype (SS i)
 
+attribute [instance] FinGame.FinI FinGame.FinSS
+
 
 namespace FinGame
-
-open aux
 
 
 instance {G : FinGame} : Fintype G.I := G.FinI
 instance {G : FinGame} {i : G.I}: Fintype (G.SS i) := G.FinSS i
-noncomputable instance mixed_SS_i_Inhabited {G: FinGame} {i : G.I}: Inhabited (S (G.SS i)) := S.SInhabited_of_Inhabited
+noncomputable instance mixed_SS_i_Inhabited {G: FinGame} {i : G.I}: Inhabited (S (G.SS i)) := inferInstance
 
 @[simp]
 abbrev mixedSSi (G : FinGame) (i : G.I) := S (G.SS i)
@@ -131,17 +128,16 @@ abbrev mixedSSi (G : FinGame) (i : G.I) := S (G.SS i)
 @[simp]
 abbrev mixedS (G : FinGame) := (i:G.I) → S (G.SS i)
 
+/-
 @[simp]
-noncomputable def with_hole {G: FinGame} (s : G.mixedS) (i : G.I) (x : S (G.SS i)) := @aux.with_hole G.I (fun i =>S (G.SS i)) s i x
+noncomputable def with_hole {G: FinGame} (s : G.mixedS) (i : G.I) (x : S (G.SS i)) := Function.update G.I (fun i =>S (G.SS i)) s i x
 
 -- comma_notation for mixed game
 noncomputable instance comma.mixed {G : FinGame} {i : G.I} : CoeOut  ((S (G.SS i))×(@IFun' G.I (fun i => S (G.SS i )) i)) (IFun (fun i => S (G.SS i))) where
   coe := @combinePair G.I (fun i=> S (G.SS i)) i
-
+-/
 
 noncomputable def mixed_g {G: FinGame} (i : G.I) (x : Π i, S (G.SS i) ) : ℝ := ∑ s : (Π j, G.SS j) , ∏ j,  x j (s j) * (G.g i s)
-
-
 
 
 def mixedNashEquilibrium {G: FinGame} (x : G.mixedS) :=
