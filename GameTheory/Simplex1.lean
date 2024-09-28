@@ -1,12 +1,12 @@
 import Mathlib
 
-open Classical
+--open Classical
 
 /-
 We use S to denote a mixed stratage
 -/
 
-variable (α : Type*) [Fintype α]
+variable (α : Type*) [Fintype α] [DecidableEq α]
 
 namespace stdSimplex
 variable (k : Type*)  [OrderedSemiring k] (α : Type*) [Fintype α]
@@ -16,7 +16,7 @@ instance funlike : FunLike (stdSimplex k α) α k where
   coe_injective' := Subtype.val_injective
 
 variable {k α} in
-noncomputable abbrev pure (i : α) : stdSimplex k α  := ⟨fun j => if i=j then 1 else 0,
+abbrev pure [DecidableEq α] (i : α) : stdSimplex k α  := ⟨fun j => if i=j then 1 else 0,
  by {
   constructor
   . {
@@ -27,11 +27,11 @@ noncomputable abbrev pure (i : α) : stdSimplex k α  := ⟨fun j => if i=j then
   . simp only [Finset.sum_ite_eq, Finset.mem_univ, ite_true]
   }⟩
 
-noncomputable instance SInhabited_of_Inhabited [Inhabited α]: Inhabited (stdSimplex k α) where
+noncomputable instance SInhabited_of_Inhabited [DecidableEq α] [Inhabited α]: Inhabited (stdSimplex k α) where
   default := pure (default : α)
 
 
-noncomputable instance SNonempty_of_Inhabited {α : Type*} [Fintype α] [Inhabited α]: Nonempty (stdSimplex k α) := Nonempty.intro (default : stdSimplex k α)
+noncomputable instance SNonempty_of_Inhabited {α : Type*} [DecidableEq α] [Fintype α] [Inhabited α]: Nonempty (stdSimplex k α) := Nonempty.intro (default : stdSimplex k α)
 
 
 end stdSimplex
@@ -41,8 +41,9 @@ abbrev S:= stdSimplex ℝ α
 
 namespace S
 
-variable {α : Type*} [Fintype α]
+variable {α : Type*} [Fintype α] [DecidableEq α]
 
+/-
 @[simp]
 noncomputable def pure (i : α) : S α  := ⟨fun j => if i=j then 1 else 0,
  by {
@@ -60,3 +61,5 @@ noncomputable instance SInhabited_of_Inhabited {α : Type*} [Fintype α] [Inhabi
 
 
 noncomputable instance SNonempty_of_Inhabited {α : Type*} [Fintype α] [Inhabited α]: Nonempty (S α) := Nonempty.intro (default : S α)
+
+-/
