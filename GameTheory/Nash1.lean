@@ -10,7 +10,7 @@ import GameTheory.Simplex1
 
 open Classical
 open BigOperators
-
+open Function
 
 noncomputable section
 
@@ -62,9 +62,12 @@ instance {G : FinGame} {i : G.I}: Fintype (G.SS i) := G.FinSS i
 --instance mixed_SS_i_Inhabited {G: FinGame} {i : G.I}: Inhabited (S (G.SS i)) := inferInstance
 
 variable (G) in
-abbrev mixedS  := Π i, stdSimplex ℝ (G.SS i)
+abbrev mixedS  := (i : G.I) → stdSimplex ℝ (G.SS i)
 
 def mixed_g (i : G.I) (m : Π i, S (G.SS i) ) : ℝ := ∑ s : (Π j, G.SS j) , ∏ j,  m j (s j) * (G.g i s)
+
+
+lemma mixed_g_linear : G.mixed_g i (update  x i y) = ∑ s : G.SS i, y s * G.mixed_g i (update x i (stdSimplex.pure s)) := sorry
 
 
 def FinGame2MixedGame (G : FinGame) : Game := {
@@ -99,11 +102,12 @@ noncomputable instance comma.mixed {G : FinGame} {i : G.I} : CoeOut  ((S (G.SS i
 -/
 
 
+
 def mixedNashEquilibrium {G: FinGame} (x : G.mixedS) :=
-  ∀ (i:G.I)
-    (y : G.mixedS ),
-    (∀ j: G.I, i ≠ j → (x j = y j) ) →
-     G.mixed_g i x ≥ G.mixed_g i y
+  ∀ (i:G.I), ∀ (y : S (G.SS  i)),
+     G.mixed_g i x ≥ G.mixed_g i (update  x i y)
+
+
 
 end FinGame
 
@@ -127,35 +131,76 @@ lemma mixed_g_eq_evaluate (i : G.I) (σ : G.mixedS) : evaluate_at_mixed G i σ =
 
   sorry-/
 
-variable {G} in
+
+
+variable {G}
+
 noncomputable abbrev g_function (i : G.I) (σ : G.mixedS) (a : G.SS i) : ℝ :=
   σ i a + max 0 (mixed_g i (Function.update σ i (stdSimplex.pure a)) - mixed_g i σ)
 
+
+lemma sigma_le_g_function (i : G.I) (σ : G.mixedS) (a : G.SS i) : σ i a ≤ g_function i σ a := by
+  rw [g_function]; norm_num
+
 lemma g_function_noneg (i : G.I) (σ : G.mixedS) (a : G.SS i) : 0 ≤ g_function i σ a := by
-  rw [g_function]
-  calc
-    _ ≤ σ i a :=(σ i).2.1 a
-    _ = σ i a + 0 := by simp
-    _ ≤ _ := by apply add_le_add_left; simp
+  have h1: 0 ≤ σ i a:= (σ i).2.1 a
+  linarith [sigma_le_g_function i σ a]
 
 --variable (sigma : G.mixedS ) (i : G.I) (a : G.SS i)
 
-variable {G} in
-noncomputable def nash_map_aux (σ : G.mixedS) (i : G.I) (a : G.SS i) : ℝ :=
+lemma one_le_sum_g (i : G.I) (σ : G.mixedS) : 1 ≤ ∑ b : G.SS i, g_function i σ b := by
+  calc
+  _ = ∑ b : G.SS i, σ i b := Eq.symm (σ i).2.2
+  _ ≤ _ := Finset.sum_le_sum (by norm_num [sigma_le_g_function i σ])
+
+
+noncomputable abbrev nash_map_aux (σ : G.mixedS) (i : G.I) (a : G.SS i) : ℝ :=
   g_function i σ a / ∑ b : G.SS i, g_function i σ b
 
-variable {G} in
-lemma nash_map_cert (σ : G.mixedS) (i : G.I) : (nash_map_aux σ i) ∈ S (G.SS i) := by
-  sorry
+lemma nash_map_cert (σ : G.mixedS) (i : G.I) :
+  (nash_map_aux σ i) ∈ S (G.SS i) := by
+  unfold nash_map_aux
+  constructor
+  · intro x;
+    apply div_nonneg <| g_function_noneg i σ x
+    linarith [one_le_sum_g i σ]
+  · rw [<-Finset.sum_div]
+    apply div_self
+    linarith [one_le_sum_g i σ]
 
+variable (G)
 
 noncomputable def nash_map (σ: G.mixedS) : G.mixedS :=
   fun (i : G.I) ↦ ⟨nash_map_aux σ i, nash_map_cert σ i⟩
 
-theorem ExistsNashEq : ∃ x : G.mixedS , mixedNashEquilibrium x := by {
+lemma nash_map_cont : Continuous $ nash_map G := sorry
 
-
-  sorry
+theorem ExistsNashEq : ∃ σ : G.mixedS , mixedNashEquilibrium σ := by {
+  obtain ⟨σ, hs⟩ := Brouwer.mixedGame (nash_map G)  (nash_map_cont G)
+  use σ
+  intro i y
+  by_cases H : ∀ t, G.mixed_g i σ  ≥ G.mixed_g i (update σ i (stdSimplex.pure t))
+  · sorry
+  · exfalso -- This case cannot happen
+    push_neg at H
+    obtain ⟨t,ht⟩ := H
+    have H1 :  1 < ∑ b, g_function i σ b := sorry
+    have H2 : ∑ s, σ i s * G.mixed_g i (update σ i (stdSimplex.pure s)) =
+      G.mixed_g i σ := sorry
+      -- have H2: G.mixed_g i (update σ i (σ i)) = G.mixed_g i σ  := by sorry
+    obtain ⟨s,hs1,hs2⟩:= stdSimplex.wsum_magic_ineq H2
+    have : σ i s = σ i s / (∑ b : G.SS i, g_function i σ b) := by
+      nth_rw 1 [<-hs]
+      calc
+      _ = nash_map_aux σ i s := by rw [nash_map];rfl
+      _ = _ := by
+        rw [nash_map_aux,g_function]
+        have : max 0 (mixed_g i (update σ i (stdSimplex.pure s)) - mixed_g i σ)  = 0 := sorry
+        rw [this];norm_num
+    have self_div_lemma {x y : ℝ} : x≠0 → x = x/y → y = 1 := by
+      sorry
+    have := self_div_lemma (by linarith) this
+    linarith
 }
 
 end mixedNashEquilibrium
