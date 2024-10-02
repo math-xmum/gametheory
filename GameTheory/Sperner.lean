@@ -105,7 +105,8 @@ the convexHull of t
 lemma mem_convexHullsupport {t: Finset E} {x : E}
   (h1: x ∈ convexHull k ↑t)
   (h2 : AffineIndependent k ((↑):t → E)):
-   x ∈ convexHull k (Support k t x):= by sorry
+   x ∈ convexHull k (Support k t x):= by
+      sorry
 
 
 end support
