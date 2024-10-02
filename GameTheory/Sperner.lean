@@ -27,7 +27,7 @@ lemma bary_simplex.nonempty {L : List (Finset E)} (hL : L ≠ []) : (bary_simple
 
 def chainSet (faces : Set (Finset E)) := {L : List (Finset E)| L≠ [] ∧ L.Forall (fun s => s ∈ faces) ∧   List.Pairwise (fun s t => t.1 ⊂ s.1) L}
 
---One have to establish vaorious properties of the chainSet
+--One have to establish various properties of the chainSet
 
 
 --One have to establish that the barycentric subdivision is a simplicial complex
@@ -65,9 +65,10 @@ instance  subdivision (sc : SC) [hsc: SimplicialSimplex k sc]: SimplicialSimplex
 noncomputable section support
 -- Suppose t is a set of points, x is in the convexHull of t
 -- define the support of x to be the smallest subset of t such that x in the convexHull of t.
+
 abbrev Support (t: Finset E) (x : E) : Set E :=
   if x ∈ convexHull k ↑t then
-    ⋂ (s : Set E) (_ : s ⊆ t) (_ : x ∈ convexHull k s), s
+    ⋂ s ∈ { s | s ⊆ t ∧  x ∈ convexHull k s}, s
   else
     ∅
 
@@ -76,7 +77,14 @@ abbrev Support (t: Finset E) (x : E) : Set E :=
 Show that support is a subset of t if x is contained in
 the convexHull of t
 -/
-lemma support_subset_face {t: Finset E} {x : E} : Support k t x ⊆ t:= by sorry
+lemma support_subset_face {t: Finset E} {x : E} : Support k t x ⊆ t:= by
+  unfold Support
+  split_ifs
+  · apply Set.biInter_subset_of_mem
+    constructor
+    · simp only [subset_refl]
+    · assumption
+  · apply Set.empty_subset
 
 instance support.fintype {t: Finset E} {x : E}: Fintype (Support k t x) := by
   let s := {e ∈ t | e ∈ Support k t x}
