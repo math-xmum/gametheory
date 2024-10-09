@@ -168,19 +168,24 @@ def monotone (ar : (I → ℝ) → (I → ℝ)) :=
   ∀ b : I → ℝ,
   nondecreasing (λ (bi : ℝ) => ar (Function.update b i bi) i)
 
+/-- Construct a DirectRevelationMechanism from an allocation rule and a payment rule,
+    when the allocation rule is feasible. -/
+def constructMechanism (E : SingleParameterEnvironment I)
+    (ar : (I → ℝ) → (I → ℝ))
+    (pr : (I → ℝ) → I → ℝ)
+    (h : ∀ b, ar b ∈ E.feasibleSet) : DirectRevelationMechanism E where
+  allocationRule := ar
+  paymentRule := pr
+  allocationRuleValid := h
+
 /-- An allocation rule is implementable if
 there is a payment rule such that the resulting direct-revelation mechanism
 is DSIC and the allocation rule always produces feasible allocations. -/
 def implementable (ar : (I → ℝ) → (I → ℝ)) (E : SingleParameterEnvironment I) :=
-  (∀ b, ar b ∈ E.feasibleSet) ∧
-  (∃ pr : (I → ℝ) → I → ℝ,
-    @dsic I _ _ E {
-      allocationRule := ar,
-      paymentRule := pr,
-      allocationRuleValid := fun b => by
-        have h : ∀ b, ar b ∈ E.feasibleSet := And.left ‹_›
-        exact h b
-    })
+  ∃ (h : ∀ b, ar b ∈ E.feasibleSet),
+  ∃ pr : (I → ℝ) → I → ℝ,
+    dsic (constructMechanism E ar pr h)
+
 
 end definitions
 
