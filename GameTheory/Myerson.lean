@@ -10,75 +10,77 @@ open Classical
 open BigOperators Finset
 
 /-- A single parameter environment has
-- some number n of agents, and
+- a set of agents I (which is finite and nonempty),
 - a feasible set X, in which each element is a nonnegative vector
   `(x1, x2, . . . , xn)`,
-  where xi denotes the “amount of stuff” given. -/
-structure SingleParameterEnvironment where
-  -- The set of bidders
-  I : Type*
-  -- We require I to be nonempty
-  INonempty : Nonempty I
-  -- We require I to be finite
-  IFintype : Fintype I
+  where xi denotes the "amount of stuff" given. -/
+structure SingleParameterEnvironment (I : Type u) [Fintype I] [Nonempty I] where
   -- The feasible set
   feasibleSet : Set (I → ℝ)
   -- We require the feasible set to be nonempty
   feasibleSetNonempty : Nonempty feasibleSet
 
-instance (E : SingleParameterEnvironment) : Nonempty E.I := E.INonempty
-instance (E : SingleParameterEnvironment) : Fintype E.I := E.IFintype
-instance (E : SingleParameterEnvironment) : Nonempty (E.feasibleSet) :=
-  E.feasibleSetNonempty
-instance (E : SingleParameterEnvironment) :
-  CoeFun E.feasibleSet (fun _ => E.I → ℝ) where coe f := f
-
 -- Throughout let E denote a single-parameter environment.
 namespace SingleParameterEnvironment
 
+variable {I : Type u} [Fintype I] [Nonempty I]
+variable (E : SingleParameterEnvironment I)
+
 /-- A direct-revelation mechanism for a single-parameter environment
 is formalized by an allocation rule and a payment rule. -/
-structure DirectRevelationMechanism (E : SingleParameterEnvironment) where
-  allocationRule : (E.I → ℝ) → E.feasibleSet
-  paymentRule : (E.I → ℝ) → E.I → ℝ
+structure DirectRevelationMechanism (E : SingleParameterEnvironment I) where
+  allocationRule : (I → ℝ) → (I → ℝ)
+  paymentRule : (I → ℝ) → I → ℝ
+  allocationRuleValid : ∀ b, allocationRule b ∈ E.feasibleSet
 
 section definitions
-/- Henceforth let E be a single parameter environment and D be a direct
-revelation mechanism on E. -/
-variable {E : SingleParameterEnvironment} {D : DirectRevelationMechanism E}
+
+variable {E : SingleParameterEnvironment I}
+variable (D : DirectRevelationMechanism E)
+-- instance (E : SingleParameterEnvironment) : Nonempty I := INonempty
+-- instance (E : SingleParameterEnvironment) : Fintype I := IFintype
+-- instance (E : SingleParameterEnvironment) : Nonempty (E.feasibleSet) :=
+--   E.feasibleSetNonempty
+-- instance (E : SingleParameterEnvironment) :
+--   CoeFun E.feasibleSet (fun _ => I → ℝ) where coe f := f
+
 
 /-- Quasi-linear utility -/
 @[simp]
-def utility (v : E.I → ℝ) (b : E.I → ℝ) (i : E.I) : ℝ :=
-  v i * D.allocationRule b i - D.paymentRule b i
+
+def utility (v : I → ℝ) (b : I → ℝ) (i : I) : ℝ :=
+  v i * (D.allocationRule b i) - D.paymentRule b i
 
 /-- A dominant strategy for `i` is a strategy (i.e., a bid `bi`)
-that is guaranteed to maximize `i`’s utility, no matter what the other
+that is guaranteed to maximize `i`'s utility, no matter what the other
 bidders do; in other words, for any bids `b` and `b'` such that `b i = bi`,
 the utility from `b` should be not less than that of `b'` -/
-def dominant (v : E.I → ℝ) (bid_amount : ℝ) (i : E.I) : Prop :=
-  ∀ b b': E.I → ℝ,
+def dominant (v : I → ℝ) (bid_amount : ℝ) (i : I) : Prop :=
+  ∀ b b': I → ℝ,
   b i = bid_amount →
-  (∀ j : E.I, j ≠ i → b j = b' j) → @utility E D v b i ≥ @utility E D v b' i
+  (∀ j : I, j ≠ i → b j = b' j) → utility D v b i ≥ utility D v b' i
 
 /-- A system is dominant-strategy incentive compatible (DSIC) if
 truthful bidding is always a dominant strategy for every bidder and if
 truthful bidders always obtain nonnegative utility. -/
-def dsic := ∀ (i : E.I), ∀ (v : E.I → ℝ), @dominant E D v (v i) i
+def dsic := ∀ (i : I), ∀ (v : I → ℝ), dominant D v (v i) i
 
+
+--这个是不是mathlib里面有，貌似还真没有
 -- Goal here: Define a monotone allocation rule
 def nondecreasing (f : ℝ → ℝ) := ∀ (x1 x2 : ℝ), x1 ≤ x2 → f x1 ≤ f x2
 
+/-
 @[simp]
-noncomputable def with_hole (f : E.I → ℝ) (i : E.I) (bi : ℝ) (j : E.I) : ℝ :=
+noncomputable def with_hole (f : I → ℝ) (i : I) (bi : ℝ) (j : I) : ℝ :=
   if j = i then bi else f j
 
-lemma filled_hole_retrieve {f : E.I → ℝ} {i : E.I} {bi : ℝ} :
+lemma filled_hole_retrieve {f : I → ℝ} {i : I} {bi : ℝ} :
   with_hole f i bi i = bi := by
   rw [with_hole]; simp
 
 lemma filled_hole_retrieve_other
-  {f : E.I → ℝ} {i j : E.I} {hyp : i ≠ j} {bi : ℝ} :
+  {f : I → ℝ} {i j : I} {hyp : i ≠ j} {bi : ℝ} :
   with_hole f i bi j = f j := by
   rw [with_hole, ite_eq_right_iff]
   intro H
@@ -86,15 +88,15 @@ lemma filled_hole_retrieve_other
   exact hyp (symm H)
 
 lemma filled_hole_almost_equal :
-  ∀ (j : E.I), j ≠ i → with_hole b i x1 j = with_hole b i x2 j := by
+  ∀ (j : I), j ≠ i → with_hole b i x1 j = with_hole b i x2 j := by
   intro j hyp
   rw [filled_hole_retrieve_other]
   rw [filled_hole_retrieve_other]
   { symm; exact hyp }
   { symm; exact hyp }
 
-lemma almost_equal_fill_hole (b b' : E.I → ℝ) (i : E.I) :
-  (∀ (j : E.I), ¬j = i → b j = b' j) → with_hole b i = with_hole b' i := by
+lemma almost_equal_fill_hole (b b' : I → ℝ) (i : I) :
+  (∀ (j : I), ¬j = i → b j = b' j) → with_hole b i = with_hole b' i := by
   intro hyp
   funext x j
   by_cases eq : j = i
@@ -102,31 +104,93 @@ lemma almost_equal_fill_hole (b b' : E.I → ℝ) (i : E.I) :
   { simp; split; rfl; exact hyp j eq }
 
 lemma filled_hole_replace
-  {f : E.I → ℝ} {i : E.I} {bi : ℝ} :
+  {f : I → ℝ} {i : I} {bi : ℝ} :
   with_hole (with_hole f i bi) i = with_hole f i := by
   funext bi' j
   by_cases j = i
   { simp; split; rfl; rfl }
   { simp; split; rfl; rfl; }
 
-lemma unfill_fill_hole {f : E.I → ℝ} {i : E.I} : f = with_hole f i (f i) := by
+lemma unfill_fill_hole {f : I → ℝ} {i : I} : f = with_hole f i (f i) := by
   funext x; simp; split; rename_i p; rw [p]; rfl
+-/
+/-尝试修一些with hole
+@[simp]
+noncomputable def with_hole (f : I → ℝ) (i : I) (bi : ℝ) (j : I) : ℝ :=
+  if j = i then bi else f j
+
+lemma filled_hole_retrieve {f : I → ℝ} {i : I} {bi : ℝ} :
+  with_hole f i bi i = bi := by
+  rw [with_hole]
+  simp
+
+lemma filled_hole_retrieve_other
+  {f : I → ℝ} {i j : I} {bi : ℝ} (hyp : i ≠ j) :
+  with_hole f i bi j = f j := by
+  rw [with_hole]
+  simp
+  intro h
+  exfalso
+  exact hyp h.symm
+
+lemma filled_hole_almost_equal {b : I → ℝ} {i : I} {x1 x2 : ℝ} :
+  ∀ (j : I), j ≠ i → with_hole b i x1 j = with_hole b i x2 j := by
+  intro j hyp
+  sorry
+
+lemma almost_equal_fill_hole {b b' : I → ℝ} {i : I} :
+  (∀ (j : I), j ≠ i → b j = b' j) → with_hole b i = with_hole b' i := by
+  intro hyp
+  funext x j
+  by_cases eq : j = i
+  · simp [with_hole, eq]
+  · simp [with_hole, eq]
+    exact hyp j eq
+
+lemma filled_hole_replace
+  {f : I → ℝ} {i : I} {bi : ℝ} :
+  with_hole (with_hole f i bi) i = with_hole f i := by
+  funext bi' j
+  by_cases h : j = i
+  · simp [with_hole, h]
+  · simp [with_hole, h]
+
+lemma unfill_fill_hole {f : I → ℝ} {i : I} : f = with_hole f i (f i) := by
+  funext x
+  simp [with_hole]
+  sorry
+-/
 
 /-- An allocation rule is monotone if replacing for every i, replacing the
 bid of i with something higher does not cause her to lose allocation. -/
-def monotone (ar : (E.I → ℝ) → E.feasibleSet) :=
-  ∀ i : E.I,
-  ∀ b : E.I → ℝ,
-  nondecreasing (λ (bi : ℝ) => ar (with_hole b i bi) i)
+def monotone (ar : (I → ℝ) → (I → ℝ)) :=
+  ∀ i : I,
+  ∀ b : I → ℝ,
+  nondecreasing (λ (bi : ℝ) => ar (Function.update b i bi) i)
 
 /-- An allocation rule is implementable if
 there is a payment rule such that the resulting direct-revelation mechanism
-is DSIC. -/
-def implementable (ar : (E.I → ℝ) → E.feasibleSet) :=
-  ∃ pr : (E.I → ℝ) → E.I → ℝ,
-  @dsic E {allocationRule := ar, paymentRule := pr}
+is DSIC and the allocation rule always produces feasible allocations. -/
+def implementable (ar : (I → ℝ) → (I → ℝ)) (E : SingleParameterEnvironment I) :=
+  (∀ b, ar b ∈ E.feasibleSet) ∧
+  (∃ pr : (I → ℝ) → I → ℝ,
+    @dsic I _ _ E {
+      allocationRule := ar,
+      paymentRule := pr,
+      allocationRuleValid := fun b => by
+        have h : ∀ b, ar b ∈ E.feasibleSet := And.left ‹_›
+        exact h b
+    })
 
 end definitions
+
+
+
+
+
+
+
+
 
 /- The remaining part of the file is used to prove Myersons' lemma,
 we will show that
@@ -140,10 +204,10 @@ section myerson
 variable {E : SingleParameterEnvironment}
 
 theorem payment_sandwich
-  (ar : (E.I → ℝ) → E.feasibleSet)
-  (p : (E.I → ℝ) → E.I → ℝ) (y z : ℝ):
+  (ar : (I → ℝ) → E.feasibleSet)
+  (p : (I → ℝ) → I → ℝ) (y z : ℝ):
   @dsic E {allocationRule := ar, paymentRule := p}
-  → ∀ i : E.I,
+  → ∀ i : I,
   z * (ar (with_hole b i y) i - ar (with_hole b i z) i)
   ≤ p (with_hole b i y) i - p (with_hole b i z) i
   ∧ p (with_hole b i y) i - p (with_hole b i z) i
@@ -173,7 +237,7 @@ theorem payment_sandwich
   constructor; { linarith }; { linarith }
 
 -- Goal here: Implementable → Monotone
-theorem implementable_impl_monotone (ar : (E.I → ℝ) → E.feasibleSet) :
+theorem implementable_impl_monotone (ar : (I → ℝ) → E.feasibleSet) :
   implementable ar → monotone ar := by
   rintro ⟨p, impl⟩ i b x1 x2 xhyp
   have := @payment_sandwich E b ar p x1 x2 impl i
@@ -193,21 +257,21 @@ open Monotone intervalIntegral
 -- I don't have a better name for this, sorry
 @[simp]
 noncomputable def magic_payment_rule
-  (ar : (E.I → ℝ) → E.feasibleSet) (b : E.I → ℝ) (i : E.I) : ℝ :=
+  (ar : (I → ℝ) → E.feasibleSet) (b : I → ℝ) (i : I) : ℝ :=
   (b i) * ar b i - ∫ t in (0)..(b i), (fun t' => ar (with_hole b i t') i) t
 
 @[simp]
-noncomputable def with_magic (ar : (E.I → ℝ) → E.feasibleSet)
+noncomputable def with_magic (ar : (I → ℝ) → E.feasibleSet)
   : DirectRevelationMechanism E :=
   { allocationRule := ar, paymentRule := magic_payment_rule ar }
 
-def utility_exp {v : E.I → ℝ} (b : E.I → ℝ) :
+def utility_exp {v : I → ℝ} (b : I → ℝ) :
   @utility E (with_magic ar) v b i
     = (v i - b i) * ar b i
     + ∫ x in (0)..(b i), (fun t' => ar (with_hole b i t') i) x := by
       rw [utility]; simp; ring_nf
 
-theorem magic_payment_rule_works (ar : (E.I → ℝ) → E.feasibleSet)
+theorem magic_payment_rule_works (ar : (I → ℝ) → E.feasibleSet)
   : (monotone ar) → @dsic E (with_magic ar) := by
   -- Suppose `ar` is monotone and let `i` be the bidder in consideration.
   -- Let `v` be the valuation of the bidders.
@@ -291,19 +355,19 @@ theorem magic_payment_rule_works (ar : (E.I → ℝ) → E.feasibleSet)
     exact this }
 
 theorem magic_payment_bid_zero_implies_payment_zero
-  (ar : (E.I → ℝ) → E.feasibleSet) :
-  ∀ b : E.I → ℝ, ∀ i : E.I, b i = 0 → magic_payment_rule ar b i = 0 := by
+  (ar : (I → ℝ) → E.feasibleSet) :
+  ∀ b : I → ℝ, ∀ i : I, b i = 0 → magic_payment_rule ar b i = 0 := by
   intro b i hyp; rw [magic_payment_rule, hyp]; simp
 
 -- Goal here: Works → "Explicit formula"
 -- TODO: figure out a proof and then finish this
-theorem magic_payment_rule_unique (ar : (E.I → ℝ) → E.feasibleSet)
-  : ∀ p q : ((E.I → ℝ) → E.I → ℝ),
+theorem magic_payment_rule_unique (ar : (I → ℝ) → E.feasibleSet)
+  : ∀ p q : ((I → ℝ) → I → ℝ),
   (monotone ar)
   → @dsic E {allocationRule := ar, paymentRule := p}
   → @dsic E {allocationRule := ar, paymentRule := q}
-  → (∀ b : E.I → ℝ, ∀ i : E.I, b i = 0 → p b i = 0)
-  → (∀ b : E.I → ℝ, ∀ i : E.I, b i = 0 → q b i = 0)
+  → (∀ b : I → ℝ, ∀ i : I, b i = 0 → p b i = 0)
+  → (∀ b : I → ℝ, ∀ i : I, b i = 0 → q b i = 0)
   → p = q := by
   intro p q _ dp dq hyp hyq
   funext b i
