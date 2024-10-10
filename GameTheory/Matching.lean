@@ -46,17 +46,17 @@ def rank (prefs : List (Fin n)) (x : Fin n) : ℕ :=
   indexOf x prefs
 
 -- accept the prefered mem for women i
--- Chat GPT 4o sugguest to use argmin
+-- Chat GPT 4o suggest to use argmin
 def acceptWomen (i : Fin n) :=
   let props := proposalsWomen (m:=m) FW FM i
   -- husbund
-  let H := props.argmin $ rank (w.prefs i)
+  let H := props.argmin (rank (w.prefs i))
   match H with
   | none => (default: Fin n)
   | some h => h
 
 -- if i is a free women, then it will pick a men in free mem
-lemma mem_FM (h: i ∈ FW) : acceptWomen (w:=w) (m:=m) FW FM i ∈ FM := by sorry
+lemma mem_FM (h: i ∈ proposedWomen (m:=m) FW FM) : acceptWomen (w:=w) (m:=m) FW FM i ∈ FM := by sorry
 
 -- newly married men
 def marriedMen : List (Fin n) :=
