@@ -10,6 +10,7 @@ lean_lib «GameTheory» {
   -- add library configuration options here
 }
 
+
 @[default_target]
 lean_exe «Game» {
   root := `Main
@@ -17,3 +18,6 @@ lean_exe «Game» {
 
 require mathlib from git
   "https://github.com/leanprover-community/mathlib4"
+
+require llmlean from git
+  "https://github.com/cmu-l3/llmlean.git" @ "main"
