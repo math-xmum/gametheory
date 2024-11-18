@@ -3,3 +3,4 @@
 *.olean
 .lake/*
 /build/*
+/GameTheory/.DS_*
