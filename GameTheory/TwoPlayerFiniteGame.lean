@@ -1,5 +1,5 @@
 import Mathlib
-
+import Mathlib.Tactic
 --open Classical
 
 /-
@@ -49,17 +49,12 @@ There will be a master node called default
 which represents the begining of the game.
 -/
 
-variable {players : Type*} [DecidableEq players] {α: Type*} [DecidableEq α] [ihb : Inhabited α] [Fintype α]
+variable {players : Type*} [DecidableEq players] {α: Type*} [DecidableEq α]
+
+variable  [Fintype α]
 
 /- Let p denote a directed graph where each node have a uniqe arrow pointed out -/
 variable (p : α → α)
-
-/-Except the default element, no elements are in loops -/
-class GameSpace where
-  default_self : p default = default
-  no_loop : ∀ (x :α), ∀ (n:ℕ), x ≠ (default :α) → p^[n+1] x ≠ x
-
-variable [GameSpace p]
 
 /- A subgame assocated to a node x is a status space consists of
 all nodes connected to a given node -/
@@ -76,7 +71,25 @@ def internodes: Finset α:= Finset.image p Finset.univ
 /- Leaves are non-inner nodes -/
 def leaves : Finset α := Finset.filter (· ∉ internodes p) Finset.univ
 
-lemma mem_leaves_iff_no_children {x :α} : x ∈ leaves p ↔ children p x  = {} := sorry
+--x ∈ leaves p ↔ x ∉ internodes p ↔ children p x  = {}
+
+lemma leaves_iff_non_internodes {x : α} : x ∈ leaves p ↔ x ∉ internodes p := by
+  simp only [leaves, Finset.mem_filter, Finset.mem_univ, true_and]
+
+lemma mem_leaves_iff_no_children {x :α} : x ∈ leaves p ↔ children p x  = {} := by
+  rw [leaves_iff_non_internodes, children, internodes, Finset.filter_eq_empty_iff]
+  rw [Finset.mem_image]
+  push_neg
+  rfl
+
+variable [ihb : Inhabited α]
+/-Except the default element, no elements are in loops -/
+class GameSpace where
+  default_self : p default = default
+  no_loop : ∀ (x :α), ∀ (n:ℕ), x ≠ (default :α) → p^[n+1] x ≠ x
+
+
+variable [GameSpace p]
 
 def subgame_aux (C : Finset α) :=
   let Y := C ∪ Finset.filter (p · ∈ C) Finset.univ
@@ -86,25 +99,119 @@ def subgame_aux (C : Finset α) :=
     subgame_aux Y
 termination_by Cᶜ.card
 decreasing_by
-  sorry
+  have h₁ : C ⊆ Y := by apply Finset.subset_union_left
+  have h₂ : C ⊂ Y := by
+      apply ssubset_iff_subset_ne.mpr
+      rw [<-ne_eq] at h
+      exact ⟨h₁, h.symm⟩
+  apply Finset.card_lt_card
+  apply Finset.compl_ssubset_compl.mpr
+  apply h₂
 
 def subgame [GameSpace p] (x : α) := subgame_aux p ({x}: Finset α)
 
-lemma subgame_def  (x : α) : y ∈ subgame p x ↔ ∃ n, p^[n] y = x := sorry
 
-lemma subgame_mem_self (x :α) : x ∈ subgame p x := by sorry
-
-lemma subgame_sub[igs : GameSpace p] {x y : α} (hy : p y = x) : subgame p y ⊆ subgame p x:= by sorry
+lemma induction_subgame_aux (C : Finset α) : (∀ c ∈ C, ∃ n, p^[n] c = x) → ∀ y ∈ subgame_aux p C, ∃ n, p^[n] c = x := by
+  sorry
 
 
-lemma subgame_neq [igs : GameSpace p] {x y : α} (hy : p y = x) : subgame p y ≠  subgame p x:= by sorry
+variable {p} in
+lemma subgame_aux_mem {x:α} : y ∈ subgame_aux p {x} → ∃ n, p^[n] y = x := by
+  sorry
 
-lemma subgame_decrease [igs : GameSpace p] {x y : α} (hy : p y = x) : (subgame p y).card < (subgame p x).card := by sorry
+lemma subgame_def  (x : α) : y ∈ subgame p x ↔ ∃ n, p^[n] y = x := by
+  constructor
+  · intro h₁
+    unfold subgame at h₁
+    apply subgame_aux_mem h₁
+  · intro h₂
+    sorry
 
+lemma subgame_mem_self (x :α) : x ∈ subgame p x := by
+  rw [subgame_def]
+  use 0
+  exact rfl
 
-lemma internode_of_not_leaf :  x ∉ leaves p  → x ∈ internodes p := sorry
+#leansearch "f(f^[n])x?"
+#leansearch "(f ∘ f^[n]) a?"
+#check Function.iterate_add
+#check Function.Commute.self_iterate
+#check Function.iterate_add
 
-lemma subgame_leaf (hx : x ∈ leaves p) : subgame p x = {x} := sorry
+omit [GameSpace p] in
+lemma subgame_sub[igs : GameSpace p] {x y : α} (hy : p y = x) : subgame p y ⊆ subgame p x:= by
+  intro a ay
+  rw [subgame_def] at ay
+  rw [subgame_def]
+  rcases ay with ⟨m, aym⟩
+  use m+1
+  rw [hy.symm, aym.symm, ← Nat.succ_eq_add_one m]
+  exact Function.iterate_succ_apply' p m a
+
+#leansearch "f^[n] (f x)?"
+#check Function.iterate_succ_apply
+#leansearch "f ∘ f?"
+#leansearch "f^[2] = f ∘ f ?"
+
+lemma mylemma (x : α) (n : Nat) : p^[n] x = x ↔ n = 0:= by
+  constructor
+  intro h
+
+lemma subgame_neq [igs : GameSpace p] {x y : α} (hy : p y = x) : subgame p y ≠  subgame p x:= by
+  apply ne_of_ssubset
+  apply ssubset_iff_subset_not_subset.mp
+  constructor
+  · apply subgame_sub
+    exact hy
+  · apply Finset.not_subset.mpr
+    use x
+    constructor
+    apply subgame_mem_self
+    intro h
+    rw [subgame_def] at h
+    rcases h with ⟨m, hm⟩
+    rw [hy.symm] at hm
+    rw [← Function.iterate_succ_apply] at hm
+    rw [mylemma] at hm
+    apply Nat.succ_ne_zero at hm
+    exact hm
+
+  --apply Function.comp_apply at hm
+  --apply ssubset_iff_subset_ne.mpr
+
+lemma subgame_decrease {x y : α} (hy : p y = x) : (subgame p y).card < (subgame p x).card := by
+  apply Finset.card_lt_card
+  rw [ssubset_iff_subset_ne]
+  constructor
+  apply subgame_sub
+  exact hy
+  apply subgame_neq
+  exact hy
+
+#check leaves_iff_non_internodes
+
+omit ihb [GameSpace p] in
+lemma internode_of_not_leaf :  x ∉ leaves p  → x ∈ internodes p := by
+  intro h
+  contrapose! h
+  rw [leaves_iff_non_internodes]
+  exact h
+
+#check Set.mem_singleton_iff
+#check Fintype.subtypeEq.proof_1
+
+lemma subgame_leaf (hx : x ∈ leaves p) : subgame p x = {x} := by
+  rw [Finset.Subset.antisymm_iff]
+  constructor
+  · rw [mem_leaves_iff_no_children] at hx
+    rw [Finset.subset_singleton_iff']
+    intro b bh
+    
+  · sorry
+  --(rw [subgame, subgame_aux]
+  -- rw [children] at hx
+  -- rw [Finset.mem_singleton] at hx
+  -- rw [hx]
 
 variable (σ : α → α)
 
