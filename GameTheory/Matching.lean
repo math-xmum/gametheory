@@ -38,7 +38,7 @@ def proposedWomen :=
   --(FM.map $ proposeMen (m:=m) FW ).dedup
   FM.map $ proposeMen (m:=m) FW
 
--- All proposals recived by women i
+-- All proposals received by women i
 def proposalsWomen (i : Fin n):=
   FM.filter (fun j => (proposeMen (m:=m) FW j) = i)
 
@@ -49,14 +49,53 @@ def rank (prefs : List (Fin n)) (x : Fin n) : ℕ :=
 -- Chat GPT 4o suggest to use argmin
 def acceptWomen (i : Fin n) :=
   let props := proposalsWomen (m:=m) FW FM i
-  -- husbund
+  -- husband
   let H := props.argmin (rank (w.prefs i))
   match H with
   | none => (default: Fin n)
   | some h => h
 
+lemma mem_FM_aux : ∀ k ∈ proposalsWomen (m:=m) FW FM i, k ∈ FM := by
+  unfold proposalsWomen
+  simp only [mem_filter, decide_eq_true_eq, and_imp]
+  intro k hk _
+  exact hk
+
+lemma ne_non_poposals (h: i ∈ proposedWomen (m:=m) FW FM) : proposalsWomen (m:=m) FW FM i ≠ [] := by
+  unfold proposalsWomen
+  unfold proposedWomen at h
+  simp only [ne_eq, filter_eq_nil, decide_eq_true_eq, not_forall, Classical.not_imp,
+    Decidable.not_not]
+  simp only [mem_map] at h
+  simp [h]
+
+lemma prop_in_FM : x ∈ proposalsWomen (m:=m) FW FM i → x ∈ FM := by
+unfold proposalsWomen
+simp only [mem_filter, decide_eq_true_eq, and_imp]
+intro h1 _
+exact h1
+
+
 -- if i is a free women, then it will pick a men in free mem
-lemma mem_FM (h: i ∈ proposedWomen (m:=m) FW FM) : acceptWomen (w:=w) (m:=m) FW FM i ∈ FM := by sorry
+lemma mem_FM (h: i ∈ proposedWomen (m:=m) FW FM) : acceptWomen (w:=w) (m:=m) FW FM i ∈ FM := by
+  unfold acceptWomen
+  -- Break down the proposalsWomen into cases
+  let props := proposalsWomen (m:=m) FW FM i
+  have hne : props ≠ [] := ne_non_poposals (m:=m) FW FM h
+  by_cases hm : argmin (rank (w.prefs i)) props = none
+  · sorry
+  ·
+
+
+
+
+
+
+
+
+
+
+
 
 -- newly married men
 def marriedMen : List (Fin n) :=
