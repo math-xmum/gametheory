@@ -1,5 +1,0 @@
-/build
-/lake-packages/*
-*.olean
-.lake/*
-/build/*
