@@ -4,7 +4,7 @@ import Mathlib.Analysis.SpecificLimits.Basic
 import Mathlib.Data.Fintype.Basic
 import Mathlib.MeasureTheory.Measure.ProbabilityMeasure
 import Mathlib.MeasureTheory.Measure.Typeclasses
-
+import Mathlib.Data.ENNReal.Basic
 
 open Classical MeasureTheory ProbabilityTheory
 
@@ -49,7 +49,7 @@ theorem F_monotone (i : Fin env.n) :
   Monotone (F env i) := by
   intro x y hxy
   unfold F
-  have h1 : Set.Iic x ⊆ Set.Iic y := by exact Set.Iic_subset_Iic.mpr hxy
+  have h1 : Set.Iic x ⊆ Set.Iic y := by exact Set.Iic_subset_Iic.2 hxy
   have h2 : (env.μ i (Set.Iic x)) ≤ (env.μ i (Set.Iic y)) := by
     exact OuterMeasureClass.measure_mono (env.μ i) h1
 
@@ -59,34 +59,48 @@ theorem F_monotone (i : Fin env.n) :
   · exact ne_of_lt (measure_lt_top (env.μ i) (Set.Iic y))
   · exact h2
 
-
 /-- F is bounded by 0 and 1 -/
 theorem F_bounds (i : Fin env.n) (t : ℝ) :
-  0 ≤ F env i t ∧ F env i t ≤ 1 := by
-  unfold F
-  constructor
-  · exact ENNReal.toReal_nonneg
-  · have h := (env.μ_probability i).measure_univ
-    have h2 : env.μ i (Set.Iic t) ≤ env.μ i Set.univ := by
-      exact OuterMeasureClass.measure_mono (env.μ i) fun ⦃a⦄ a => trivial
-    -- rw [h] at h2
-    simp [h] at h2 --这个类型转换怎么搞
-    exact h2
-    have h3 : env.μ i (Set.Iic t) ≠ ⊤ := by
-      exact ne_of_lt (measure_lt_top (env.μ i) (Set.Iic t))
-    apply ENNReal.toReal_mono h3 h2
+ 0 ≤ F env i t ∧ F env i t ≤ 1 := by
+ unfold F
+ constructor
+ · exact ENNReal.toReal_nonneg
+ · have h := (env.μ_probability i).measure_univ
+   have h2 : env.μ i (Set.Iic t) ≤ env.μ i Set.univ := by
+     apply OuterMeasureClass.measure_mono
+     intro x setx
+     trivial
+   simp [h] at h2
+   have h3 : ENNReal.ofReal ((env.μ i (Set.Iic t)).toReal) = env.μ i (Set.Iic t) := by
+     apply ENNReal.ofReal_toReal
+     apply measure_ne_top
+   have h4 : ENNReal.ofReal ((env.μ i (Set.Iic t)).toReal) ≤ 1 := by
+     rw [h3]
+     exact h2
+   exact ENNReal.ofReal_le_one.1 h4
 
 /-- F tends to 0 at -∞ -/
 theorem F_tendsto_atBot (i : Fin env.n) :
-  Filter.Tendsto (F env i) Filter.atBot (nhds 0) := by
-  unfold F
-  apply squeeze_zero
-  · intro t
-    exact ENNReal.toReal_nonneg
-  · intro t
-    apply Preorder.le_refl
-  · intro t innhd
-    sorry
+ Filter.Tendsto (F env i) Filter.atBot (nhds 0) := by
+ unfold F
+ apply squeeze_zero
+ · intro t
+   exact ENNReal.toReal_nonneg
+ · intro t
+   exact (F_bounds env i t).2
+ · intro s h
+   rcases Metric.mem_nhds_iff.1 h with ⟨ε, εpos, hε⟩
+   refine Filter.mem_atBot_sets.2 ⟨-ε, fun y hy => ?_⟩
+   have h2 := OuterMeasureClass.measure_mono (env.μ i) (Set.subset_univ (Set.Iic y))
+   have h3 : (env.μ i (Set.Iic y)).toReal ≤ 1 := by
+     have h4 := le_trans h2 (by rw [(env.μ_probability i).measure_univ])
+     apply ENNReal.toReal_le_of_le_ofReal
+     · norm_num
+     · simp only [ENNReal.ofReal_one, h4]
+   apply hε
+   simp only [Metric.mem_ball, dist_zero_right]
+   have h_lower : -1 ≤ ((env.μ i) (Set.Iic y)).toReal := by sorry
+   sorry
 
 /-- F tends to 1 at +∞ -/
 theorem F_tendsto_atTop (i : Fin env.n) :
@@ -107,8 +121,7 @@ theorem F_eq_cdf (i : Fin env.n) (t : ℝ) :
   -- simp only [condCDF_eq_toReal_iic]
 
 theorem cdf_value_le_one (i : Fin env.n) (t : ℝ) :
-  (env.μ i (Set.Iic t)) ≤ 1 := by sorry
-  -- exact MeasureTheory.IsProbabilityMeasure.le_one (env.μ_probability i)
+  (env.μ i (Set.Iic t)) ≤ 1 := prob_le_one
 
 section Valuations
 
@@ -126,8 +139,7 @@ noncomputable def seller_valuation {env : AuctionEnv} (t₀ : ℝ) (t : ValueSpa
 theorem auction_valuation_structure
   {env : AuctionEnv}
   (i : Fin env.n)
-  (t : ValueSpace env)
-  (h_bounds : ∀ j, t j ∈ Set.Icc (env.a j) (env.b j)) :
+  (t : ValueSpace env):
   bidder_valuation i t = t i + ∑ j in (Finset.univ.erase i), env.e j (t j) := by
   rfl
 
@@ -136,11 +148,10 @@ theorem bidder_seller_valuation_relation
   {env : AuctionEnv}
   (t₀ : ℝ)
   (t : ValueSpace env)
-  (i : Fin env.n)
-  (h_bounds : ∀ j, t j ∈ Set.Icc (env.a j) (env.b j)) :
+  (i : Fin env.n):
   seller_valuation t₀ t - bidder_valuation i t = t₀ - t i + env.e i (t i) := by
-  simp [seller_valuation, bidder_valuation]
-  sorry
+  simp only [seller_valuation, bidder_valuation, Finset.mem_univ, Finset.sum_erase_eq_sub]
+  ring
 
 end Valuations
 
@@ -249,18 +260,62 @@ structure IsFeasibleGeneralMechanism : Prop where
     general_mechanism_utility mech i (update_value t i s_i h_s_i)
 
 /-- The Revelation Principle (Lemma 3.1) -/
-theorem revelation_principle
-    (h_feas : IsFeasibleGeneralMechanism mech) :
+theorem revelation_principle (h_feas : IsFeasibleGeneralMechanism mech) :
     ∃ (m : FeasibleMechanism env),
-      ∀ i t_i (h_t_i : t_i ∈ Set.Icc (env.a i) (env.b i)) t,
-        bidder_utility m.toDirectMechanism i t = general_mechanism_utility mech i t_i h_t_i t := by
+      ∀ i t,
+        bidder_utility m.toDirectMechanism i t = general_mechanism_utility mech i t := by
   -- Construct the direct revelation mechanism
   let direct_p : ValidValue env → Fin env.n → ℝ := fun t i ↦
     mech.p (apply_strategies mech t) i
   let direct_x : ValidValue env → Fin env.n → ℝ := fun t i ↦
     mech.x (apply_strategies mech t) i
-  -- We need to show this construction yields a feasible mechanism
-  sorry
+
+  have p_nonneg : ∀ t i, direct_p t i ≥ 0 := by
+    intro t i
+    exact mech.p_nonneg (apply_strategies mech t) i
+
+  have p_sum_le_one : ∀ t, ∑ i, direct_p t i ≤ 1 := by
+    intro t
+    exact mech.p_sum_le_one (apply_strategies mech t)
+
+  let direct_mech : DirectMechanism env := {
+    p := direct_p
+    x := direct_x
+    p_nonneg := p_nonneg
+    p_sum_le_one := p_sum_le_one
+  }
+
+  -- Prove utilities are equal under truthful reporting
+  have utility_eq : ∀ i t,
+      bidder_utility direct_mech i t = general_mechanism_utility mech i t := by
+    intro i t
+    unfold bidder_utility general_mechanism_utility
+    simp only [direct_p, direct_x]
+
+
+  -- Prove individual rationality
+  have ir : individual_rational direct_mech := by
+    intro i t
+    rw [utility_eq]
+    exact h_feas.ir i t
+
+  -- Prove incentive compatibility
+  have ic : incentive_compatible direct_mech := by
+    intro i s_i h_s_i t
+    rw [utility_eq]
+    have h := h_feas.nash_equilibrium i s_i h_s_i t
+    exact h
+
+  -- Construct the feasible mechanism
+  let m : FeasibleMechanism env := {
+    toDirectMechanism := direct_mech
+    ir := ir
+    ic := ic
+  }
+
+  -- Show existence with utility equivalence
+  use m
+
 
 end DirectRevelationMechanisms
 
