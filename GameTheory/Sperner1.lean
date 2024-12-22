@@ -168,20 +168,22 @@ def Rainbowfacet  (c : Coloring sc E) (f : sc.facets)
 
 section non_branching_theorem
   variable {n : ℕ} -- dimension
-  variable (T : Type*) [TopologicalSpace T] -- topological space
-  variable (τ : Simplex (n-1) T) -- (n-1)-simplex
-  variable (δ : Simplex n T) -- n-simplex
-  variable (δᵢ : Simplex n T) -- indexed n-simplex
+  variable (V : Type*)
+  variable [NormedAddCommGroup V] [NormedSpace ℝ V] -- vector space structure
+  variable (τ : Set V) -- (n-1)-simplex
+  variable (δ : Set V) -- n-simplex
+  variable (δᵢ : Set V) -- indexed n-simplex
 
   /-- Non-branching property: If τ is an (n-1)-simplex of T, then either τ is contained
       in the boundary of δ and then τ is contained in some δᵢ, or τ is not contained
       in the boundary of δ. -/
   theorem non_branching_property :
-    (τ ⊆ Simplex.boundary δ → ∃ i, τ ⊆ δᵢ) ∧
-    (τ ⊈ Simplex.boundary δ) :=
+    (τ ⊆ frontier δ → ∃ i, τ ⊆ δᵢ) ∧
+    (τ ⊈ frontier δ) :=
   sorry
 
 end non_branching_theorem
+
 
 theorem Sperner {c : Coloring sc E} (h : ProperColoring c) : ∃ f : sc.facets, Rainbowfacet c f := sorry
 
