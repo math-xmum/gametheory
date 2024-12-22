@@ -105,7 +105,12 @@ the convexHull of t
 lemma mem_convexHullsupport {t: Finset E} {x : E}
   (h1: x ∈ convexHull k ↑t)
   (h2 : AffineIndependent k ((↑):t → E)):
-   x ∈ convexHull k (Support k t x):= by sorry
+   x ∈ convexHull k (Support k t x):= by
+   unfold Support
+   simp only [h1, if_true]
+   let S := {s | s ⊆ t ∧ x ∈ convexHull k ↑s}
+   have hS_nonempty : S.Nonempty := ⟨t, subset_refl _, h1⟩
+
 
 
 end support
@@ -161,6 +166,23 @@ def Rainbowfacet  (c : Coloring sc E) (f : sc.facets)
  := res_coloring c ⟨f.1, facets_subset
  f.2⟩  '' Set.univ  = ss.extremes
 
+section non_branching_theorem
+  variable {n : ℕ} -- dimension
+  variable (T : Type*) [TopologicalSpace T] -- topological space
+  variable (τ : Simplex (n-1) T) -- (n-1)-simplex
+  variable (δ : Simplex n T) -- n-simplex
+  variable (δᵢ : Simplex n T) -- indexed n-simplex
+
+  /-- Non-branching property: If τ is an (n-1)-simplex of T, then either τ is contained
+      in the boundary of δ and then τ is contained in some δᵢ, or τ is not contained
+      in the boundary of δ. -/
+  theorem non_branching_property :
+    (τ ⊆ Simplex.boundary δ → ∃ i, τ ⊆ δᵢ) ∧
+    (τ ⊈ Simplex.boundary δ) :=
+  sorry
+
+end non_branching_theorem
+
 theorem Sperner {c : Coloring sc E} (h : ProperColoring c) : ∃ f : sc.facets, Rainbowfacet c f := sorry
 
 /-- The boundary of a SimplicialSimplex is the subcomplex consisting of all proper faces. -/
@@ -181,49 +203,6 @@ def boundary (sc : SC) [ss : SimplicialSimplex k sc] : SC where
     exact sc.inter_subset_convexHull hs ht
 
 namespace SimplicialSimplex
-
-/-- The boundary of a SimplicialSimplex is also a SimplicialSimplex. -/
-instance boundary_simplex (sc : SC) [ss : SimplicialSimplex k sc] : 
-  SimplicialSimplex k (boundary k sc) where
-  extremes := ss.extremes.erase (Classical.choice (Finset.nonempty_of_ne_empty 
-    (by exact Finset.ne_empty_of_card_pos (AffineIndependent.card_pos ss.extreme_indep))))
-  extreme_in_vertices := by
-    rintro x hx
-    rw [SimplicialComplex.vertices_eq]
-    use ss.extremes.erase (Classical.choice (Finset.nonempty_of_ne_empty 
-      (by exact Finset.ne_empty_of_card_pos (AffineIndependent.card_pos ss.extreme_indep))))
-    constructor
-    · rw [boundary]
-      constructor
-      · apply sc.down_closed
-        · exact ss.extreme_in_vertices
-        · exact Finset.erase_subset _ _
-      · apply Finset.ssubset_of_subset_of_ssubset
-        · exact Finset.erase_subset _ _
-        · exact Finset.ssubset_of_subset_of_ne
-          (Finset.subset_refl _)
-          (Finset.ne_of_mem_erase _ _)
-    · exact hx
-  extreme_indep := by
-    apply AffineIndependent.of_subtype_embed ss.extreme_indep
-    exact Finset.erase_subset _ _
-  spanning := by
-    intro x
-    constructor
-    · intro hx
-      rcases ss.spanning x with ⟨s, hs, hxs⟩
-      rcases Finset.exists_ssubset_of_ssubset_of_finite hxs 
-        (Finset.ssubset_of_subset_of_ne hs (Finset.ne_of_ssubset (by assumption))) with ⟨t, ht, hxt⟩
-      use t
-      constructor
-      · rw [boundary]
-        exact ⟨sc.down_closed hs ht.1, Finset.subset_trans ht.1 hs⟩
-      · exact hxt
-    · rintro ⟨s, ⟨hs, hss⟩, hxs⟩
-      exact ss.spanning.2 ⟨s, hs, hxs⟩
-
-
-
 
 -- TODO: define boundary SimplicialSimplex, show that it is also a SimplicialSimplex
 
