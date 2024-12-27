@@ -1,5 +1,5 @@
 import Mathlib
-import LLMlean
+--import LLMlean
 
 variable {T : Type*} [Fintype T] [DecidableEq T]   -- The finite set T
 variable {I : Type*} [Fintype I] [DecidableEq I] [Nontrivial I] -- The index set I
