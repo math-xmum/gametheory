@@ -15,5 +15,8 @@ lean_exe «Game» {
   root := `Main
 }
 
+require llmlean from git
+  "https://github.com/jiajunma/llmlean.git"
+
 require mathlib from git
   "https://github.com/leanprover-community/mathlib4"

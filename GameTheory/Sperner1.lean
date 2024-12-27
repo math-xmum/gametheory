@@ -1,13 +1,15 @@
 import Mathlib.Analysis.Convex.SimplicialComplex.Basic
+import Mathlib.Algebra.Group.Pointwise.Finset.Basic
 
 open BigOperators
 open Classical
 
+noncomputable section
 
 namespace Geometry
 open SimplicialComplex
 
-variable (k : Type*) {E : Type*} {ι : Type*} [hLO: LinearOrderedField k]  [AddCommGroup E] [Module k E]
+variable (k : Type*) {E : Type*} {ι : Type*} [hLO: LinearOrderedField k] [DecidableEq E] [AddCommGroup E] [Module k E]
 
 local notation "SC" => SimplicialComplex k E
 
@@ -20,6 +22,7 @@ abbrev barycenter (s : Finset E) : E :=  (s.card:k)⁻¹ • (∑ x in s, x)
 @[simp]
 abbrev bary_simplex (L : List (Finset E))  : Finset E:= Finset.image (@barycenter k E _ _ _ ) L.toFinset
 
+omit hCZ in
 lemma bary_simplex.nonempty {L : List (Finset E)} (hL : L ≠ []) : (bary_simplex k L)≠ ∅ := by
   intro h
   have := L.toFinset_eq_empty_iff.1 <| Finset.image_eq_empty.mp h
@@ -37,7 +40,6 @@ def barycentric_subdivision (x : SC) : SC where
     intro ⟨L, ⟨hL1,_⟩,hL2⟩
     have := bary_simplex.nonempty k hL1
     exact this hL2
-
   indep := by sorry
   down_closed := by sorry
   inter_subset_convexHull := by sorry
@@ -110,6 +112,7 @@ lemma mem_convexHullsupport {t: Finset E} {x : E}
    simp only [h1, if_true]
    let S := {s | s ⊆ t ∧ x ∈ convexHull k ↑s}
    have hS_nonempty : S.Nonempty := ⟨t, subset_refl _, h1⟩
+   sorry
 
 
 
@@ -165,6 +168,28 @@ variable {k} in
 def Rainbowfacet  (c : Coloring sc E) (f : sc.facets)
  := res_coloring c ⟨f.1, facets_subset
  f.2⟩  '' Set.univ  = ss.extremes
+
+
+#check Finset.addCommMonoid
+
+instance ins : AddCommMonoid (Finset E) := Finset.addCommMonoid
+
+
+def support (f : sc.facets) := ∑ x ∈ f, Support' k ss.extremes x
+
+def internal (f : sc.facets) := support (ss:=ss) f  = ss.extremes
+
+
+section NonBranchingTheorem
+
+variable {v : ss.extremes}
+
+def NonBranching (f : sc.facets) (hi : internal (ss:=ss) f) :=  
+
+
+
+end NonBranchingTheorem
+
 
 section non_branching_theorem
   variable {n : ℕ} -- dimension
@@ -222,7 +247,6 @@ end SimplicialSimplex
 
 
 
-end Geometry
 
 
 section Sperner
@@ -236,3 +260,7 @@ section Sperner
 
 
 end Sperner
+
+end SimplicialSimplex
+end Geometry
+end
