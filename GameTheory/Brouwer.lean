@@ -4,9 +4,13 @@ import LLMlean
 
 noncomputable section
 
-variable (n l : ℕ) (i : Fin n)
+variable (n l : ℕ) (i : Fin n) [Fact (1 < n )]
 
 abbrev TT := {x : Πₗ (i : Fin n), ℕ | ∑ i, x i  = l}
+
+instance TT.inhabited : Inhabited (TT n l) where
+  default :=
+    ⟨ fun i => if i = 0 then l else 0,  by simp⟩
 
 instance TT.funlike : FunLike (TT n l) (Fin n) ℕ where
   coe := fun a => a.1
@@ -51,6 +55,15 @@ lemma TT.Ilt_keyprop (a b : TT n l) :
   rw [TT.Ilt_def,Ilt,Prod.Lex.lt_iff]
   simp [h]
 
+/- Theorem 10-/
+
+
+lemma size_bound_key (σ : Finset (TT n l)) (C : Finset (Fin n)) (h : TT.ILO.isDominant σ C): l < ∑ k ∈ C,   := by sorry
+
+theorem size_bound_in (σ : Finset (TT n l)) (C : Finset (Fin n)) (h : TT.ILO.isDominant σ C): ∀ x ∈ σ , ∀ y ∈ σ , ∀ i ∈ C, (x i:ℤ ) - (y i : ℤ) < 2 * n +1 := by sorry
+
+/- Theorem 10-/
+theorem size_bound_out (σ : Finset (TT n l)) (C : Finset (Fin n)) : ∀ x ∈ σ , ∀ y ∈ σ , ∀ i ∉ C, (x i:ℤ )  <  n +1 := by sorry
 
 
 end

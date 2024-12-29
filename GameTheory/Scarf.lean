@@ -1,7 +1,7 @@
 import Mathlib
 --import LLMlean
 
-variable {T : Type*} [Fintype T] [DecidableEq T]   -- The finite set T
+variable {T : Type*} [Fintype T] [DecidableEq T] [Inhabited T]  -- The finite set T
 variable {I : Type*} [Fintype I] [DecidableEq I] [Nontrivial I] -- The index set I
 
 /- A family of linear orders indexed by I -/
@@ -22,7 +22,6 @@ local notation  lhs "≤[" i "]" rhs => (linearOrderOfSTO (IST.ilt i)).le lhs rh
 
 local notation  "min[" i "]" rhs => @Finset.min T (linearOrderOfSTO (IST.ilt i)) rhs
 -/
-
 
 class IndexedLOrder (I T :Type*) where
   IST : I → LinearOrder T
@@ -46,9 +45,14 @@ namespace IndexedLOrder
 def isDominant (σ : Finset T) (C : Finset I) :=
   ∀ y, ∃ i ∈ C, ∀ x ∈ σ,  y ≤[i] x
 
+omit [Fintype T] [DecidableEq T] [Fintype I] [DecidableEq I] [Nontrivial I] in
+variable {σ C} in
+lemma Nonempty_of_Dominant (h : IST.isDominant σ C) : C.Nonempty := by
+  obtain ⟨j,hj⟩ := h default
+  exact ⟨j, hj.1⟩
 
 /- Lemma 1 -/
-omit [Fintype T] [DecidableEq T] [Fintype I] [DecidableEq I] [Nontrivial I] in
+omit [Fintype T] [DecidableEq T] [Inhabited T]  [Fintype I] [DecidableEq I] [Nontrivial I]  in
 lemma Dominant_of_subset (σ τ : Finset T) (C : Finset I) :
   τ ⊆ σ → isDominant σ C  → isDominant τ C := by
     intro h1 h2
@@ -58,7 +62,7 @@ lemma Dominant_of_subset (σ τ : Finset T) (C : Finset I) :
     intro x hx
     exact hj.2 x (h1 hx)
 
-omit [Fintype T] [DecidableEq T] [Fintype I] [DecidableEq I] [Nontrivial I] in
+omit [Fintype T] [DecidableEq T] [Inhabited T]  [Fintype I] [DecidableEq I] [Nontrivial I] in
 lemma Dominant_of_supset (σ : Finset T) (C D: Finset I) :
   C ⊆ D → isDominant σ C  → isDominant σ D := by
     intro h1 h2
@@ -68,7 +72,7 @@ lemma Dominant_of_supset (σ : Finset T) (C D: Finset I) :
     intro x hx
     exact hj.2 x hx
 
-omit [Fintype T] [DecidableEq T] [Fintype I] [DecidableEq I] [Nontrivial I] in
+omit [Fintype T] [DecidableEq T] [Inhabited T]  [Fintype I] [DecidableEq I] [Nontrivial I] in
 lemma empty_Dominant (h : D.Nonempty) : IST.isDominant Finset.empty D := by
   intro y
   obtain ⟨j,hj⟩ := h
