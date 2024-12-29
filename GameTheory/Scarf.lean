@@ -83,7 +83,7 @@ lemma empty_Dominant (h : D.Nonempty) : IST.isDominant Finset.empty D := by
     contradiction
 
 
-abbrev isCell (σ : Finset T) (C : Finset I) := C.Nonempty ∧ isDominant σ C
+abbrev isCell (σ : Finset T) (C : Finset I) := isDominant σ C
 
 
 abbrev isRoom (σ : Finset T) (C : Finset I) :=  isCell σ C ∧ C.card = σ.card
@@ -94,13 +94,11 @@ inductive isDoorof (τ : Finset T) (D : Finset I) (σ : Finset T) (C : Finset I)
   | idoor (x :T) (h1 : x ∉ τ) (h2 : insert x τ = σ) (h3 : D = C)
   | odoor (j :I) (h1 : j ∉ C) (h2 : τ = σ) (h3 : D = insert j C)
 
-lemma isCell_of_Door (h1 : isDoorof τ D σ C) (h2 : IST.isCell σ C): IST.isCell τ D := by
+lemma isCell_o (h1 : isDoorof τ D σ C) (h2 : IST.isCell σ C): IST.isCell τ D := by
   cases h1
   · rename_i j h1 h3 h4
     rw [h4]
-    constructor
-    · exact h2.1
-    · exact Dominant_of_subset _ _ C (by simp [<-h3]) h2.2
+    · exact Dominant_of_subset _ _  C (by simp [<-h3]) h2
   · sorry
 
 
