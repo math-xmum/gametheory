@@ -2,7 +2,9 @@ import Mathlib
 --import LLMlean
 
 variable {T : Type*} [Fintype T] [DecidableEq T] [Inhabited T]  -- The finite set T
-variable {I : Type*} [Fintype I] [DecidableEq I] [Nontrivial I] -- The index set I
+variable {I : Type*} [Fintype I] [DecidableEq I]
+-- The index set I
+--[Nontrivial I]
 
 /- A family of linear orders indexed by I -/
 /-
@@ -45,14 +47,17 @@ namespace IndexedLOrder
 def isDominant (σ : Finset T) (C : Finset I) :=
   ∀ y, ∃ i ∈ C, ∀ x ∈ σ,  y ≤[i] x
 
-omit [Fintype T] [DecidableEq T] [Fintype I] [DecidableEq I] [Nontrivial I] in
+omit [Fintype T] [DecidableEq T] [Fintype I] [DecidableEq I] in
 variable {σ C} in
 lemma Nonempty_of_Dominant (h : IST.isDominant σ C) : C.Nonempty := by
   obtain ⟨j,hj⟩ := h default
   exact ⟨j, hj.1⟩
 
+
+
+
 /- Lemma 1 -/
-omit [Fintype T] [DecidableEq T] [Inhabited T]  [Fintype I] [DecidableEq I] [Nontrivial I]  in
+omit [Fintype T] [DecidableEq T] [Inhabited T]  [Fintype I] [DecidableEq I]  in
 lemma Dominant_of_subset (σ τ : Finset T) (C : Finset I) :
   τ ⊆ σ → isDominant σ C  → isDominant τ C := by
     intro h1 h2
@@ -62,7 +67,7 @@ lemma Dominant_of_subset (σ τ : Finset T) (C : Finset I) :
     intro x hx
     exact hj.2 x (h1 hx)
 
-omit [Fintype T] [DecidableEq T] [Inhabited T]  [Fintype I] [DecidableEq I] [Nontrivial I] in
+omit [Fintype T] [DecidableEq T] [Inhabited T]  [Fintype I] [DecidableEq I]  in
 lemma Dominant_of_supset (σ : Finset T) (C D: Finset I) :
   C ⊆ D → isDominant σ C  → isDominant σ D := by
     intro h1 h2
@@ -72,7 +77,7 @@ lemma Dominant_of_supset (σ : Finset T) (C D: Finset I) :
     intro x hx
     exact hj.2 x hx
 
-omit [Fintype T] [DecidableEq T] [Inhabited T]  [Fintype I] [DecidableEq I] [Nontrivial I] in
+omit [Fintype T] [DecidableEq T] [Inhabited T]  [Fintype I] [DecidableEq I]  in
 lemma empty_Dominant (h : D.Nonempty) : IST.isDominant Finset.empty D := by
   intro y
   obtain ⟨j,hj⟩ := h
@@ -87,6 +92,10 @@ abbrev isCell (σ : Finset T) (C : Finset I) := isDominant σ C
 
 
 abbrev isRoom (σ : Finset T) (C : Finset I) :=  isCell σ C ∧ C.card = σ.card
+
+
+lemma sigma_nonempty_of_room {σ : Finset T} {C : Finset I} (h : isRoom σ C) : σ.Nonempty  := sorry
+/- use |σ| = |C| and C nonempty-/
 
 abbrev isDoor (σ : Finset T) (C : Finset I) :=  isCell σ C ∧ C.card = σ.card + 1
 
@@ -138,6 +147,33 @@ theorem internal_door_two_rooms (τ : Finset T) (D : Finset I)
        (σ = σ₁ ∧ C = C₁) ∨ (σ = σ₂ ∧ C = C₂)) := by
        sorry
 end KeyLemma
+
+
+noncomputable section Scarf
+
+open Classical
+
+
+variable [IST : IndexedLOrder I T]
+
+variable (c : T → I) (σ : Finset T) (C : Finset I)
+
+def isColorful : Prop := IST.isCell σ C ∧ σ.image c   = C
+
+variable {c σ C} in
+lemma room_of_colorful (h : IST.isColorful c σ C) : IST.isRoom σ C := by sorry
+
+variable {c σ C} in
+def pick_colorful_point (h : IST.isColorful c σ C): σ := Classical.choice (sigma_nonempty_of_room (room_of_colorful h)).to_subtype
+
+
+
+
+abbrev colorful := Finset.filter (fun (x : Finset T× Finset I) =>  IST.isColorful c x.1 x.2) Finset.univ
+
+theorem Scarf : (IST.colorful c).Nonempty := sorry
+
+end Scarf
 
 
 end IndexedLOrder
