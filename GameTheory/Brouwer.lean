@@ -150,12 +150,16 @@ open Topology
 def hpkg_aux:
   Nonempty {(w , h) : (stdSimplex ℝ  (Fin n)) × (ℕ → ℕ) | StrictMono h ∧ Filter.Tendsto
     (fun l => (room_point_seq f (g1 f l): stdSimplex ℝ (Fin n)))
-    atTop (𝓝 w) } := sorry
+    Filter.atTop (𝓝 w) } := sorry
+
+def hpkg := Classical.choice $ hpkg_aux f
 
 
 
+theorem Brouwer (hf : Continuous f): ∃ x , f x = x := by
+  use (hpkg f).1.1
+  sorry
 
-theorem Brouwer (hf : Continuous f): ∃ x , f x = x := by sorry
 
 end Brouwer
 end
