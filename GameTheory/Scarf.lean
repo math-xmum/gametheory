@@ -208,7 +208,7 @@ variable {c σ C} in
 def pick_colorful_point (h : IST.isColorful c σ C): σ := Classical.choice (sigma_nonempty_of_room (room_of_colorful h)).to_subtype
 
 
-
+variable [Fintype T] [Fintype I]
 
 abbrev colorful := Finset.filter (fun (x : Finset T× Finset I) =>  IST.isColorful c x.1 x.2) Finset.univ
 
