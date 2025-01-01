@@ -1,8 +1,9 @@
 import Mathlib
 
+open Finset
 
-variable {T : Type*} [Fintype T] [DecidableEq T] [Inhabited T]  -- The finite set T
-variable {I : Type*} [Fintype I] [DecidableEq I]
+variable {T : Type*} [Inhabited T] -- The finite set T
+variable {I : Type*}
 -- The index set I
 
 class IndexedLOrder (I T :Type*) where
@@ -29,7 +30,6 @@ variable (σ : Finset T) (C : Finset I)
 def isDominant  :=
   ∀ y, ∃ i ∈ C, ∀ x ∈ σ,  y ≤[i] x
 
-omit [Fintype T] [DecidableEq T] [Fintype I] [DecidableEq I] in
 variable {σ C} in
 lemma Nonempty_of_Dominant (h : IST.isDominant σ C) : C.Nonempty := by
   obtain ⟨j,hj⟩ := h default
@@ -39,7 +39,7 @@ lemma Nonempty_of_Dominant (h : IST.isDominant σ C) : C.Nonempty := by
 
 
 /- Lemma 1 -/
-omit [Fintype T] [DecidableEq T] [Inhabited T]  [Fintype I] [DecidableEq I]  in
+omit [Inhabited T] in
 lemma Dominant_of_subset (σ τ : Finset T) (C : Finset I) :
   τ ⊆ σ → isDominant σ C  → isDominant τ C := by
     intro h1 h2
@@ -49,7 +49,7 @@ lemma Dominant_of_subset (σ τ : Finset T) (C : Finset I) :
     intro x hx
     exact hj.2 x (h1 hx)
 
-omit [Fintype T] [DecidableEq T] [Inhabited T]  [Fintype I] [DecidableEq I]  in
+omit [Inhabited T] in
 lemma Dominant_of_supset (σ : Finset T) (C D: Finset I) :
   C ⊆ D → isDominant σ C  → isDominant σ D := by
     intro h1 h2
@@ -59,7 +59,7 @@ lemma Dominant_of_supset (σ : Finset T) (C D: Finset I) :
     intro x hx
     exact hj.2 x hx
 
-omit [Fintype T] [DecidableEq T] [Inhabited T]  [Fintype I] [DecidableEq I]  in
+omit [Inhabited T] in
 lemma empty_Dominant (h : D.Nonempty) : IST.isDominant Finset.empty D := by
   intro y
   obtain ⟨j,hj⟩ := h
@@ -75,7 +75,6 @@ abbrev isCell  := isDominant σ C
 
 abbrev isRoom :=  isCell σ C ∧ C.card = σ.card
 
-omit [Fintype T] [DecidableEq T] [Fintype I] [DecidableEq I] in
 lemma sigma_nonempty_of_room {σ : Finset T} {C : Finset I} (h : isRoom σ C) : σ.Nonempty  := by
   have hC : C.Nonempty := Nonempty_of_Dominant h.1
   have hCpos : 0 < C.card := Finset.card_pos.2 hC
@@ -87,11 +86,14 @@ lemma sigma_nonempty_of_room {σ : Finset T} {C : Finset I} (h : isRoom σ C) : 
 
 abbrev isDoor  :=  isCell σ C ∧ C.card = σ.card + 1
 
+
+variable [DecidableEq T] [DecidableEq I]
+
 inductive isDoorof (τ : Finset T) (D : Finset I) (σ : Finset T) (C : Finset I) : Prop
   | idoor (h0 : isCell σ C) (x :T) (h1 : x ∉ τ) (h2 : insert x τ = σ) (h3 : D = C)
   | odoor (h0 : isCell σ C) (j :I) (h1 : j ∉ C) (h2 : τ = σ) (h3 : D = insert j C)
 
-omit [Fintype T] [Inhabited T] [Fintype I] in
+omit [Inhabited T] in
 lemma isCell_of_door (h1 : isDoorof τ D σ C) : IST.isCell τ D := by
   cases h1
   · rename_i h0 j h1 h3 h4
@@ -101,7 +103,7 @@ lemma isCell_of_door (h1 : isDoorof τ D σ C) : IST.isCell τ D := by
     rw [h2', h3]
     exact IST.Dominant_of_supset _ _ _ (Finset.subset_insert j C) h0
 
-omit [Fintype T] [Inhabited T] [Fintype I] in
+omit [Inhabited T] in
 lemma isRoom_of_Door (h1 : isDoorof τ D σ C) (h2 : IST.isDoor τ D): IST.isRoom σ C := by
   cases h1
   · rename_i h0 x h3 h4 h5
@@ -121,8 +123,11 @@ lemma isRoom_of_Door (h1 : isDoorof τ D σ C) (h2 : IST.isDoor τ D): IST.isRoo
 
 
 /- TODO formula that every room has |I| doors -/
-def door_para : Sum (σ) (C) ≃ {(τ,D): (Finset T)× (Finset I) | IST.isDoorof τ D σ C} where
-  toFun := sorry
+
+def door_para : Sum σ C.toSet.compl ≃ {(τ,D): (Finset T)× (Finset I) | IST.isDoorof τ D σ C} where
+  toFun := fun x => match x with
+    | .inl y => ⟨(Finset.erase σ y.1, C), by sorry⟩
+    | .inr y => ⟨(σ, insert y.1 C), by sorry⟩
   invFun := sorry
   left_inv := sorry
   right_inv := sorry
@@ -139,7 +144,7 @@ variable (τ D) in
 abbrev isInternalDoor := IST.isDoor τ D ∧ τ.Nonempty
 
 /- Lemma 2-/
-omit [Fintype T] [DecidableEq T] [Inhabited T] [Fintype I] [DecidableEq I] in
+omit [Inhabited T] [DecidableEq T] [DecidableEq I] in
 lemma outsidedoor_singleton (i : I) : IST.isOutsideDoor Finset.empty {i} := by
   constructor
   · rw [isDoor,isCell,isDominant]
@@ -155,7 +160,7 @@ lemma outsidedoor_singleton (i : I) : IST.isOutsideDoor Finset.empty {i} := by
 
 
 --variable (τ D) in
-omit [Fintype T] [DecidableEq T] [Inhabited T] [Fintype I] [DecidableEq I] in
+omit [Inhabited T] [DecidableEq T] [DecidableEq I] in
 lemma outsidedoor_is_singleton (h : IST.isOutsideDoor τ  D) :  τ = Finset.empty ∧  ∃ i, D = {i} := by
   obtain ⟨h1, h2⟩ := h
   subst h2
