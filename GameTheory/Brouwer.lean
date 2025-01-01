@@ -148,13 +148,17 @@ open Topology
 
 /- room_seq ∘ g1 ∘ hpkg.1.2 converge to a point in stdSimplex-/
 def hpkg_aux:
-  Nonempty {(w , h) : (stdSimplex ℝ  (Fin n)) × (ℕ → ℕ) | StrictMono h ∧ Filter.Tendsto
+  Nonempty {(z , h) : (stdSimplex ℝ  (Fin n)) × (ℕ → ℕ) | StrictMono h ∧ Filter.Tendsto
     (fun l => (room_point_seq f (g1 f l): stdSimplex ℝ (Fin n)))
-    Filter.atTop (𝓝 w) } := sorry
+    Filter.atTop (𝓝 z) } := sorry
 
-def hpkg := Classical.choice $ hpkg_aux f
+def hpkg := Classical.choice  (hpkg_aux f)
 
-
+/-
+Use
+-- StrictMono.id_le : ∀ {φ : ℕ → ℕ}, StrictMono φ → ∀ (n : ℕ), n ≤ φ n
+-- OrderEmbedding.strictMono: (f : α ↪o β), StrictMono ⇑f
+-/
 
 theorem Brouwer (hf : Continuous f): ∃ x , f x = x := by
   use (hpkg f).1.1
