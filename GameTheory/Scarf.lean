@@ -1,4 +1,6 @@
 import Mathlib
+import LLMlean
+
 
 open Finset
 
@@ -201,6 +203,24 @@ variable (c : T → I) (σ : Finset T) (C : Finset I)
 
 def isColorful : Prop := IST.isCell σ C ∧ σ.image c   = C
 
+def isNearlyColorful : Prop := IST.isCell σ C ∧ (C \ σ.image c).card = 1
+
+
+variable {c σ C} in
+lemma type_aux (h : isNearlyColorful c σ C) : ∃! i : I, i ∉ σ.image c ∧ C = insert i (σ.image c) := sorry
+
+
+
+variable {c σ C} in
+def NCtype (h : isNearlyColorful c σ C) : I :=
+  Classical.choose (type_aux h).exists
+
+
+structure TypedNC (i : I) (σ : Finset T) (C : Finset I): Prop where
+  nc : isNearlyColorful c σ C
+  t : NCtype nc = i
+
+
 variable {c σ C} in
 lemma room_of_colorful (h : IST.isColorful c σ C) : IST.isRoom σ C := by sorry
 
@@ -208,13 +228,99 @@ variable {c σ C} in
 def pick_colorful_point (h : IST.isColorful c σ C): σ := Classical.choice (sigma_nonempty_of_room (room_of_colorful h)).to_subtype
 
 
+
+/-
+Lemma 4 -/
+variable {c σ C} in
+lemma NC_of_outsidedoor (h : isOutsideDoor σ C) : isNearlyColorful c σ C  := sorry
+
+
+
+variable {c σ C} in
+lemma type_unique_of_outsidedoor (h : isOutsideDoor σ C) : ∃! i,  i = NCtype (NC_of_outsidedoor (c:=c) h)  := sorry
+
+/-
+Lemma 5
+-/
+lemma NC_or_C_of_door (h1 : isNearlyColorful c τ D) (h2 : isDoorof τ D σ C) : isNearlyColorful c σ C ∨ isColorful c σ C := sorry
+
+
+lemma NCtype_of_door (h1 : isNearlyColorful c τ D) (h2 : isDoorof τ D σ C) (h3 :isNearlyColorful c σ C) : NCtype h1 = NCtype h3  := sorry
+
+
+/- Finset.card_eq_two -/
+
+/-Lemma 7-/
+abbrev doors_NCroom  := {(τ,D) | isNearlyColorful c τ D ∧ isDoorof τ D σ C }
+
+
+lemma card_two_of_doors_NCroom (h0 : isRoom σ C) (h1 : isNearlyColorful c σ C) : (doors_NCroom c σ C).ncard = 2:= sorry
+
+
+
 variable [Fintype T] [Fintype I]
 
-abbrev colorful := Finset.filter (fun (x : Finset T× Finset I) =>  IST.isColorful c x.1 x.2) Finset.univ
+abbrev colorful := Finset.filter (fun (x : Finset T× Finset I) =>  IST.isColorful c x.1 x.2) univ
+
+
+abbrev dbcountingset (i : I):= Finset.filter (fun x : (Finset T× Finset I) × (Finset T× Finset I) => TypedNC c i x.1.1 x.1.2 ∧ isDoorof x.1.1 x.1.2 x.2.1 x.2.2) univ
+
+
+-- Finset.disjoint_filter_filter_neg
+--
+lemma dbcount_outside_door' (i : I): ∃! x, x ∈ filter (fun x => isOutsideDoor x.1.1 x.1.2) (dbcountingset c i)  :=  sorry
+-- Use Lemme 2
+
+
+lemma dbcount_outside_door_odd (i : I): Odd (filter (fun x => isOutsideDoor x.1.1 x.1.2) (dbcountingset c i)).card  :=  sorry
+
+lemma dbcount_internal_door_even (i : I) : Even (filter (fun x => ¬ isOutsideDoor x.1.1 x.1.2) (dbcountingset c i)).card := sorry
+
+lemma dbcount_NCroom (i : I) : Even (filter (fun x => ¬ isColorful c x.2.1 x.2.2) (dbcountingset c i)).card := sorry
+
+def dbount_croom (i: I) : (filter (fun x => isColorful c x.2.1 x.2.2) (dbcountingset c i)).card = (filter (fun (x : Finset T × Finset I) => isColorful c x.1 x.2 ∧ i ∈ x.2) univ).card := by
+  rw [Finset.filter_filter]
+  apply Finset.card_nbij (fun x => x.2)
+  · intro x hx; sorry
+  · sorry
+  · sorry
+
+lemma parity_lemma {a b c d : ℕ }(h1 : Odd a) (h2 : Even b) (h3 : Even d) (h4 : a + b = c + d ): Odd c := by
+  by_contra h0
+  replace h0 := Nat.not_odd_iff_even.1 h0
+  have oddab := Even.odd_add h2 h1
+  rw [h4] at oddab
+  have evencd := Even.add h0 h3
+  exact Nat.not_odd_iff_even.2 evencd oddab
+
+
+theorem _root_.Finset.card_filter_filter_neg {α : Type*} (s : Finset α) (p : α → Prop) [DecidablePred p]
+ : s.card  = (Finset.filter p s).card + (Finset.filter (fun (a : α) => ¬p a) s).card :=
+  by
+    nth_rw 1 [<-Finset.filter_union_filter_neg_eq p s]
+    apply Finset.card_union_eq_card_add_card.2 (Finset.disjoint_filter_filter_neg _ _ _)
+
+
+lemma typed_colorful_room_odd (i : I): Odd (Finset.filter (fun (x: Finset T × Finset I) => isColorful c x.1 x.2 ∧ i ∈ x.2) univ).card := by
+  let s := dbcountingset c i
+  have cardeq' := Finset.card_filter_filter_neg s (fun x => isOutsideDoor x.1.1 x.1.2)
+  have cardeq := Finset.card_filter_filter_neg s (fun x => isColorful c x.2.1 x.2.2)
+  rw [cardeq'] at cardeq
+  apply parity_lemma (dbcount_outside_door_odd c i) (dbcount_internal_door_even c i)  (dbcount_NCroom c i)
 
 
 
-theorem Scarf : (IST.colorful c).Nonempty := sorry
+
+variable [Inhabited I]
+
+theorem Scarf : (IST.colorful c).Nonempty := by
+  have cardpos := Odd.pos $ typed_colorful_room_odd c default
+  replace nonempty:= Finset.card_pos.1 cardpos
+  obtain ⟨x,hx⟩ := nonempty
+  replace hx := (Finset.mem_filter.1 hx).2
+  use x
+  simp only [mem_filter, mem_univ, hx, and_self]
+
 
 end Scarf
 
