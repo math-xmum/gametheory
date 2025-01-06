@@ -247,6 +247,8 @@ lemma NC_or_C_of_door (h1 : isNearlyColorful c τ D) (h2 : isDoorof τ D σ C) :
 
 lemma NCtype_of_door (h1 : isNearlyColorful c τ D) (h2 : isDoorof τ D σ C) (h3 :isNearlyColorful c σ C) : NCtype h1 = NCtype h3  := sorry
 
+/-Lemma 6 : The version in paper is not correct-/
+lemma card_of_NCcell (h : isNearlyColorful c σ D) : #σ = #(image c σ) ∨  #σ + 1 = #(image c σ):= sorry
 
 /- Finset.card_eq_two -/
 
@@ -276,7 +278,21 @@ lemma dbcount_outside_door_odd (i : I): Odd (filter (fun x => isOutsideDoor x.1.
 
 lemma dbcount_internal_door_even (i : I) : Even (filter (fun x => ¬ isOutsideDoor x.1.1 x.1.2) (dbcountingset c i)).card := sorry
 
-lemma dbcount_NCroom (i : I) : Even (filter (fun x => ¬ isColorful c x.2.1 x.2.2) (dbcountingset c i)).card := sorry
+lemma dbcount_NCroom (i : I) : Even (filter (fun x => ¬ isColorful c x.2.1 x.2.2) (dbcountingset c i)).card := by
+  let s := filter (fun x => ¬isColorful c x.2.1 x.2.2) (dbcountingset c i)
+  let t := filter (fun (x : Finset T × Finset I) => IST.isRoom x.1 x.2 ∧ TypedNC c i x.1 x.2 ) univ
+  let f := fun (x : (Finset T × Finset I)× Finset T × Finset I) => x.2
+  have fs_in_t : ∀ x ∈ s, f x ∈ t := sorry
+  have counteq := Finset.card_eq_sum_card_fiberwise fs_in_t
+  have fiber_sizetwo :∀ y ∈ t, #(filter (fun a=> f a = y) s) = 2  := sorry
+  have sumeq := Finset.sum_const_nat fiber_sizetwo
+  rw [sumeq] at counteq
+  simp only [counteq, even_two, Even.mul_left]
+
+
+
+
+
 
 def dbount_croom (i: I) : (filter (fun x => isColorful c x.2.1 x.2.2) (dbcountingset c i)).card = (filter (fun (x : Finset T × Finset I) => isColorful c x.1 x.2 ∧ i ∈ x.2) univ).card := by
   rw [Finset.filter_filter]
@@ -284,6 +300,8 @@ def dbount_croom (i: I) : (filter (fun x => isColorful c x.2.1 x.2.2) (dbcountin
   · intro x hx; sorry
   · sorry
   · sorry
+
+
 
 lemma parity_lemma {a b c d : ℕ }(h1 : Odd a) (h2 : Even b) (h3 : Even d) (h4 : a + b = c + d ): Odd c := by
   by_contra h0
