@@ -64,7 +64,7 @@ lemma Dominant_of_supset (σ : Finset T) (C D: Finset I) :
 abbrev mini {σ : Finset T} (h2 : σ.Nonempty) (i : I) : T := @Finset.min' _ (IST i) _ h2
 
 omit [Inhabited T] in
-lemma keylemma_of_domiant (σ : Finset T) (C: Finset I) (h1 : isDominant σ C) (h2: σ.Nonempty): σ  = C.image (mini h2)  :=
+lemma keylemma_of_domiant {σ : Finset T} {C: Finset I} (h1 : IST.isDominant σ C) (h2: σ.Nonempty): σ  = C.image (mini h2)  :=
   by
     ext a
     constructor
@@ -84,10 +84,13 @@ lemma keylemma_of_domiant (σ : Finset T) (C: Finset I) (h1 : isDominant σ C) (
       intro _ _ ha
       simp [mini,<-ha,Finset.min'_mem]
 
-lemma card_le_of_domiant (σ : Finset T) (C: Finset I) (h1 : isDominant σ C) : σ.card  ≤  C.card  := by
+omit [Inhabited T] in
+lemma card_le_of_domiant {σ : Finset T} {C: Finset I} (h1 : IST.isDominant σ C) : σ.card  ≤  C.card  := by
   by_cases h2 : σ.Nonempty
-  · sorry
-  · sorry
+  · rw [keylemma_of_domiant h1 h2]
+    apply Finset.card_image_le
+  · rw [not_nonempty_iff_eq_empty] at h2
+    simp only [h2, card_empty, zero_le]
 
 
 omit [Inhabited T] in
