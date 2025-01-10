@@ -79,12 +79,15 @@ lemma keylemma_of_domiant (σ : Finset T) (C: Finset I) (h1 : isDominant σ C) (
       have ha2 := @Finset.min'_le _ (IST i) _ _ ha
       apply hm
       refine @eq_of_le_of_le _ (IST i).toPartialOrder _ _ ha2 ha1
-
     · suffices h: ∀ x ∈ C, mini h2 x = a → a ∈ σ from
       by simp;exact h
       intro _ _ ha
       simp [mini,<-ha,Finset.min'_mem]
 
+lemma card_le_of_domiant (σ : Finset T) (C: Finset I) (h1 : isDominant σ C) : σ.card  ≤  C.card  := by
+  by_cases h2 : σ.Nonempty
+  · sorry
+  · sorry
 
 
 omit [Inhabited T] in
