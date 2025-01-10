@@ -186,7 +186,56 @@ theorem internal_door_two_rooms (τ : Finset T) (D : Finset I)
       isDoorof τ D σ₂ C₂ ∧
       (∀ σ C, IST.isRoom σ C → isDoorof τ D σ C →
        (σ = σ₁ ∧ C = C₁) ∨ (σ = σ₂ ∧ C = C₂)) := by
-       sorry
+       -- Use the definition of internal door
+  have h_door : IST.isDoor τ D := h.1
+  have h_nonempty : τ.Nonempty := h.2
+  
+  have h_tau : τ.card ≥ 1 := Finset.card_pos.2 h_nonempty
+  have h_D : D.card = τ.card + 1 := h_door.2
+  
+  -- D is nonempty (follows from h_D and h_tau)
+  have h_D_nonempty : D.Nonempty := by
+    apply Finset.card_pos.1
+    rw [h_D]
+    exact Nat.succ_pos τ.card
+
+  -- Find a and b in D
+  have h_ab : ∃ a b, a ∈ D ∧ b ∈ D ∧ a ≠ b := by
+    have h_card_ge_2 : D.card ≥ 2 := by
+      rw [h_D]
+      exact Nat.succ_le_succ (Nat.succ_le_of_lt h_tau)
+    sorry
+
+  obtain ⟨a, b, ha, hb, hab⟩ := h_ab
+  
+  -- Define the potential rooms
+  let σ₁ := τ
+  let σ₂ := τ
+  let C₁ := D.erase a
+  let C₂ := D.erase b
+  
+  -- Show that these are indeed rooms and (τ, D) is a door of both
+  have h_room1 : IST.isRoom σ₁ C₁ := by
+    sorry
+  have h_room2 : IST.isRoom σ₂ C₂ := by
+    sorry
+  have h_door1 : isDoorof τ D σ₁ C₁ := by
+    sorry
+  have h_door2 : isDoorof τ D σ₂ C₂ := by
+    apply isDoorof.odoor
+    · exact h_room2.1
+    sorry
+  
+  -- Show that these are the only two rooms
+  have h_unique : ∀ σ C, IST.isRoom σ C → isDoorof τ D σ C →
+    (σ = σ₁ ∧ C = C₁) ∨ (σ = σ₂ ∧ C = C₂) := by
+    intro σ C h_room h_door
+    sorry
+      -- This case is impossible because τ is nonempty
+      
+  
+  -- Conclude the proof
+  exact ⟨σ₁, σ₂, C₁, C₂, hab, h_room1, h_room2, h_door1, h_door2, h_unique⟩
 
 
 end KeyLemma
