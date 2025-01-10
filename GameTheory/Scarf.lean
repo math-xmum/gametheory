@@ -1,7 +1,7 @@
 import Mathlib
 import LLMlean
 
-
+open Classical
 open Finset
 
 variable {T : Type*} [Inhabited T] -- The finite set T
@@ -61,6 +61,38 @@ lemma Dominant_of_supset (σ : Finset T) (C D: Finset I) :
     intro x hx
     exact hj.2 x hx
 
+abbrev mini {σ : Finset T} (h2 : σ.Nonempty) (i : I) : T := @Finset.min' _ (IST i) _ h2
+
+omit [Inhabited T] in
+lemma keylemma_of_domiant {σ : Finset T} {C: Finset I} (h1 : IST.isDominant σ C) (h2: σ.Nonempty): σ  = C.image (mini h2)  :=
+  by
+    ext a
+    constructor
+    · intro ha
+      rw [mem_image]
+      by_contra  hm
+      push_neg at hm
+      obtain ⟨i,hi1,hi2⟩ := h1 a
+      replace hm := hm i hi1
+      rw [mini] at hm
+      have ha1 := @Finset.le_min' _ (IST i) _ h2 a hi2
+      have ha2 := @Finset.min'_le _ (IST i) _ _ ha
+      apply hm
+      refine @eq_of_le_of_le _ (IST i).toPartialOrder _ _ ha2 ha1
+    · suffices h: ∀ x ∈ C, mini h2 x = a → a ∈ σ from
+      by simp;exact h
+      intro _ _ ha
+      simp [mini,<-ha,Finset.min'_mem]
+
+omit [Inhabited T] in
+lemma card_le_of_domiant {σ : Finset T} {C: Finset I} (h1 : IST.isDominant σ C) : σ.card  ≤  C.card  := by
+  by_cases h2 : σ.Nonempty
+  · rw [keylemma_of_domiant h1 h2]
+    apply Finset.card_image_le
+  · rw [not_nonempty_iff_eq_empty] at h2
+    simp only [h2, card_empty, zero_le]
+
+
 omit [Inhabited T] in
 lemma empty_Dominant (h : D.Nonempty) : IST.isDominant Finset.empty D := by
   intro y
@@ -71,9 +103,7 @@ lemma empty_Dominant (h : D.Nonempty) : IST.isDominant Finset.empty D := by
   · intro x hx
     contradiction
 
-
 abbrev isCell  := isDominant σ C
-
 
 abbrev isRoom :=  isCell σ C ∧ C.card = σ.card
 
@@ -174,6 +204,42 @@ lemma outsidedoor_is_singleton (h : IST.isOutsideDoor τ  D) :  τ = Finset.empt
 
 
 section KeyLemma
+
+section fiber_lemma
+
+
+lemma fiber_lemma_step1 {f : α → β } {B : Finset β } {A : Finset α }
+   (h1 : B = A.image f) (h2 : #A = #B +1) :
+    ∃ b ∈ B, 2 ≤ #(A.filter (f · = b)) := by
+      by_contra h
+      push_neg at h
+      have h3: ∀ b ∈ B, 0 < #(A.filter (f · = b)) := by
+        intro b hb
+        apply Nat.ne_zero_iff_zero_lt.1
+        apply Finset.fiber_card_ne_zero_iff_mem_image _ _ b |>.2
+        rw [<-h1]; exact hb
+      replace h : ∀ b ∈ B, #(A.filter (f · = b)) = 1 := by
+        intro b hb;
+        linarith [h b hb, h3 b hb]
+      have h4 : ∀ a ∈ A, f a ∈ B := by
+        intro a ha; rw [h1]; exact Finset.mem_image_of_mem _ ha
+      replace h4 : #A = #B := by
+        calc
+          _ = _ := Finset.card_eq_sum_card_fiberwise h4
+          _ = ∑ b ∈ B, 1 := @Finset.sum_congr _ ℕ _ _ _ _ _ (by rfl : B=B) h
+          _ = _ := by simp
+      linarith
+
+
+lemma fiber_lemma {f : α → β } {B : Finset β } {A : Finset α }
+   (h1 : B = A.image f) (h2 : A.card = B.card +1) :
+    ∃! b ∈ B, ((A.filter (f · = b)).card = 2 ∧
+      ∀ c ∈ B, b ≠ c →  (A.filter (f · = c)).card = 1
+      ) := by sorry
+
+
+end fiber_lemma
+
 
 /- Lemma 3-/
 theorem internal_door_two_rooms (τ : Finset T) (D : Finset I)
