@@ -347,7 +347,12 @@ def pick_colorful_point (h : IST.isColorful c σ C): σ := Classical.choice (sig
 /-
 Lemma 4 -/
 variable {c σ C} in
-lemma NC_of_outsidedoor (h : isOutsideDoor σ C) : isNearlyColorful c σ C  := sorry
+lemma NC_of_outsidedoor (h : isOutsideDoor σ C) : isNearlyColorful c σ C  := 
+  let i := Classical.choose (type_aux h)
+  let h1 := Classical.choose_spec (type_aux h)
+  have h2 := h1.1
+  have h3 := h1.2
+  sorry
 
 
 
