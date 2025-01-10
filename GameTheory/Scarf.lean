@@ -1,7 +1,7 @@
 import Mathlib
-import LLMlean
+--import LLMlean
 
-
+open Classical
 open Finset
 
 variable {T : Type*} [Inhabited T] -- The finite set T
@@ -60,6 +60,32 @@ lemma Dominant_of_supset (σ : Finset T) (C D: Finset I) :
     use j,(h1 hj.1)
     intro x hx
     exact hj.2 x hx
+
+abbrev mini {σ : Finset T} (h2 : σ.Nonempty) (i : I) : T := @Finset.min' _ (IST i) _ h2
+
+omit [Inhabited T] in
+lemma keylemma_of_domiant (σ : Finset T) (C: Finset I) (h1 : isDominant σ C) (h2: σ.Nonempty): σ  = C.image (mini h2)  :=
+  by
+    ext a
+    constructor
+    · intro ha
+      rw [mem_image]
+      by_contra  hm
+      push_neg at hm
+      obtain ⟨i,hi1,hi2⟩ := h1 a
+      replace hm := hm i hi1
+      rw [mini] at hm
+      have ha1 := @Finset.le_min' _ (IST i) _ h2 a hi2
+      have ha2 := @Finset.min'_le _ (IST i) _ _ ha
+      apply hm
+      refine @eq_of_le_of_le _ (IST i).toPartialOrder _ _ ha2 ha1
+
+    · suffices h: ∀ x ∈ C, mini h2 x = a → a ∈ σ from
+      by simp;exact h
+      intro _ _ ha
+      simp [mini,<-ha,Finset.min'_mem]
+
+
 
 omit [Inhabited T] in
 lemma empty_Dominant (h : D.Nonempty) : IST.isDominant Finset.empty D := by
