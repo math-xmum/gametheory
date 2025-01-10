@@ -1,5 +1,5 @@
 import Mathlib
---import LLMlean
+import LLMlean
 
 open Classical
 open Finset
@@ -103,9 +103,7 @@ lemma empty_Dominant (h : D.Nonempty) : IST.isDominant Finset.empty D := by
   · intro x hx
     contradiction
 
-
 abbrev isCell  := isDominant σ C
-
 
 abbrev isRoom :=  isCell σ C ∧ C.card = σ.card
 
@@ -206,6 +204,42 @@ lemma outsidedoor_is_singleton (h : IST.isOutsideDoor τ  D) :  τ = Finset.empt
 
 
 section KeyLemma
+
+section fiber_lemma
+
+
+lemma fiber_lemma_step1 {f : α → β } {B : Finset β } {A : Finset α }
+   (h1 : B = A.image f) (h2 : #A = #B +1) :
+    ∃ b ∈ B, 2 ≤ #(A.filter (f · = b)) := by
+      by_contra h
+      push_neg at h
+      have h3: ∀ b ∈ B, 0 < #(A.filter (f · = b)) := by
+        intro b hb
+        apply Nat.ne_zero_iff_zero_lt.1
+        apply Finset.fiber_card_ne_zero_iff_mem_image _ _ b |>.2
+        rw [<-h1]; exact hb
+      replace h : ∀ b ∈ B, #(A.filter (f · = b)) = 1 := by
+        intro b hb;
+        linarith [h b hb, h3 b hb]
+      have h4 : ∀ a ∈ A, f a ∈ B := by
+        intro a ha; rw [h1]; exact Finset.mem_image_of_mem _ ha
+      replace h4 : #A = #B := by
+        calc
+          _ = _ := Finset.card_eq_sum_card_fiberwise h4
+          _ = ∑ b ∈ B, 1 := @Finset.sum_congr _ ℕ _ _ _ _ _ (by rfl : B=B) h
+          _ = _ := by simp
+      linarith
+
+
+lemma fiber_lemma {f : α → β } {B : Finset β } {A : Finset α }
+   (h1 : B = A.image f) (h2 : A.card = B.card +1) :
+    ∃! b ∈ B, ((A.filter (f · = b)).card = 2 ∧
+      ∀ c ∈ B, b ≠ c →  (A.filter (f · = c)).card = 1
+      ) := by sorry
+
+
+end fiber_lemma
+
 
 /- Lemma 3-/
 theorem internal_door_two_rooms (τ : Finset T) (D : Finset I)
