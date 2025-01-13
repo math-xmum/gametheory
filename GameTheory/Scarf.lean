@@ -207,28 +207,49 @@ section KeyLemma
 
 section fiber_lemma
 
-
-lemma fiber_lemma_step1 {f : α → β } {B : Finset β } {A : Finset α }
-   (h1 : B = A.image f) (h2 : #A = #B +1) :
-    ∃ b ∈ B, 2 ≤ #(A.filter (f · = b)) := by
-      by_contra h
-      push_neg at h
-      have h3: ∀ b ∈ B, 0 < #(A.filter (f · = b)) := by
+lemma fiber_card_pos  {f : α → β} {B : Finset β} {A : Finset α}
+  (h1 : B = A.image f) : ∀ b ∈ B, 0 < #(A.filter (f · = b)) :=  by
         intro b hb
         apply Nat.ne_zero_iff_zero_lt.1
         apply Finset.fiber_card_ne_zero_iff_mem_image _ _ b |>.2
         rw [<-h1]; exact hb
+
+lemma fiber_lemma_step1 {f : α → β } {B : Finset β } {A : Finset α }
+   (h1 : B = A.image f) (h2 : #A = #B +1) :
+    ∃ b ∈ B, 2 ≤ #(A.filter (f · = b)) := by
+      have h3: ∀ b ∈ B, 0 < #(A.filter (f · = b)) := fiber_card_pos h1
+      have h4 : ∀ a ∈ A, f a ∈ B := by
+        intro _ ha; rw [h1]; exact
+        Finset.mem_image_of_mem f ha
+      by_contra h
+      push_neg at h
       replace h : ∀ b ∈ B, #(A.filter (f · = b)) = 1 := by
         intro b hb;
         linarith [h b hb, h3 b hb]
-      have h4 : ∀ a ∈ A, f a ∈ B := by
-        intro a ha; rw [h1]; exact Finset.mem_image_of_mem _ ha
       replace h4 : #A = #B := by
         calc
           _ = _ := Finset.card_eq_sum_card_fiberwise h4
           _ = ∑ b ∈ B, 1 := @Finset.sum_congr _ ℕ _ _ _ _ _ (by rfl : B=B) h
           _ = _ := by simp
       linarith
+
+lemma fiber_lemma_step2 {f : α → β } {B : Finset β } {A : Finset α }
+   (h1 : B = A.image f) (h2 : #A = #B +1) :
+    ∀ b ∈ B, #(A.filter (f · = b)) ≤ 2 := by
+    have h4 : ∀ a ∈ A, f a ∈ B := by
+        intro a ha; rw [h1]; exact Finset.mem_image_of_mem _ ha
+    by_contra h0
+    suffices h : #B + 1 < #A from by linarith
+    push_neg at h0
+    obtain ⟨b, hb1,hb2⟩:=h0
+    calc
+    _ = (∑ c ∈ B, 1) + 1 := by simp
+    _ = (∑ c ∈ (B.erase b ), 1) + (∑ c in {b}, 2) := sorry
+    _ ≤  (∑ c ∈ (B.erase b), #(A.filter (f · = c))) + (∑ c in {b}, 2) := sorry
+    _ <  (∑ c ∈ (B.erase b), #(A.filter (f · = c))) + (∑ c in {b}, #(A.filter (f · = c))) := sorry
+    _ =  (∑ c ∈ B, #(A.filter (f · = c))):= sorry
+    _ = #A := by symm; exact Finset.card_eq_sum_card_fiberwise h4
+
 
 
 lemma fiber_lemma {f : α → β } {B : Finset β } {A : Finset α }
@@ -252,13 +273,16 @@ theorem internal_door_two_rooms (τ : Finset T) (D : Finset I)
       isDoorof τ D σ₂ C₂ ∧
       (∀ σ C, IST.isRoom σ C → isDoorof τ D σ C →
        (σ = σ₁ ∧ C = C₁) ∨ (σ = σ₂ ∧ C = C₂)) := by
+      sorry
+
+/-
        -- Use the definition of internal door
   have h_door : IST.isDoor τ D := h.1
   have h_nonempty : τ.Nonempty := h.2
-  
+
   have h_tau : τ.card ≥ 1 := Finset.card_pos.2 h_nonempty
   have h_D : D.card = τ.card + 1 := h_door.2
-  
+
   -- D is nonempty (follows from h_D and h_tau)
   have h_D_nonempty : D.Nonempty := by
     apply Finset.card_pos.1
@@ -273,13 +297,13 @@ theorem internal_door_two_rooms (τ : Finset T) (D : Finset I)
     sorry
 
   obtain ⟨a, b, ha, hb, hab⟩ := h_ab
-  
+
   -- Define the potential rooms
   let σ₁ := τ
   let σ₂ := τ
   let C₁ := D.erase a
   let C₂ := D.erase b
-  
+
   -- Show that these are indeed rooms and (τ, D) is a door of both
   have h_room1 : IST.isRoom σ₁ C₁ := by
     sorry
@@ -291,18 +315,18 @@ theorem internal_door_two_rooms (τ : Finset T) (D : Finset I)
     apply isDoorof.odoor
     · exact h_room2.1
     sorry
-  
+
   -- Show that these are the only two rooms
   have h_unique : ∀ σ C, IST.isRoom σ C → isDoorof τ D σ C →
     (σ = σ₁ ∧ C = C₁) ∨ (σ = σ₂ ∧ C = C₂) := by
     intro σ C h_room h_door
     sorry
       -- This case is impossible because τ is nonempty
-      
-  
+
+
   -- Conclude the proof
   exact ⟨σ₁, σ₂, C₁, C₂, hab, h_room1, h_room2, h_door1, h_door2, h_unique⟩
-
+-/
 
 end KeyLemma
 
@@ -347,7 +371,7 @@ def pick_colorful_point (h : IST.isColorful c σ C): σ := Classical.choice (sig
 /-
 Lemma 4 -/
 variable {c σ C} in
-lemma NC_of_outsidedoor (h : isOutsideDoor σ C) : isNearlyColorful c σ C  := 
+lemma NC_of_outsidedoor (h : isOutsideDoor σ C) : isNearlyColorful c σ C  :=
   let i := Classical.choose (type_aux h)
   let h1 := Classical.choose_spec (type_aux h)
   have h2 := h1.1
@@ -414,7 +438,7 @@ lemma dbcount_NCroom (i : I) : Even (filter (fun x => ¬ isColorful c x.2.1 x.2.
 
 
 
-def dbount_croom (i: I) : (filter (fun x => isColorful c x.2.1 x.2.2) (dbcountingset c i)).card = (filter (fun (x : Finset T × Finset I) => isColorful c x.1 x.2 ∧ i ∈ x.2) univ).card := by
+def dbcount_croom (i: I) : (filter (fun x => isColorful c x.2.1 x.2.2) (dbcountingset c i)).card = (filter (fun (x : Finset T × Finset I) => isColorful c x.1 x.2 ∧ i ∈ x.2) univ).card := by
   rw [Finset.filter_filter]
   apply Finset.card_nbij (fun x => x.2)
   · intro x hx; sorry
