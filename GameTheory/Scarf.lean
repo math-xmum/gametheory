@@ -122,27 +122,28 @@ abbrev isDoor  :=  isCell σ C ∧ C.card = σ.card + 1
 variable [DecidableEq T] [DecidableEq I]
 
 inductive isDoorof (τ : Finset T) (D : Finset I) (σ : Finset T) (C : Finset I) : Prop
-  | idoor (h0 : isCell σ C) (x :T) (h1 : x ∉ τ) (h2 : insert x τ = σ) (h3 : D = C)
-  | odoor (h0 : isCell σ C) (j :I) (h1 : j ∉ C) (h2 : τ = σ) (h3 : D = insert j C)
+  | idoor (h0 : isCell σ C) (h1 : isDoor τ D) (x :T) (h1 : x ∉ τ) (h2 : insert x τ = σ) (h3 : D = C)
+  | odoor (h0 : isCell σ C) (h1 : isDoor τ D) (j :I) (h1 : j ∉ C) (h2 : τ = σ) (h3 : D = insert j C)
 
 omit [Inhabited T] in
 lemma isCell_of_door (h1 : isDoorof τ D σ C) : IST.isCell τ D := by
   cases h1
-  · rename_i h0 j h1 h3 h4
+  · rename_i h0 _ j h1 h3 h4
     rw [h4]
     exact IST.Dominant_of_subset _ _ C (by simp [<-h3]) h0
-  · rename_i h0 j h1 h2' h3
+  · rename_i h0 _ j h1 h2' h3
     rw [h2', h3]
     exact IST.Dominant_of_supset _ _ _ (Finset.subset_insert j C) h0
 
+variable {σ C} in
 omit [Inhabited T] in
-lemma isRoom_of_Door (h1 : isDoorof τ D σ C) (h2 : IST.isDoor τ D): IST.isRoom σ C := by
+lemma isRoom_of_Door (h1 : isDoorof τ D σ C) : IST.isRoom σ C := by
   cases h1
-  · rename_i h0 x h3 h4 h5
+  · rename_i h0 h2 x h3 h4 h5
     constructor
     · exact h0
     · simp only [<-h5, h2.2, <-h4, h3, not_false_eq_true, Finset.card_insert_of_not_mem]
-  · rename_i h0 x h3 h4 h5
+  · rename_i h0 h2 x h3 h4 h5
     constructor
     · exact h0
     · have h6 := Finset.card_insert_of_not_mem h3
@@ -324,9 +325,10 @@ lemma NC_of_outsidedoor (h : isOutsideDoor σ C) : isNearlyColorful c σ C  :=
   sorry
 
 
-
+/-
 variable {c σ C} in
-lemma type_unique_of_outsidedoor (h : isOutsideDoor σ C) : ∃! i,  i = NCtype (NC_of_outsidedoor (c:=c) h)  := sorry
+lemma type_unique_of_outsidedoor (h : isOutsideDoor σ C) : ∃! i,  i = isNCtype (NC_of_outsidedoor (c:=c) h)  := sorry
+-/
 
 variable {σ C} in
 lemma door_of_Croom (h1 : isColorful c σ C) (h2 : isDoorof τ D σ C) : isNearlyColorful c τ D := by sorry
@@ -334,8 +336,7 @@ lemma door_of_Croom (h1 : isColorful c σ C) (h2 : isDoorof τ D σ C) : isNearl
 
 variable {σ C} in
 lemma unique_type_door_of_Croom (h1 : isColorful c σ C) (i :I) :
-∃! x : {x : Finset T × Finset I | isDoorof x.1 x.2 σ C},
-NCtype (door_of_Croom c h1 x.2) = i:= by sorry
+∃! x : Finset T × Finset I , isDoorof x.1 x.2 σ C ∧ isTypedNC c i σ C:= by sorry
 
 /-
 Lemma 5
@@ -343,7 +344,7 @@ Lemma 5
 lemma NC_or_C_of_door (h1 : isNearlyColorful c τ D) (h2 : isDoorof τ D σ C) : isNearlyColorful c σ C ∨ isColorful c σ C := sorry
 
 
-lemma NCtype_of_door (h1 : isNearlyColorful c τ D) (h2 : isDoorof τ D σ C) (h3 :isNearlyColorful c σ C) : NCtype h1 = NCtype h3  := sorry
+lemma NCtype_of_door (h1 : isTypedNC c i τ D) (h2 : isDoorof τ D σ C) (h3 : isTypedNC c i σ C) : isTypedNC c i τ D := sorry
 
 /-Lemma 6 : The version in paper is not correct-/
 variable {σ} in
@@ -352,15 +353,15 @@ lemma card_of_NCcell (h : isNearlyColorful c σ D) : #σ = #(image c σ) ∨  #�
 /- Finset.card_eq_two -/
 
 /-Lemma 7-/
-abbrev doors_NCroom  := {(τ,D) | isNearlyColorful c τ D ∧ isDoorof τ D σ C }
+abbrev doors_NCroom (i : I):= {(τ,D) | isTypedNC c i τ D ∧ isDoorof τ D σ C }
 
 
 variable {σ C} in
-lemma doors_of_NCroom (h0 : isRoom σ C) (h1 : isNearlyColorful c σ C) : ∃ x y, x ≠ y ∧  doors_NCroom c σ C = {x,y} := by
+lemma doors_of_NCroom (h0 : isRoom σ C) (h1 : isTypedNC c i σ C) : ∃ x y, x ≠ y ∧  doors_NCroom c σ C i = {x,y} := by
   sorry
 
 
-lemma card_two_of_doors_NCroom (h0 : isRoom σ C) (h1 : isNearlyColorful c σ C) : (doors_NCroom c σ C).ncard = 2:=
+lemma card_two_of_doors_NCroom (h0 : isRoom σ C) (h1 : isTypedNC c i σ C) : (doors_NCroom c σ C i).ncard = 2:=
   by
     obtain ⟨x,y,hx1,hx2⟩ := doors_of_NCroom c h0 h1
     simp [hx1,hx2]
@@ -373,7 +374,7 @@ variable [Fintype T] [Fintype I]
 abbrev colorful := Finset.filter (fun (x : Finset T× Finset I) =>  IST.isColorful c x.1 x.2) univ
 
 
-abbrev dbcountingset (i : I):= Finset.filter (fun x : (Finset T× Finset I) × (Finset T× Finset I) => TypedNC c i x.1.1 x.1.2 ∧ isDoorof x.1.1 x.1.2 x.2.1 x.2.2) univ
+abbrev dbcountingset (i : I):= Finset.filter (fun x : (Finset T× Finset I) × (Finset T× Finset I) => isTypedNC c i x.1.1 x.1.2 ∧ isDoorof x.1.1 x.1.2 x.2.1 x.2.2) univ
 
 
 -- Finset.disjoint_filter_filter_neg
@@ -392,16 +393,26 @@ lemma dbcount_outside_door_odd (i : I): Odd (filter (fun x => isOutsideDoor x.1.
 
 lemma dbcount_internal_door_even (i : I) : Even (filter (fun x => ¬ isOutsideDoor x.1.1 x.1.2) (dbcountingset c i)).card := sorry
 
-
-lemma NC_of_NCdoor (h1 : TypedNC c i τ D) isDoorof x.1.1 x.1.2 x.2.1 x.2.2 :
+variable {c σ C} in
+lemma NC_of_NCdoor (h1 : isTypedNC c i τ D)
+(h2 : isDoorof τ D σ C) :
+  ¬ isColorful c σ C → isTypedNC c i σ C := sorry
 
 lemma dbcount_NCroom (i : I) : Even (filter (fun x => ¬ isColorful c x.2.1 x.2.2) (dbcountingset c i)).card := by
   let s := filter (fun x => ¬isColorful c x.2.1 x.2.2) (dbcountingset c i)
-  let t := filter (fun (x : Finset T × Finset I) => IST.isRoom x.1 x.2 ∧ TypedNC c i x.1 x.2 ) univ
+  let t := filter (fun (x : Finset T × Finset I) => IST.isRoom x.1 x.2 ∧ isTypedNC c i x.1 x.2 ) univ
   let f := fun (x : (Finset T × Finset I)× Finset T × Finset I) => x.2
   have fs_in_t : ∀ x ∈ s, f x ∈ t := by
     intro x hx;
     show x.2 ∈ t
+    rw [mem_filter] at hx
+    obtain ⟨hx1,hx2⟩ := hx
+    rw [mem_filter] at hx1
+    rw [mem_filter]
+    refine ⟨by simp, isRoom_of_Door hx1.2.2,?_⟩
+    apply NC_of_NCdoor hx1.2.1 hx1.2.2 hx2
+
+
 
 
 
