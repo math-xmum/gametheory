@@ -317,7 +317,7 @@ noncomputable section Scarf
 open Classical
 
 
-variable [IST : IndexedLOrder I T]
+--variable [IST : IndexedLOrder I T]
 
 variable (c : T → I) (σ : Finset T) (C : Finset I)
 
@@ -347,7 +347,14 @@ structure TypedNC (i : I) (σ : Finset T) (C : Finset I): Prop where
 -/
 
 variable {c σ C} in
-lemma room_of_colorful (h : IST.isColorful c σ C) : IST.isRoom σ C := by sorry
+omit [Inhabited T] [DecidableEq T] in
+lemma room_of_colorful (h : IST.isColorful c σ C) : IST.isRoom σ C := by
+  unfold isRoom
+  unfold isColorful at h
+  refine ⟨h.1,?_⟩
+  have h1 : #C ≤ # σ := by rw [<-h.2]; apply Finset.card_image_le
+  have h2 : #σ ≤ # C := card_le_of_domiant h.1
+  exact le_antisymm h1 h2
 
 variable {c σ C} in
 def pick_colorful_point (h : IST.isColorful c σ C): σ := Classical.choice (sigma_nonempty_of_room (room_of_colorful h)).to_subtype
@@ -448,7 +455,12 @@ lemma dbcount_NCroom (i : I) : Even (filter (fun x => ¬ isColorful c x.2.1 x.2.
     refine ⟨by simp, isRoom_of_Door hx1.2.2,?_⟩
     apply NC_of_NCdoor hx1.2.1 hx1.2.2 hx2
   have counteq := Finset.card_eq_sum_card_fiberwise fs_in_t
-  have fiber_sizetwo :∀ y ∈ t, #(filter (fun a=> f a = y) s) = 2  := sorry
+  have fiber_sizetwo :∀ y ∈ t, #(filter (fun a=> f a = y) s) = 2  :=
+    by
+      intro y hy
+      rw [Finset.mem_filter] at hy
+      obtain ⟨_,hy1,hy2⟩ := hy
+      sorry
   have sumeq := Finset.sum_const_nat fiber_sizetwo
   rw [sumeq] at counteq
   rw [counteq]
