@@ -1,6 +1,83 @@
 import Mathlib
 --import LLMlean
 
+section fiberlemma
+
+open Finset
+
+variable {α β : Type} [DecidableEq α] [DecidableEq β]
+
+lemma injOn_sdiff (s : Finset α) (f : α → β) (h : s.card = (Finset.image f s).card + 1) : ∃ a b, a ∈ s ∧ b ∈ s ∧ f a = f b ∧ a ≠ b ∧ Set.InjOn f (s \ ({a, b} : Finset α)) := by
+  have of_card_domain_eq_card_image_succ  (s : Finset α) (f : α → β) (h : s.card = (Finset.image f s).card + 1) :
+  ∃ a b, a ∈ s ∧ b ∈ s ∧ f a = f b ∧ a ≠ b := by
+    suffices ¬ Set.InjOn f s by
+      contrapose! this
+      tauto
+    by_contra h1
+    linarith [Finset.card_image_of_injOn h1]
+  obtain ⟨a, b, as, bs, h1, h2⟩ := of_card_domain_eq_card_image_succ s f h
+  have absub : {a, b} ⊆ s :=  Finset.insert_subset as (Finset.singleton_subset_iff.mpr bs)
+  use a, b
+  repeat apply And.intro;assumption
+  rw [←Finset.coe_sdiff]
+  apply Finset.injOn_of_card_image_eq
+  rw [Finset.card_sdiff]
+  · have : (Finset.image f (s \ {a, b})).card = (Finset.image f s).card - 1 := by
+      have aux1 : ∀ c, c ∈ s → c ≠ a → c ≠ b → f c ≠ f a := by
+        intro c cs ca cb fcfa
+        have cardabc : ({a, b, c} : Finset α).card = 3 := by
+          rw [Finset.card_eq_three]
+          use a, b, c
+          tauto
+        have abcss : {a, b, c} ⊆ s := by
+          apply Finset.insert_subset as
+          apply Finset.insert_subset bs (by simp [cs])
+        have : (image f s).card < s.card - 1 :=
+          calc
+            _ = (image f ((s \ {a, b, c}) ∪ {a, b, c})).card :=
+              congrArg _ (congrArg _ (Eq.symm (sdiff_union_of_subset abcss)))
+            _ = (image f (s \ {a, b, c}) ∪ image f {a, b, c}).card :=
+              congrArg _ (Finset.image_union _ _)
+            _ ≤ (image f (s \ {a, b, c})).card + (image f {a, b, c}).card :=
+              Finset.card_union_le _ _
+            _ = (image f (s \ {a, b, c})).card + 1 := by
+              simp [Finset.card_eq_one]
+              exact ⟨f a, by simp [←h1, fcfa]⟩
+            _ ≤ (s \ {a, b, c}).card + 1 := by
+              simp [Finset.card_image_le]
+            _ = s.card - 3 + 1 := by
+              rw [Finset.card_sdiff abcss, cardabc]
+            _ < _ := by
+              have : 2 < s.card := by
+                have := Finset.card_le_card abcss
+                omega
+              omega
+        omega
+      have aux2 : Finset.image f (s \ {a, b}) = Finset.image f s \ {f a} := by
+        ext x
+        constructor <;> intro h1'
+        · obtain ⟨c, csdiff, fcx⟩ := Finset.mem_image.1 h1'
+          obtain ⟨cs, cneab⟩ := Finset.mem_sdiff.1 csdiff
+          simp at cneab
+          simp
+          exact ⟨⟨c, cs, fcx⟩, by simp [← fcx]; exact aux1 c cs cneab.1 cneab.2⟩
+        · simp at h1'
+          obtain ⟨c, cs, fcx⟩ := h1'.1
+          simp [←fcx]
+          use c
+          simp [cs]
+          by_contra! hf
+          by_cases ceqa : c = a
+          · rw [ceqa] at fcx; rw [fcx] at h1'; tauto
+          · rw [hf ceqa, ←h1] at fcx; rw [fcx] at h1; tauto
+      rw [aux2, Finset.card_sdiff (by simp; exact ⟨a, as, rfl⟩), card_singleton]
+    rw [this,Finset.card_pair h2, h]
+    simp
+  · exact absub
+
+end fiberlemma
+
+
 open Classical
 open Finset
 
@@ -182,12 +259,6 @@ lemma room_is_not_door (h1 : IST.isRoom σ C) : ∀ τ D,  ¬ (isDoorof σ C τ 
     have cond : #σ = #σ +1 := by rw [h1.2] at hd; assumption
     simp at cond
 
-
-
-
-
-
-
 variable (τ D) in
 abbrev isOutsideDoor := IST.isDoor τ D ∧ τ = Finset.empty
 
@@ -237,59 +308,6 @@ theorem internal_door_two_rooms (τ : Finset T) (D : Finset I)
       (∀ σ C, IST.isRoom σ C → isDoorof τ D σ C →
        (σ = σ₁ ∧ C = C₁) ∨ (σ = σ₂ ∧ C = C₂)) := by
       sorry
-
-/-
-       -- Use the definition of internal door
-  have h_door : IST.isDoor τ D := h.1
-  have h_nonempty : τ.Nonempty := h.2
-
-  have h_tau : τ.card ≥ 1 := Finset.card_pos.2 h_nonempty
-  have h_D : D.card = τ.card + 1 := h_door.2
-
-  -- D is nonempty (follows from h_D and h_tau)
-  have h_D_nonempty : D.Nonempty := by
-    apply Finset.card_pos.1
-    rw [h_D]
-    exact Nat.succ_pos τ.card
-
-  -- Find a and b in D
-  have h_ab : ∃ a b, a ∈ D ∧ b ∈ D ∧ a ≠ b := by
-    have h_card_ge_2 : D.card ≥ 2 := by
-      rw [h_D]
-      exact Nat.succ_le_succ (Nat.succ_le_of_lt h_tau)
-    sorry
-
-  obtain ⟨a, b, ha, hb, hab⟩ := h_ab
-
-  -- Define the potential rooms
-  let σ₁ := τ
-  let σ₂ := τ
-  let C₁ := D.erase a
-  let C₂ := D.erase b
-
-  -- Show that these are indeed rooms and (τ, D) is a door of both
-  have h_room1 : IST.isRoom σ₁ C₁ := by
-    sorry
-  have h_room2 : IST.isRoom σ₂ C₂ := by
-    sorry
-  have h_door1 : isDoorof τ D σ₁ C₁ := by
-    sorry
-  have h_door2 : isDoorof τ D σ₂ C₂ := by
-    apply isDoorof.odoor
-    · exact h_room2.1
-    sorry
-
-  -- Show that these are the only two rooms
-  have h_unique : ∀ σ C, IST.isRoom σ C → isDoorof τ D σ C →
-    (σ = σ₁ ∧ C = C₁) ∨ (σ = σ₂ ∧ C = C₂) := by
-    intro σ C h_room h_door
-    sorry
-      -- This case is impossible because τ is nonempty
-
-
-  -- Conclude the proof
-  exact ⟨σ₁, σ₂, C₁, C₂, hab, h_room1, h_room2, h_door1, h_door2, h_unique⟩
--/
 
 end KeyLemma
 
@@ -429,20 +447,12 @@ lemma dbcount_NCroom (i : I) : Even (filter (fun x => ¬ isColorful c x.2.1 x.2.
     rw [mem_filter]
     refine ⟨by simp, isRoom_of_Door hx1.2.2,?_⟩
     apply NC_of_NCdoor hx1.2.1 hx1.2.2 hx2
-
-
-
-
-
   have counteq := Finset.card_eq_sum_card_fiberwise fs_in_t
   have fiber_sizetwo :∀ y ∈ t, #(filter (fun a=> f a = y) s) = 2  := sorry
   have sumeq := Finset.sum_const_nat fiber_sizetwo
   rw [sumeq] at counteq
   rw [counteq]
   simp only [even_two, Even.mul_left]
-
-
-
 
 
 
