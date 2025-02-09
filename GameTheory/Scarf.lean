@@ -156,6 +156,7 @@ lemma isRoom_of_Door (h1 : isDoorof τ D σ C) : IST.isRoom σ C := by
 
 
 /- TODO formula that every room has |I| doors -/
+/- This can be skipped first-/
 
 def door_para : Sum σ C.toSet.compl ≃ {(τ,D): (Finset T)× (Finset I) | IST.isDoorof τ D σ C} where
   toFun := fun x => match x with
@@ -165,8 +166,25 @@ def door_para : Sum σ C.toSet.compl ≃ {(τ,D): (Finset T)× (Finset I) | IST.
   left_inv := sorry
   right_inv := sorry
 
+omit [Inhabited T] in
+lemma room_is_not_door (h1 : IST.isRoom σ C) : ∀ τ D,  ¬ (isDoorof σ C τ D) := by
+  intro τ D hd
+  unfold isRoom at h1
+  cases hd with
+  | idoor h0 hd  x h2 h3 h4 =>
+    unfold isDoor at hd
+    obtain ⟨_,hd⟩ := hd
+    have cond : #σ = #σ +1 := by rw [h1.2] at hd; assumption
+    simp at cond
+  | odoor h0 hd j h2 h3 h4 =>
+    unfold isDoor at hd
+    obtain ⟨_,hd⟩ := hd
+    have cond : #σ = #σ +1 := by rw [h1.2] at hd; assumption
+    simp at cond
 
-lemma room_is_not_door (h1 : IST.isRoom σ C) : ∀ τ D,  ¬ (isDoorof σ C τ D) := sorry
+
+
+
 
 
 
