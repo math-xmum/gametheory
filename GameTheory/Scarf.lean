@@ -383,22 +383,23 @@ variable {c σ C} in
 lemma type_unique_of_outsidedoor (h : isOutsideDoor σ C) : ∃! i,  i = isNCtype (NC_of_outsidedoor (c:=c) h)  := sorry
 -/
 
+section useless_lemma
 lemma door_of_Croom (h1 : isColorful c σ C) (h2 : isDoorof τ D σ C) : isNearlyColorful c τ D := by sorry
-
 
 lemma unique_type_door_of_Croom (h1 : isColorful c σ C) (i :I) :
 ∃! x : Finset T × Finset I , isDoorof x.1 x.2 σ C ∧ isTypedNC c i σ C:= by sorry
+end useless_lemma
 
 /-
 Lemma 5
 -/
-lemma NC_or_C_of_door (h1 : isNearlyColorful c τ D) (h2 : isDoorof τ D σ C) : isNearlyColorful c σ C ∨ isColorful c σ C := sorry
+lemma NC_or_C_of_door (h1 : isTypedNC c i τ D) (h2 : isDoorof τ D σ C) : isTypedNC c i σ C ∨ isColorful c σ C := sorry
 
 
 lemma NCtype_of_door (h1 : isTypedNC c i τ D) (h2 : isDoorof τ D σ C) (h3 : isTypedNC c i σ C) : isTypedNC c i τ D := sorry
 
 /-Lemma 6 : The version in paper is not correct-/
-lemma card_of_NCcell (h : isNearlyColorful c σ D) : #σ = #(image c σ) ∨  #σ + 1 = #(image c σ):= sorry
+lemma card_of_NCcell (h : isNearlyColorful c σ C) : #σ = #(image c σ) ∨  #σ + 1 = #(image c σ):= sorry
 
 /- Finset.card_eq_two -/
 
@@ -414,9 +415,6 @@ lemma card_two_of_doors_NCroom (h0 : isRoom σ C) (h1 : isTypedNC c i σ C) : (d
   by
     obtain ⟨x,y,hx1,hx2⟩ := doors_of_NCroom h0 h1
     simp [hx1,hx2]
-
-
-
 
 variable [Fintype T] [Fintype I]
 
@@ -443,10 +441,13 @@ lemma dbcount_outside_door_odd (i : I): Odd (filter (fun x => isOutsideDoor x.1.
 
 lemma dbcount_internal_door_even (i : I) : Even (filter (fun x => ¬ isOutsideDoor x.1.1 x.1.2) (dbcountingset c i)).card := sorry
 
+/- Easy -/
 variable {c} in
 lemma NC_of_NCdoor (h1 : isTypedNC c i τ D)
 (h2 : isDoorof τ D σ C) :
-  ¬ isColorful c σ C → isTypedNC c i σ C := sorry
+  ¬ isColorful c σ C → isTypedNC c i σ C := by
+  -- use  lemma NC_or_C_of_door
+  sorry
 
 variable {c} in
 lemma firber2_doors_NCroom (h0 : isRoom σ C) (h1 : isTypedNC c i σ C) :
