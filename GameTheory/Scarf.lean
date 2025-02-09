@@ -328,7 +328,9 @@ def isNearlyColorful : Prop := IST.isCell σ C ∧ (C \ σ.image c).card = 1
 def isTypedNC (i : I) (σ : Finset T) (C : Finset I): Prop := IST.isCell σ C ∧ i ∉ C ∧ C = insert i (σ.image c)
 
 /- Not useful -/
+/-
 lemma NC_of_TNC (h1 : isTypedNC c i σ C) : isNearlyColorful c σ C := sorry
+-/
 
 /-
 variable {c σ C} in
@@ -356,15 +358,18 @@ lemma room_of_colorful (h : IST.isColorful c σ C) : IST.isRoom σ C := by
   have h2 : #σ ≤ # C := card_le_of_domiant h.1
   exact le_antisymm h1 h2
 
+
+
 variable {c σ C} in
 def pick_colorful_point (h : IST.isColorful c σ C): σ := Classical.choice (sigma_nonempty_of_room (room_of_colorful h)).to_subtype
 
 
-
-/-
-Lemma 4 -/
+-- Easy
+/- Lemma 4 -/
 variable {c σ C} in
 lemma NC_of_outsidedoor (h : isOutsideDoor σ C) : isNearlyColorful c σ C  :=
+  -- use outsidedoor_is_singleton
+  -- use definition of NearlyColorful
   sorry
 
 
@@ -466,17 +471,6 @@ lemma dbcount_NCroom (i : I) : Even (filter (fun x => ¬ isColorful c x.2.1 x.2.
   rw [counteq]
   simp only [even_two, Even.mul_left]
 
-
-
-def dbcount_croom (i: I) : (filter (fun x => isColorful c x.2.1 x.2.2) (dbcountingset c i)).card = (filter (fun (x : Finset T × Finset I) => isColorful c x.1 x.2 ∧ i ∈ x.2) univ).card := by
-  rw [Finset.filter_filter]
-  apply Finset.card_nbij (fun x => x.2)
-  · intro x hx; sorry
-  · sorry
-  · sorry
-
-
-
 lemma parity_lemma {a b c d : ℕ } (h1 : Odd a) (h2 : Even b) (h3 : Even d) (h4 : a + b = c + d ): Odd c := by
   by_contra h0
   replace h0 := Nat.not_odd_iff_even.1 h0
@@ -493,8 +487,8 @@ theorem _root_.Finset.card_filter_filter_neg {α : Type*} (s : Finset α) (p : �
     apply Finset.card_union_eq_card_add_card.2 (Finset.disjoint_filter_filter_neg _ _ _)
 
 
-lemma typed_colorful_room_odd (i : I): Odd (Finset.filter (fun (x: Finset T × Finset I) => isColorful c x.1 x.2 ∧ i ∈ x.2) univ).card := by
-  rw [<-dbcount_croom c i]
+lemma typed_colorful_room_odd (i : I): Odd (Finset.filter (fun (x: (Finset T× Finset I) × Finset T × Finset I) =>  isColorful c x.2.1 x.2.2) (dbcountingset c i)).card
+:= by
   let s:= dbcountingset c i
   have cardeq' := Finset.card_filter_filter_neg s (fun x => isOutsideDoor x.1.1 x.1.2)
   have cardeq := Finset.card_filter_filter_neg s (fun x => isColorful c x.2.1 x.2.2)
@@ -508,7 +502,7 @@ theorem Scarf : (IST.colorful c).Nonempty := by
   replace nonempty:= Finset.card_pos.1 cardpos
   obtain ⟨x,hx⟩ := nonempty
   replace hx := (Finset.mem_filter.1 hx).2
-  use x
+  use x.2
   simp only [mem_filter, mem_univ, hx, and_self]
 
 end Scarf
