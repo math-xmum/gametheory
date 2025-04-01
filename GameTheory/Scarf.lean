@@ -306,8 +306,7 @@ theorem internal_door_two_rooms (τ : Finset T) (D : Finset I)
       isDoorof τ D σ₁ C₁ ∧
       isDoorof τ D σ₂ C₂ ∧
       (∀ σ C, IST.isRoom σ C → isDoorof τ D σ C →
-       (σ = σ₁ ∧ C = C₁) ∨ (σ = σ₂ ∧ C = C₂)) := by
-      sorry
+       (σ = σ₁ ∧ C = C₁) ∨ (σ = σ₂ ∧ C = C₂)) := sorry
 
 end KeyLemma
 
@@ -372,7 +371,14 @@ structure TypedNC (i : I) (σ : Finset T) (C : Finset I): Prop where
 
 omit [Inhabited T] [DecidableEq T] in
 lemma room_of_colorful (h : IST.isColorful c σ C) : IST.isRoom σ C := by
-  sorry
+  unfold isRoom
+  unfold isColorful at h
+  constructor
+  · exact h.1
+  · have h1 : C.card = (σ.image c).card := by rw [h.2]
+    have h2 : (σ.image c).card ≤ σ.card := Finset.card_image_le
+    have h3 : σ.card ≤ C.card := card_le_of_domiant h.1
+    linarith
 
 
 
@@ -471,7 +477,7 @@ lemma NC_of_NCdoor (h1 : isTypedNC c i τ D)
 (h2 : isDoorof τ D σ C) :
   ¬ isColorful c σ C → isTypedNC c i σ C := by
   -- use  lemma NC_or_C_of_door
-  
+
   sorry
 
 variable {c} in
