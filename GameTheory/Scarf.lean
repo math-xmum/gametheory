@@ -286,7 +286,7 @@ omit [Inhabited T] [DecidableEq T] [DecidableEq I] in
 lemma outsidedoor_is_singleton (h : IST.isOutsideDoor τ  D) :  τ = Finset.empty ∧  ∃ i, D = {i} := by
   obtain ⟨h1, h2⟩ := h
   subst h2
-  obtain ⟨h2,h3⟩ := h1
+  obtain ⟨_,h3⟩ := h1
   replace h4 : D.card = 1 := by
     simp_all only [add_left_eq_self, Finset.card_eq_zero]
     rfl
@@ -332,8 +332,22 @@ variable {c σ C}
 
 
 /- Easy -/
+omit [Inhabited T] [DecidableEq T] in
 lemma not_colorful_of_TypedNC (h1 : isTypedNC c i σ C) : ¬ IST.isColorful c σ C := by
-  sorry
+  intro h
+  unfold isTypedNC at h1
+  unfold isColorful at h
+
+  obtain ⟨_, h2, h3⟩ := h1
+  obtain ⟨_, h4⟩ := h
+
+  have i_not_in_C : i ∉ C := by
+    rw [←h4]
+    exact h2
+  have i_in_C : i ∈ C := by
+    rw [h3]
+    exact Finset.mem_insert_self i (σ.image c)
+  contradiction
 
 /- Not useful -/
 /-
@@ -358,12 +372,7 @@ structure TypedNC (i : I) (σ : Finset T) (C : Finset I): Prop where
 
 omit [Inhabited T] [DecidableEq T] in
 lemma room_of_colorful (h : IST.isColorful c σ C) : IST.isRoom σ C := by
-  unfold isRoom
-  unfold isColorful at h
-  refine ⟨h.1,?_⟩
-  have h1 : #C ≤ # σ := by rw [<-h.2]; apply Finset.card_image_le
-  have h2 : #σ ≤ # C := card_le_of_domiant h.1
-  exact le_antisymm h1 h2
+  sorry
 
 
 
@@ -372,10 +381,25 @@ def pick_colorful_point (h : IST.isColorful c σ C): σ := Classical.choice (sig
 
 -- Easy
 /- Lemma 4 -/
-lemma NC_of_outsidedoor (h : isOutsideDoor σ C) : isNearlyColorful c σ C  :=
-  -- use outsidedoor_is_singleton
-  -- use definition of NearlyColorful
-  sorry
+omit [Inhabited T] [DecidableEq T] in
+lemma NC_of_outsidedoor (h : isOutsideDoor σ C) : isNearlyColorful c σ C  := by
+  cases h with
+  | intro hd he =>
+    unfold isNearlyColorful
+    unfold isCell
+    constructor
+    · exact hd.1
+    · rw [he]
+      have h_img : Finset.image c Finset.empty = Finset.empty := Finset.image_empty c
+      rw [h_img]
+      have h_disj : Disjoint C Finset.empty := Finset.disjoint_empty_right C
+      have h_sdiff : C \ Finset.empty = C := Finset.sdiff_eq_self_of_disjoint h_disj
+      rw [h_sdiff]
+      unfold isDoor at hd
+      have h1 := hd.2
+      rw [he] at h1
+      exact h1
+
 
 
 /-
