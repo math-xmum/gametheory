@@ -471,6 +471,7 @@ lemma NC_of_NCdoor (h1 : isTypedNC c i τ D)
 (h2 : isDoorof τ D σ C) :
   ¬ isColorful c σ C → isTypedNC c i σ C := by
   -- use  lemma NC_or_C_of_door
+  
   sorry
 
 variable {c} in
