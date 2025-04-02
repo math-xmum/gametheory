@@ -428,7 +428,7 @@ lemma NC_or_C_of_door (h1 : isTypedNC c i τ D) (h2 : isDoorof τ D σ C) : isTy
 
 lemma NCtype_of_door (h1 : isTypedNC c i τ D) (h2 : isDoorof τ D σ C) (h3 : isTypedNC c i σ C) : isTypedNC c i τ D := sorry
 
-/-Lemma 6 : The version in paper is not correct-/
+/-Lemma 6 : The version in paper is incorrect-/
 lemma card_of_NCcell (h : isNearlyColorful c σ C) : #σ = #(image c σ) ∨  #σ + 1 = #(image c σ):= sorry
 
 /- Finset.card_eq_two -/
@@ -472,13 +472,16 @@ lemma dbcount_outside_door_odd (i : I): Odd (filter (fun x => isOutsideDoor x.1.
 lemma dbcount_internal_door_even (i : I) : Even (filter (fun x => ¬ isOutsideDoor x.1.1 x.1.2) (dbcountingset c i)).card := sorry
 
 /- Easy -/
+omit [Fintype T] [Fintype I] in
 variable {c} in
 lemma NC_of_NCdoor (h1 : isTypedNC c i τ D)
 (h2 : isDoorof τ D σ C) :
   ¬ isColorful c σ C → isTypedNC c i σ C := by
   -- use  lemma NC_or_C_of_door
-
-  sorry
+intro h_not_colorful
+obtain h_typed | h_colorful := NC_or_C_of_door h1 h2
+· exact h_typed
+· contradiction
 
 variable {c} in
 lemma firber2_doors_NCroom (h0 : isRoom σ C) (h1 : isTypedNC c i σ C) :
