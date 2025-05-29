@@ -82,9 +82,8 @@ end fiberlemma
 open Classical
 open Finset
 
-variable {T : Type*} [Inhabited T] -- The finite set T
+variable {T : Type*} [Inhabited T]
 variable {I : Type*}
--- The index set I
 
 class IndexedLOrder (I T :Type*) where
   IST : I → LinearOrder T
@@ -185,8 +184,6 @@ lemma sigma_nonempty_of_room {σ : Finset T} {C : Finset I} (h : isRoom σ C) : 
   have h_card : σ.card = C.card := h.2.symm
   have hpos : 0 < σ.card := by rwa [h_card]
   exact Finset.card_pos.1 hpos
-
-/- use |σ| = |C| and C nonempty-/
 
 abbrev isDoor  :=  isCell σ C ∧ C.card = σ.card + 1
 
@@ -305,29 +302,58 @@ lemma exists_greater_than_all_mins_except_one {τ : Finset T} {D : Finset I} (h_
     use j
     simp only [Finset.mem_sdiff, Finset.mem_singleton]
     exact ⟨hj_in_D, hj_ne_i⟩
+
+  -- For each k ∈ D \ {i}, find an element greater than mini k
   have exists_larger_for_each_k : ∀ k' ∈ (D \ {i}), ∃ y_k', mini h_τ_nonempty k' <[k'] y_k' := by
     intro k' hk'_mem
-    classical
+    use default
     sorry
   choose y_map hy_map_spec using exists_larger_for_each_k
-
+  obtain ⟨j, hj_in_diff⟩ := h_D_diff_nonempty
   sorry
 
 -- Helper lemma: if m₁ is in M i₁ and x is in τ, then m₁ ≤[i₁] x
+omit [Inhabited T] [DecidableEq T] [DecidableEq I] in
 lemma m1_le_tau_elements {τ : Finset T} {D : Finset I} {i₁ : I} {m₁ : T}
-    (h_τ_nonempty : τ.Nonempty)
+    (_ : τ.Nonempty)
     (M : I → Set T)
-    (hm₁_in_Mi1 : m₁ ∈ M i₁) (hi₁_in_D : i₁ ∈ D) (x : T) (hx_in_τ : x ∈ τ) :
+    (hM_def : M i₁ = {y | ∀ z ∈ τ, y ≤[i₁] z})
+    (hm₁_in_Mi1 : m₁ ∈ M i₁) (_ : i₁ ∈ D) (x : T) (hx_in_τ : x ∈ τ) :
     m₁ ≤[i₁] x := by
-  sorry
+  rw [hM_def] at hm₁_in_Mi1
+  simp only [Set.mem_setOf_eq] at hm₁_in_Mi1
+  exact hm₁_in_Mi1 x hx_in_τ
 
 -- Helper lemma: if y is dominated in τ and m₁ has special property, then y ≤[j] m₁
+omit [Inhabited T] [DecidableEq T] in
 lemma dominated_element_le_special {τ : Finset T} {D : Finset I} {i₁ j : I} {m₁ y : T}
-    (h_cell_τD : IST.isCell τ D)
+    (_ : IST.isCell τ D)
     (h_τ_nonempty : τ.Nonempty) (hm₁_special : ∀ k ∈ D \ {i₁}, mini h_τ_nonempty k <[k] m₁)
-    (hi₁_in_D : i₁ ∈ D) (hj_in_D : j ∈ D)
+    (hm₁_own_order : mini h_τ_nonempty i₁ ≤[i₁] m₁)
+    (_ : i₁ ∈ D) (hj_in_D : j ∈ D)
     (hj_dominates : ∀ x ∈ τ, y ≤[j] x) : y ≤[j] m₁ := by
-  sorry
+  cases' Classical.em (j = i₁) with hj_eq_i₁ hj_ne_i₁
+  case inl =>
+    -- Case: j = i₁
+    rw [hj_eq_i₁] at hj_dominates
+    have hy_le_mini : y ≤[i₁] mini h_τ_nonempty i₁ := by
+      apply hj_dominates
+      exact @Finset.min'_mem _ (IST i₁) _ h_τ_nonempty
+    rw [hj_eq_i₁]
+    exact @le_trans T (IST i₁).toPartialOrder.toPreorder y (mini h_τ_nonempty i₁) m₁ hy_le_mini hm₁_own_order
+  case inr =>
+    -- Case: j ≠ i₁
+    have hj_in_diff : j ∈ D \ {i₁} := by
+      simp [Finset.mem_sdiff, Finset.mem_singleton]
+      exact ⟨hj_in_D, hj_ne_i₁⟩
+    have hmini_lt_m₁ : mini h_τ_nonempty j <[j] m₁ := hm₁_special j hj_in_diff
+    have hy_le_mini : y ≤[j] mini h_τ_nonempty j := by
+      apply hj_dominates
+      exact @Finset.min'_mem _ (IST j) _ h_τ_nonempty
+    -- Inline proof of le_trans_through_mini
+    have h_le_of_lt : mini h_τ_nonempty j ≤[j] m₁ := by
+      exact @le_of_lt T (IST j).toPartialOrder.toPreorder (mini h_τ_nonempty j) m₁ hmini_lt_m₁
+    exact @le_trans T (IST j).toPartialOrder.toPreorder y (mini h_τ_nonempty j) m₁ hy_le_mini h_le_of_lt
 
 -- Helper lemma: special element dominates minimum in its own order
 omit [Inhabited T] [DecidableEq T] in
@@ -397,10 +423,6 @@ lemma construct_special_sets {τ : Finset T} {D : Finset I} (h_cell_τD : IST.is
     (hi₁_ne_i₂ : i₁ ≠ i₂) (h_f_i1_eq_f_i2 : mini h_τ_nonempty i₁ = mini h_τ_nonempty i₂) :
     let M (idx : I) : Set T := if idx ∈ D then {y | (∀ k ∈ D \ {idx}, mini h_τ_nonempty k <[k] y) ∧ mini h_τ_nonempty idx ≤[idx] y} else ∅
     ∃ (m₁ m₂ : T), m₁ ∈ M i₁ ∧ m₂ ∈ M i₂ ∧ m₁ ∉ τ ∧ m₂ ∉ τ ∧ m₁ ≠ m₂ := by
-  -- The construction ensures that:
-  -- 1. For k ≠ idx: mini k <[k] y (y is above other minimums)
-  -- 2. mini idx ≤[idx] y (y is above its own minimum)
-  -- This guarantees the properties needed for room extension
   sorry
 
 -- Helper lemma: uniqueness of room extensions
@@ -452,12 +474,9 @@ theorem internal_door_two_rooms (τ : Finset T) (D : Finset I)
   let σ₂_cand := insert m₂ τ
   let C₂_cand := D
 
-  -- Prove that σ₁_cand and σ₂_cand are rooms
   have h_room₁ : IST.isRoom σ₁_cand C₁_cand := by
     constructor
-    · -- Prove isCell σ₁_cand C₁_cand
-      have hm₁_special : ∀ k ∈ D \ {i₁}, mini h_τ_nonempty k <[k] m₁ := by
-        -- Extract the property from hm₁_in_Mi1
+    · have hm₁_special : ∀ k ∈ D \ {i₁}, mini h_τ_nonempty k <[k] m₁ := by
         have M_def : let M (idx : I) : Set T := if idx ∈ D then {y | (∀ k ∈ D \ {idx}, mini h_τ_nonempty k <[k] y) ∧ mini h_τ_nonempty idx ≤[idx] y} else ∅
                      m₁ ∈ M i₁ := hm₁_in_Mi1
         simp only [Set.mem_setOf_eq] at M_def
@@ -466,22 +485,20 @@ theorem internal_door_two_rooms (τ : Finset T) (D : Finset I)
         exact M_def.1
       exact cell_preserved_by_adding_special_element h_cell_τD h_τ_nonempty hm₁_notin_τ hm₁_special hi₁D
         (special_element_dominates_own_mini h_cell_τD h_τ_nonempty hm₁_special hi₁D
-          (by -- Extract the second property from hm₁_in_Mi1
+          (by 
              have M_def : let M (idx : I) : Set T := if idx ∈ D then {y | (∀ k ∈ D \ {idx}, mini h_τ_nonempty k <[k] y) ∧ mini h_τ_nonempty idx ≤[idx] y} else ∅
                           m₁ ∈ M i₁ := hm₁_in_Mi1
              simp only [Set.mem_setOf_eq] at M_def
              have hi₁_in_D_check : i₁ ∈ D := hi₁D
              rw [if_pos hi₁_in_D_check] at M_def
              exact M_def.2))
-    · -- Prove C₁_cand.card = σ₁_cand.card
-      simp [σ₁_cand, C₁_cand]
+    · simp [σ₁_cand, C₁_cand]
       rw [Finset.card_insert_of_not_mem hm₁_notin_τ, h_card_D_eq_τ_plus_1]
 
   have h_room₂ : IST.isRoom σ₂_cand C₂_cand := by
     constructor
-    · -- Prove isCell σ₂_cand C₂_cand
-      have hm₂_special : ∀ k ∈ D \ {i₂}, mini h_τ_nonempty k <[k] m₂ := by
-        -- Extract the property from hm₂_in_Mi2
+    · have hm₂_special : ∀ k ∈ D \ {i₂}, mini h_τ_nonempty k <[k] m₂ := by
+
         have M_def : let M (idx : I) : Set T := if idx ∈ D then {y | (∀ k ∈ D \ {idx}, mini h_τ_nonempty k <[k] y) ∧ mini h_τ_nonempty idx ≤[idx] y} else ∅
                      m₂ ∈ M i₂ := hm₂_in_Mi2
         simp only [Set.mem_setOf_eq] at M_def
@@ -586,20 +603,76 @@ lemma NC_of_TNC (h1 : isTypedNC c i σ C) : isNearlyColorful c σ C := by
 
 
 lemma type_aux (h : isNearlyColorful c σ C) : ∃! i : I, i ∉ σ.image c ∧ C = insert i (σ.image c) := by
-  obtain ⟨_, h_card_sdiff_eq_1⟩ := h
+  obtain ⟨h_cell, h_card_sdiff_eq_1⟩ := h
   rw [Finset.card_eq_one] at h_card_sdiff_eq_1
-  obtain ⟨i, hi_eq⟩ := h_card_sdiff_eq_1 -- hi_eq : C \ image c σ = {i}
+  obtain ⟨i, hi_eq⟩ := h_card_sdiff_eq_1 -- hi_eq : C \\ image c σ = {i}
   use i
   dsimp only
   constructor
-  · -- Prove P(i): i ∉ σ.image c ∧ C = insert i (σ.image c)
-    have hi_in_C_and_notin_image : i ∈ C ∧ i ∉ image c σ := by
-      rw [← Finset.mem_sdiff, hi_eq]
+  · have hi_mem_C_sdiff_image : i ∈ C \ image c σ := by
+      rw [hi_eq]
       exact Finset.mem_singleton_self i
     constructor
-    · exact hi_in_C_and_notin_image.2
-    · sorry
-  sorry
+    · exact (Finset.mem_sdiff.mp hi_mem_C_sdiff_image).2
+    · ext x
+      constructor
+      · intro hx_in_C
+        by_cases h : x ∈ image c σ
+        · exact Finset.mem_insert_of_mem h
+        · have hx_in_sdiff : x ∈ C \ image c σ := Finset.mem_sdiff.mpr ⟨hx_in_C, h⟩
+          rw [hi_eq] at hx_in_sdiff
+          rw [Finset.mem_singleton.mp hx_in_sdiff]
+          exact Finset.mem_insert_self i (image c σ)
+      · intro hx_in_insert
+        cases Finset.mem_insert.mp hx_in_insert with
+        | inl hx_eq_i =>
+          rw [hx_eq_i]
+          exact (Finset.mem_sdiff.mp hi_mem_C_sdiff_image).1
+        | inr hx_in_image =>
+          by_contra hx_not_in_C
+          have h_i_notin_image : i ∉ image c σ := (Finset.mem_sdiff.mp hi_mem_C_sdiff_image).2
+          have h_x_ne_i : x ≠ i := fun h_eq => h_i_notin_image (h_eq ▸ hx_in_image)
+          have h1 : (image c σ).card ≤ σ.card := Finset.card_image_le
+          have h2 : σ.card ≤ C.card := card_le_of_domiant h_cell
+          have h3 : C.card = (Finset.card (C ∩ image c σ)) + 1 := by
+            have : C.card = (C ∩ image c σ).card + (C \ image c σ).card :=
+              (Finset.card_inter_add_card_sdiff C (image c σ)).symm
+            rw [hi_eq] at this
+            simp at this
+            exact this
+          have h4 : (image c σ).card ≥ C.card := by
+            have h_split : (image c σ).card = (C ∩ image c σ).card + (image c σ \ C).card := by
+              rw [Finset.inter_comm C (image c σ)]
+              exact (Finset.card_inter_add_card_sdiff (image c σ) C).symm
+            have h_nonempty : (image c σ \ C).Nonempty := ⟨x, Finset.mem_sdiff.mpr ⟨hx_in_image, hx_not_in_C⟩⟩
+            have h_pos : 0 < (image c σ \ C).card := Finset.card_pos.mpr h_nonempty
+            rw [h_split, h3]
+            exact Nat.add_le_add_left h_pos _
+          have h_eq : (image c σ).card = C.card := le_antisymm (le_trans h1 h2) h4
+          have h_sdiff_empty : image c σ \ C = ∅ := by
+            by_contra h_nonempty
+            have h_pos : 0 < (image c σ \ C).card := Finset.card_pos.mpr (Finset.nonempty_of_ne_empty h_nonempty)
+            have h_split : (image c σ).card = (C ∩ image c σ).card + (image c σ \ C).card := by
+              rw [Finset.inter_comm C (image c σ)]
+              exact (Finset.card_inter_add_card_sdiff (image c σ) C).symm
+            rw [h_split] at h_eq
+            rw [h3] at h_eq
+            sorry
+          have h_x_not_in_sdiff : x ∉ image c σ \ C := by
+            rw [h_sdiff_empty]
+            exact Finset.not_mem_empty x
+          have h_x_in_sdiff : x ∈ image c σ \ C := Finset.mem_sdiff.mpr ⟨hx_in_image, hx_not_in_C⟩
+          exact h_x_not_in_sdiff h_x_in_sdiff
+  ·
+    intro j hj
+    obtain ⟨hj_notin, hj_C_eq_insert_j⟩ := hj
+    have h_j_in_C : j ∈ C := by
+      rw [hj_C_eq_insert_j]
+      exact Finset.mem_insert_self j (image c σ)
+    have hj_in_singleton : j ∈ ({i} : Finset I) := by
+      rw [← hi_eq]
+      exact Finset.mem_sdiff.mpr ⟨h_j_in_C, hj_notin⟩
+    exact Finset.eq_of_mem_singleton hj_in_singleton
 
 def NCtype (h : isNearlyColorful c σ C) : I :=
   Classical.choose (type_aux h).exists
@@ -773,29 +846,20 @@ lemma dbcount_outside_door' (i : I): ∃ x,  filter (fun x => isOutsideDoor x.1.
 
     -- Show j = i
     have h_j_eq_i : j = i := by
-      -- We know x_gen.1.2 = {i} from h_x_gen_1_2_eq
-      -- We also know from outsidedoor_is_singleton that x_gen.1.2 = {j}
       have h_eq_j : x_gen.1.2 = {j} := h_D_eq
       rw [h_x_gen_1_2_eq] at h_eq_j
       have : j ∈ {j} := Finset.mem_singleton_self j
       rw [←h_eq_j] at this
       exact Finset.eq_of_mem_singleton this
 
-    -- Now we need to determine the room structure
-    -- From isDoorof, we know either it's an idoor or odoor
     cases h_door with
     | idoor h_cell_σC h_door_τD x h_x_notin h_insert_eq h_D_eq_C =>
-      -- In this case, σ = insert x τ and C = D
-      -- Since τ = ∅ (from h_empty), we have σ = {x}
       have h_σ_eq : x_gen.2.1 = {x} := by
         rw [←h_insert_eq, h_empty]
         rfl
 
       -- We need to show x = x_max_i
       have h_x_eq_max : x = x_max_i := by
-        -- From h_cell_σC, we know {x} is dominated by {i}
-        -- This means for all y, y ≤[i] x
-        -- Since x_max_i is the maximum element under order i, we must have x = x_max_i
         have h_dom : ∀ y, y ≤[i] x := by
           intro y
           obtain ⟨j_dom, hj_in, hj_dom⟩ := h_cell_σC y
@@ -805,28 +869,20 @@ lemma dbcount_outside_door' (i : I): ∃ x,  filter (fun x => isOutsideDoor x.1.
           apply hj_dom
           rw [h_σ_eq]
           simp
-        -- x_max_i is the maximum, so x ≤[i] x_max_i
         have h1 : x ≤[i] x_max_i := @Finset.le_max' T (IST i) Finset.univ x (Finset.mem_univ x)
-        -- But also x_max_i ≤[i] x by h_dom
         have h2 : x_max_i ≤[i] x := h_dom x_max_i
-        -- Therefore x = x_max_i
         exact @le_antisymm T (IST i).toPartialOrder x x_max_i h1 h2
-
-      -- Conclude by showing the components are equal
+      
       apply Prod.ext
-      · -- First component pair
-        apply Prod.ext
+      · apply Prod.ext
         · exact h_empty
         · rw [h_x_gen_1_2_eq]
-      · -- Second component pair
-        apply Prod.ext
+      · apply Prod.ext
         · rw [h_σ_eq, h_x_eq_max]
         · rw [←h_D_eq_C, h_x_gen_1_2_eq]
 
     | odoor h_cell_σC h_door_τD j h_j_notin h_τ_eq h_D_insert =>
-      -- In this case, τ = σ and D = insert j C
-      -- But τ = ∅, so σ = ∅, which contradicts that we need a room
-      -- This case is impossible for an outside door
+
       exfalso
       have h_σ_empty : x_gen.2.1 = ∅ := by
         rw [←h_τ_eq, h_empty]
@@ -844,8 +900,8 @@ lemma dbcount_outside_door' (i : I): ∃ x,  filter (fun x => isOutsideDoor x.1.
     rw [h_eq]
     simp only [mem_filter, mem_univ, true_and]
     constructor
-    · sorry-- Prove isOutsideDoor x_unique.1.1 x_unique.1.2
-      -- x_unique.1.1 is τ_u (Finset.empty), x_unique.1.2 is D_u ({i})
+    · sorry
+
     · sorry
 
 variable (c)
@@ -879,10 +935,7 @@ lemma fiber_size_internal_door (c : T → I) (i : I) (y : Finset T × Finset I)
     constructor
     · simp only [dbcountingset, mem_filter, mem_univ, true_and]
       exact ⟨hy_typed, h_door₁⟩
-    · -- Show not outside door
-      intro h_outside -- h_outside : isOutsideDoor y.1 y.2
-      -- hy_internal.2 : y.1.Nonempty
-      -- h_outside.2 : y.1 = Finset.empty
+    · intro h_outside 
       exact (Finset.nonempty_iff_ne_empty.mp hy_internal.2) h_outside.2
 
   have elem2_in_s : elem2 ∈ s := by
@@ -890,11 +943,9 @@ lemma fiber_size_internal_door (c : T → I) (i : I) (y : Finset T × Finset I)
     constructor
     · simp only [dbcountingset, mem_filter, mem_univ, true_and]
       exact ⟨hy_typed, h_door₂⟩
-    · -- Show not outside door
-      intro h_outside -- h_outside : isOutsideDoor y.1 y.2
+    · intro h_outside 
       exact (Finset.nonempty_iff_ne_empty.mp hy_internal.2) h_outside.2
 
-  -- The elements are distinct
   have elems_distinct : elem1 ≠ elem2 := by
     simp only [elem1, elem2]
     intro h_eq
@@ -906,7 +957,6 @@ lemma fiber_size_internal_door (c : T → I) (i : I) (y : Finset T × Finset I)
       exact this.1
     exact h_ne this
 
-  -- The fiber contains exactly these two elements
   have fiber_eq : filter (fun a => f a = y) s = {elem1, elem2} := by
     ext x
     constructor
@@ -918,32 +968,26 @@ lemma fiber_size_internal_door (c : T → I) (i : I) (y : Finset T × Finset I)
       rw [mem_filter] at hx_db
       obtain ⟨_, hx_typed_x, hx_door_x⟩ := hx_db
 
-      -- Since f x = y, we have x.1 = y, so x = (y, x.2)
       have h_x_form : x = (y, x.2) := Prod.ext_iff.mpr ⟨hx_eq, rfl⟩
 
-      -- x.2 must be one of the two rooms by uniqueness
       have h_room_x2 : IST.isRoom x.2.1 x.2.2 := isRoom_of_Door hx_door_x
-      -- Since x.1 = y and hx_door_x : isDoorof x.1.1 x.1.2 x.2.1 x.2.2
-      -- We have isDoorof y.1 y.2 x.2.1 x.2.2
       have hx_door_y : isDoorof y.1 y.2 x.2.1 x.2.2 :=
         hx_eq ▸ hx_door_x
       obtain h_case1 | h_case2 := h_unique x.2.1 x.2.2 h_room_x2 hx_door_y
       · simp only [mem_insert, mem_singleton]
         left
-        rw [h_x_form] -- Goal: (y, x.2) = elem1, which is (y, (σ₁, C₁))
+        rw [h_x_form] 
         apply Prod.ext
         · rfl
-        · -- Goal: x.2 = (σ₁, C₁)
-          apply Prod.ext
+        · apply Prod.ext
           · exact h_case1.1
           · exact h_case1.2
       · simp only [mem_insert, mem_singleton]
         right
-        rw [h_x_form] -- Goal: (y, x.2) = elem2, which is (y, (σ₂, C₂))
+        rw [h_x_form] 
         apply Prod.ext
         · rfl
-        · -- Goal: x.2 = (σ₂, C₂)
-          apply Prod.ext
+        · apply Prod.ext
           · exact h_case2.1
           · exact h_case2.2
     · intro hx
@@ -960,7 +1004,6 @@ lemma fiber_size_internal_door (c : T → I) (i : I) (y : Finset T × Finset I)
   exact Finset.card_pair elems_distinct
 
 lemma dbcount_internal_door_even (i : I) : Even (filter (fun x => ¬ isOutsideDoor x.1.1 x.1.2) (dbcountingset c i)).card := by
-  -- Key insight: By internal_door_two_rooms, every internal door connects to exactly 2 rooms
   let s := filter (fun x => ¬ isOutsideDoor x.1.1 x.1.2) (dbcountingset c i)
   let t := filter (fun (x : Finset T × Finset I) => IST.isInternalDoor x.1 x.2 ∧ isTypedNC c i x.1 x.2) univ
   let f := fun (x : (Finset T × Finset I) × Finset T × Finset I) => x.1
@@ -974,15 +1017,12 @@ lemma dbcount_internal_door_even (i : I) : Even (filter (fun x => ¬ isOutsideDo
     rw [mem_filter]
     simp only [mem_univ, true_and]
     constructor
-    · -- Show isInternalDoor x.1.1 x.1.2
-      unfold isInternalDoor
+    · unfold isInternalDoor
       constructor
-      · -- Show isDoor x.1.1 x.1.2
-        cases hx_door with
+      · cases hx_door with
         | idoor h0 h1 y h_notin h_eq h_D_eq_C => exact h1
         | odoor h0 h1 j h_notin h_eq h_D_eq => exact h1
-      · -- Show x.1.1.Nonempty
-        by_contra h_empty
+      · by_contra h_empty
         have h_outside : isOutsideDoor x.1.1 x.1.2 := by
           constructor
           · cases hx_door with
@@ -992,12 +1032,10 @@ lemma dbcount_internal_door_even (i : I) : Even (filter (fun x => ¬ isOutsideDo
         exact hx_not_outside h_outside
     · exact hx_typed
 
-  -- Each fiber has exactly 2 elements by internal_door_two_rooms
-  have fiber_size_two : ∀ y ∈ t, (filter (fun a => f a = y) s).card = 2 := by
+  have fiber_size_two : ∀ y ∈ t, (filter (fun a=> f a = y) s).card = 2 := by
     intro y hy
     rw [mem_filter] at hy
     obtain ⟨_, hy_internal, hy_typed⟩ := hy
-    -- Apply internal_door_two_rooms to get exactly 2 rooms
     exact fiber_size_internal_door c i y hy_internal hy_typed
 
   have counteq := Finset.card_eq_sum_card_fiberwise fs_in_t
