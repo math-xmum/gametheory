@@ -652,7 +652,6 @@ lemma type_aux (h : isNearlyColorful c σ C) : ∃! i : I, i ∉ σ.image c ∧ 
           have h_sdiff_empty : image c σ \ C = ∅ := by
             by_contra h_nonempty
             have h_pos : 0 < (image c σ \ C).card := Finset.card_pos.mpr (Finset.nonempty_of_ne_empty h_nonempty)
-
           have h_x_not_in_sdiff : x ∉ image c σ \ C := by
             rw [h_sdiff_empty]
             exact Finset.not_mem_empty x
