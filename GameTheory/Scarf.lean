@@ -352,7 +352,7 @@ lemma sublemma_3_1 [Fintype T] (τ : Finset T) (D : Finset I)
         use k, hk_in_D, hk_ne_i
     · push_neg at h_case
       obtain ⟨h_i_ne_a, h_i_ne_b⟩ := h_case
-     
+
       have h_a_in_erase : a ∈ D.erase i := Finset.mem_erase.mpr ⟨h_i_ne_a.symm, ha_mem⟩
       have h_b_in_erase : b ∈ D.erase i := Finset.mem_erase.mpr ⟨h_i_ne_b.symm, hb_mem⟩
 
@@ -1307,7 +1307,7 @@ lemma NC_of_TNC (h1 : isTypedNC c i σ C) : isNearlyColorful c σ C := by
 
 
 --Useless lemma, remain sorry first.
-section useless_lemma
+/-section useless_lemma
 lemma door_of_Croom (h1 : isColorful c σ C) (h2 : isDoorof τ D σ C) : isNearlyColorful c τ D := by sorry
 
 lemma unique_type_door_of_Croom (h1 : isColorful c σ C) (i :I) :
@@ -1315,13 +1315,14 @@ lemma unique_type_door_of_Croom (h1 : isColorful c σ C) (i :I) :
 
 lemma type_aux (h : isNearlyColorful c σ C) : ∃! i : I, i ∉ σ.image c ∧ C = insert i (σ.image c) := by
   sorry
+
 def NCtype (h : isNearlyColorful c σ C) : I :=
   Classical.choose (type_aux h).exists
 
 structure TypedNC (i : I) (σ : Finset T) (C : Finset I): Prop where
   nc : isNearlyColorful c σ C
   t : NCtype nc = i
-end useless_lemma
+end useless_lemma-/
 
 omit [Inhabited T] [DecidableEq T] in
 lemma room_of_colorful (h : IST.isColorful c σ C) : IST.isRoom σ C := by
@@ -1360,120 +1361,216 @@ lemma NC_of_outsidedoor (h : isOutsideDoor σ C) : isNearlyColorful c σ C  := b
       rw [he] at h1
       exact h1
 
-/-
-variable {c σ C} in
-lemma type_unique_of_outsidedoor (h : isOutsideDoor σ C) : ∃! i,  i = isNCtype (NC_of_outsidedoor (c:=c) h)  := sorry
--/
-/-
-Lemma 5
--/
+/-variable {c σ C} in
+lemma type_unique_of_outsidedoor (h : isOutsideDoor σ C) : ∃! i,  i = isNCtype (NC_of_outsidedoor (c:=c) h)  := sorry-/
 
-
+/-Lemma 5-/
 omit [Inhabited T] in
--- Helper lemma: if two finite sets with equal inserts have different insert elements not in the original sets, then they are equal
-lemma finset_insert_eq_insert_of_disjoint {α : Type*} [DecidableEq α] (s t : Finset α) (a b : α)
-    (h_eq : insert a s = insert b t) (h_a_notin : a ∉ s) (h_b_notin : b ∉ t) (h_a_ne_b : a ≠ b) :
-    a ∈ t ∧ b ∈ s ∧ s = insert b (t \ {a}) ∧ t = insert a (s \ {b}) := by
-  have h_a_in_t : a ∈ t := by
-    have : a ∈ insert b t := by rw [←h_eq]; exact Finset.mem_insert_self a s
-    cases Finset.mem_insert.mp this with
-    | inl h => exact absurd h h_a_ne_b
-    | inr h => exact h
-  have h_b_in_s : b ∈ s := by
-    have : b ∈ insert a s := by rw [h_eq]; exact Finset.mem_insert_self b t
-    cases Finset.mem_insert.mp this with
-    | inl h => exact absurd h.symm h_a_ne_b
-    | inr h => exact h
-  constructor; exact h_a_in_t
-  constructor; exact h_b_in_s
-  constructor
-  · ext x
+lemma NC_or_C_of_door (h1 : isTypedNC c i τ D) (h2 : isDoorof τ D σ C) :
+  isTypedNC c i σ C ∨ isColorful c σ C := by
+
+  unfold isTypedNC at h1 ⊢
+  unfold isColorful
+  obtain ⟨h1_cell, h1_notin, h1_eq⟩ := h1
+
+  have h_sigma_cell : isCell σ C := by
+    cases h2 with
+    | idoor h0 _ _ _ _ _ => exact h0
+    | odoor h0 _ _ _ _ _ => exact h0
+
+  have step1_subset : C \ (σ.image c) ⊆ D \ (τ.image c) := by
+    intro y hy
+    simp only [Finset.mem_sdiff] at hy ⊢
+    obtain ⟨y_in_C, y_notin_img_sigma⟩ := hy
     constructor
-    · intro hx_in_s
-      by_cases h_x_eq_b : x = b
-      · rw [h_x_eq_b]; exact Finset.mem_insert_self b (t \ {a})
-      · have hx_in_insert_a_s : x ∈ insert a s := Finset.mem_insert_of_mem hx_in_s
-        rw [h_eq] at hx_in_insert_a_s
-        cases Finset.mem_insert.mp hx_in_insert_a_s with
-        | inl h_x_eq_b => rw [h_x_eq_b]; exact Finset.mem_insert_self b (t \ {a})
-        | inr hx_in_t =>
-          apply Finset.mem_insert_of_mem
-          rw [Finset.mem_sdiff]
-          constructor; exact hx_in_t
-          rw [Finset.mem_singleton]
-          intro h_x_eq_a
-          rw [h_x_eq_a] at hx_in_s
-          exact h_a_notin hx_in_s
-    · intro hx_in_insert
-      cases Finset.mem_insert.mp hx_in_insert with
-      | inl h_x_eq_b => rw [h_x_eq_b]; exact h_b_in_s
-      | inr hx_in_diff =>
-        rw [Finset.mem_sdiff] at hx_in_diff
-        have hx_in_t := hx_in_diff.1
-        have hx_ne_a := by rw [Finset.mem_singleton] at hx_in_diff; exact hx_in_diff.2
-        have hx_in_insert_b_t : x ∈ insert b t := Finset.mem_insert_of_mem hx_in_t
-        rw [←h_eq] at hx_in_insert_b_t
-        cases Finset.mem_insert.mp hx_in_insert_b_t with
-        | inl h_x_eq_a => exact absurd h_x_eq_a hx_ne_a
-        | inr hx_in_s => exact hx_in_s
-  · ext x
+    · cases h2
+      · rename_i h_D_eq; rw [h_D_eq]; exact y_in_C
+      · rename_i h_D_eq; rw [h_D_eq]; exact Finset.mem_insert_of_mem y_in_C
+    · cases h2 with
+      | idoor h0 hdoor x h_x_notin h_sigma_eq h_D_eq =>
+        rw [← h_sigma_eq, Finset.image_insert] at y_notin_img_sigma
+        simp only [Finset.mem_insert, not_or] at y_notin_img_sigma
+        exact y_notin_img_sigma.2
+      | odoor h0 hdoor j h_j_notin h_sigma_eq h_D_eq =>
+        rw [← h_sigma_eq] at y_notin_img_sigma
+        exact y_notin_img_sigma
+
+  have step2_D_card : (D \ (τ.image c)).card = 1 := by
+    have D_sdiff_eq_i : D \ (τ.image c) = {i} := by
+      rw [h1_eq]
+      ext x
+      simp only [mem_sdiff, mem_insert, mem_singleton, h1_notin]
+      constructor
+      · intro h; exact h.1.resolve_right h.2
+      · intro h_xi; rw [h_xi]; exact ⟨Or.inl rfl, h1_notin⟩
+    rw [D_sdiff_eq_i, Finset.card_singleton]
+
+  have step3_C_card_le : (C \ σ.image c).card ≤ 1 := by
+    rw [← step2_D_card]
+    exact Finset.card_le_card step1_subset
+
+  by_cases h_C_sigma_empty : (C \ σ.image c).card = 0
+
+  · right
     constructor
-    · intro hx_in_t
-      by_cases h_x_eq_a : x = a
-      · rw [h_x_eq_a]; exact Finset.mem_insert_self a (s \ {b})
-      · have hx_in_insert_b_t : x ∈ insert b t := Finset.mem_insert_of_mem hx_in_t
-        rw [←h_eq] at hx_in_insert_b_t
-        cases Finset.mem_insert.mp hx_in_insert_b_t with
-        | inl h_x_eq_a => rw [h_x_eq_a]; exact Finset.mem_insert_self a (s \ {b})
-        | inr hx_in_s =>
-          apply Finset.mem_insert_of_mem
-          rw [Finset.mem_sdiff]
-          constructor; exact hx_in_s
-          rw [Finset.mem_singleton]
-          intro h_x_eq_b
-          rw [h_x_eq_b] at hx_in_t
-          exact h_b_notin hx_in_t
-    · intro hx_in_insert
-      cases Finset.mem_insert.mp hx_in_insert with
-      | inl h_x_eq_a => rw [h_x_eq_a]; exact h_a_in_t
-      | inr hx_in_diff =>
-        rw [Finset.mem_sdiff] at hx_in_diff
-        have hx_in_s := hx_in_diff.1
-        have hx_ne_b := by rw [Finset.mem_singleton] at hx_in_diff; exact hx_in_diff.2
-        have hx_in_insert_a_s : x ∈ insert a s := Finset.mem_insert_of_mem hx_in_s
-        rw [h_eq] at hx_in_insert_a_s
-        cases Finset.mem_insert.mp hx_in_insert_a_s with
-        | inl h_x_eq_b => exact absurd h_x_eq_b hx_ne_b
-        | inr hx_in_t => exact hx_in_t
+    · exact h_sigma_cell
+    · have h_C_subset_img : C ⊆ σ.image c := by
+        rw [Finset.subset_iff]
+        intro x hx
+        by_contra hxn
+        have : x ∈ C \ σ.image c := by simp [hx, hxn]
+        have : (C \ σ.image c).Nonempty := ⟨x, this⟩
+        have : 0 < (C \ σ.image c).card := Finset.card_pos.2 this
+        linarith [h_C_sigma_empty]
 
--- Helper lemma for the specific case in NC_or_C_of_door
+      have h_room: isRoom σ C := isRoom_of_Door h2
+      have h_card_eq : C.card = σ.card := h_room.2
+      have h_img_le_C_card : (σ.image c).card ≤ C.card := by
+        calc (σ.image c).card
+          ≤ σ.card := Finset.card_image_le
+          _ = C.card := h_card_eq.symm
+      exact (Finset.eq_of_subset_of_card_le h_C_subset_img h_img_le_C_card).symm
 
-omit [Inhabited T] IST [DecidableEq T] in
-lemma helper_for_insert_eq {σ : Finset T} {C : Finset I} {i j : I}
-    (h_eq : insert j C = insert i (σ.image c))
-    (h_i_notin : i ∉ σ.image c)
-    (h_j_notin : j ∉ C)
-    (h_i_ne_j : i ≠ j) :
-    i ∈ C ∧ j ∈ σ.image c ∧ σ.image c = insert j (C \ {i}) ∧ C = insert i (σ.image c \ {j}) :=
-  finset_insert_eq_insert_of_disjoint (σ.image c) C i j h_eq.symm h_i_notin h_j_notin h_i_ne_j
+  omit [Inhabited T] in
+lemma NC_or_C_of_door (h1 : isTypedNC c i τ D) (h2 : isDoorof τ D σ C) :
+  isTypedNC c i σ C ∨ isColorful c σ C := by
 
+  unfold isTypedNC at h1 ⊢
+  unfold isColorful
+  obtain ⟨h1_cell, h1_notin, h1_eq⟩ := h1
 
-omit [Inhabited T] in
-lemma NC_or_C_of_door (h1 : isTypedNC c i τ D) (h2 : isDoorof τ D σ C) : isTypedNC c i σ C ∨ isColorful c σ C := by
-     sorry
+  have h_sigma_cell : isCell σ C := by
+    cases h2 with
+    | idoor h0 _ _ _ _ _ => exact h0
+    | odoor h0 _ _ _ _ _ => exact h0
 
+  have step1_subset : C \ (σ.image c) ⊆ D \ (τ.image c) := by
+    intro y hy
+    simp only [Finset.mem_sdiff] at hy ⊢
+    obtain ⟨y_in_C, y_notin_img_sigma⟩ := hy
+    constructor
+    · cases h2
+      · rename_i h_D_eq; rw [h_D_eq]; exact y_in_C
+      · rename_i h_D_eq; rw [h_D_eq]; exact Finset.mem_insert_of_mem y_in_C
+    · cases h2 with
+      | idoor h0 hdoor x h_x_notin h_sigma_eq h_D_eq =>
+        rw [← h_sigma_eq, Finset.image_insert] at y_notin_img_sigma
+        simp only [Finset.mem_insert, not_or] at y_notin_img_sigma
+        exact y_notin_img_sigma.2
+      | odoor h0 hdoor j h_j_notin h_sigma_eq h_D_eq =>
+        rw [← h_sigma_eq] at y_notin_img_sigma
+        exact y_notin_img_sigma
 
+  have step2_D_card : (D \ (τ.image c)).card = 1 := by
+    have D_sdiff_eq_i : D \ (τ.image c) = {i} := by
+      rw [h1_eq]
+      ext x
+      simp only [mem_sdiff, mem_insert, mem_singleton, h1_notin]
+      constructor
+      · intro h; exact h.1.resolve_right h.2
+      · intro h_xi; rw [h_xi]; exact ⟨Or.inl rfl, h1_notin⟩
+    rw [D_sdiff_eq_i, Finset.card_singleton]
 
+  have step3_C_card_le : (C \ σ.image c).card ≤ 1 := by
+    rw [← step2_D_card]
+    exact Finset.card_le_card step1_subset
 
+  by_cases h : (C \ σ.image c).card = 0
+  · -- Case: colorful
+    right
+    constructor
+    · exact h_sigma_cell
+    · have h_C_subset_img : C ⊆ σ.image c := by
+        rw [Finset.subset_iff]
+        intro x hx
+        by_contra hxn
+        have : x ∈ C \ σ.image c := by simp [hx, hxn]
+        have : (C \ σ.image c).Nonempty := ⟨x, this⟩
+        have : 0 < (C \ σ.image c).card := Finset.card_pos.2 this
+        linarith [h]
+
+      have h_room: isRoom σ C := isRoom_of_Door h2
+      have h_card_eq : C.card = σ.card := h_room.2
+      have h_img_le_C_card : (σ.image c).card ≤ C.card := by
+        calc (σ.image c).card
+          ≤ σ.card := Finset.card_image_le
+          _ = C.card := h_card_eq.symm
+      exact (Finset.eq_of_subset_of_card_le h_C_subset_img h_img_le_C_card).symm
+
+  · -- Case: nearly colorful of same type
+    left
+    constructor
+    · exact h_sigma_cell
+    · have h_card_one : (C \ σ.image c).card = 1 := by omega
+
+      have h_subset_singleton : C \ σ.image c ⊆ {i} := by
+        have D_sdiff_eq_i : D \ (τ.image c) = {i} := by
+          rw [h1_eq]
+          ext x
+          simp only [mem_sdiff, mem_insert, mem_singleton, h1_notin]
+          constructor
+          · intro h; exact h.1.resolve_right h.2
+          · intro h_xi; rw [h_xi]; exact ⟨Or.inl rfl, h1_notin⟩
+        rw [← D_sdiff_eq_i]
+        exact step1_subset
+
+      have C_sdiff_eq_i : C \ σ.image c = {i} :=
+        Finset.eq_of_subset_of_card_le h_subset_singleton (by rw [h_card_one, Finset.card_singleton])
+
+      have h_i_notin_img : i ∉ σ.image c := by
+        have h_i_in_sdiff : i ∈ C \ σ.image c := by rw [C_sdiff_eq_i]; simp
+        exact (Finset.mem_sdiff.mp h_i_in_sdiff).2
+
+      constructor
+      · exact h_i_notin_img
+      · ext x
+        constructor
+        · intro hx
+          rw [Finset.mem_insert]
+          by_cases h_img : x ∈ σ.image c
+          · right; exact h_img
+          · left
+            have h_in_sdiff : x ∈ C \ σ.image c := Finset.mem_sdiff.mpr ⟨hx, h_img⟩
+            rw [C_sdiff_eq_i] at h_in_sdiff
+            exact Finset.mem_singleton.mp h_in_sdiff
+        · intro hx
+          rw [Finset.mem_insert] at hx
+          cases hx with
+          | inl h_xi =>
+            rw [h_xi]
+            have : i ∈ C \ σ.image c := by rw [C_sdiff_eq_i]; simp
+            exact (Finset.mem_sdiff.mp this).1
+          | inr h => sorry
 
 omit [Inhabited T] in
 lemma NCtype_of_door (h1 : isTypedNC c i τ D) (_ : isDoorof τ D σ C) (_ : isTypedNC c i σ C) : isTypedNC c i τ D := h1
 
 /-
 Lemma 6 : The version in paper is incorrect-/
-lemma card_of_NCcell (h : isNearlyColorful c σ D) : #σ = #(image c σ) ∨  #σ + 1 = #(image c σ) := by
-  sorry
-
+omit [Inhabited T] [DecidableEq T] in
+lemma card_of_NCcell (h : isNearlyColorful c σ D) : #σ = #(image c σ)  ∨  #σ = #(image c σ) + 1 := by
+  unfold isNearlyColorful at h
+  rcases h with ⟨h_cell, h_nc_card⟩
+  let img := image c σ
+  have h_card_le_D : σ.card ≤ D.card := card_le_of_domiant h_cell
+  have h_D_card_eq := (Finset.card_sdiff_add_card_inter D img).symm
+  rw [h_nc_card] at h_D_card_eq
+  have h_inter_le_img : (D ∩ img).card ≤ img.card := card_le_card (Finset.inter_subset_right)
+  have h_D_le : D.card ≤ 1 + img.card := by
+    linarith [h_D_card_eq, h_inter_le_img]
+  have h_img_le_sigma : img.card ≤ σ.card := card_image_le
+  have h_sigma_le_plus_one : σ.card ≤ img.card + 1 := by
+    linarith [h_card_le_D, h_D_le]
+  have h_or : σ.card ≤ img.card ∨ σ.card = img.card + 1 := by
+    apply Nat.le_or_eq_of_le_succ
+    exact h_sigma_le_plus_one
+  cases h_or with
+  | inl h_le =>
+    left
+    exact le_antisymm h_le h_img_le_sigma
+  | inr h_eq =>
+    right
+    exact h_eq
 
 /- Lemma 7-/
 variable (c σ C) in
@@ -1504,9 +1601,503 @@ lemma doors_of_NCroom [DecidableEq T] (h0 : isRoom σ C) (h1 : isTypedNC c i σ 
       rw [h1.2.2]
       exact Finset.card_insert_of_not_mem h1.2.1
     linarith [h_card_C_eq_card_image_plus_1, h0.2, h_card_case]
-  · exfalso
-    have h_image_le_sigma : #(image c σ) ≤ #σ := Finset.card_image_le
-    linarith [h_image_le_sigma, h_card_case]
+  · have h_card_eq : σ.card = (image c σ).card + 1 := by
+      have h_pos : 0 < σ.card := by
+        have h_nonempty := sigma_nonempty_of_room h0
+        exact Finset.card_pos.2 h_nonempty
+      rw [←h_card_case]
+
+    obtain ⟨x, y, hx_mem, hy_mem, hxy_eq, hxy_ne, h_inj_remove⟩ := injOn_sdiff σ c h_card_eq
+
+    obtain ⟨_, h_i_notin, h_C_eq⟩ := h1
+
+    have h_inj_x : Set.InjOn c (σ \ {x}) := by
+      have h_remove_x : (σ \ {x}).card = (image c (σ \ {x})).card := by
+        have h1 : image c (σ \ {x}) = image c σ := by
+          ext z
+          constructor
+          · intro hz
+            obtain ⟨w, hw_mem, hw_eq⟩ := Finset.mem_image.mp hz
+            exact Finset.mem_image.mpr ⟨w, (Finset.mem_sdiff.mp hw_mem).1, hw_eq⟩
+          · intro hz
+            obtain ⟨w, hw_mem, hw_eq⟩ := Finset.mem_image.mp hz
+            by_cases h : w = x
+            · subst h
+              rw [←hw_eq, hxy_eq]
+              exact Finset.mem_image.mpr ⟨y, Finset.mem_sdiff.mpr ⟨hy_mem, by simp [hxy_ne.symm]⟩, rfl⟩
+            · exact Finset.mem_image.mpr ⟨w, Finset.mem_sdiff.mpr ⟨hw_mem, by simp [h]⟩, hw_eq⟩
+        rw [h1, Finset.card_sdiff (by simp [hx_mem]), Finset.card_singleton]
+        rw [h_card_eq]
+        omega
+      convert Finset.injOn_of_card_image_eq h_remove_x.symm
+      simp only [Finset.coe_sdiff, Finset.coe_singleton]
+
+    have h_inj_y : Set.InjOn c (σ \ {y}) := by
+      have h_remove_y : (σ \ {y}).card = (image c (σ \ {y})).card := by
+        have h1 : image c (σ \ {y}) = image c σ := by
+          ext z
+          constructor
+          · intro hz
+            obtain ⟨w, hw_mem, hw_eq⟩ := Finset.mem_image.mp hz
+            exact Finset.mem_image.mpr ⟨w, (Finset.mem_sdiff.mp hw_mem).1, hw_eq⟩
+          · intro hz
+            obtain ⟨w, hw_mem, hw_eq⟩ := Finset.mem_image.mp hz
+            by_cases h : w = y
+            · subst h
+              rw [←hw_eq, ←hxy_eq]
+              exact Finset.mem_image.mpr ⟨x, Finset.mem_sdiff.mpr ⟨hx_mem, by simp [hxy_ne]⟩, rfl⟩
+            · exact Finset.mem_image.mpr ⟨w, Finset.mem_sdiff.mpr ⟨hw_mem, by simp [h]⟩, hw_eq⟩
+        rw [h1, Finset.card_sdiff (by simp [hy_mem]), Finset.card_singleton]
+        rw [h_card_eq]
+        omega
+      convert Finset.injOn_of_card_image_eq h_remove_y.symm
+      simp only [Finset.coe_sdiff, Finset.coe_singleton]
+
+    have h_door_x : isDoor (σ \ {x}) C := by
+      constructor
+      · exact Dominant_of_subset _ _ _ (Finset.sdiff_subset) h0.1
+      · rw [Finset.card_sdiff (by simp [hx_mem]), Finset.card_singleton, h0.2]
+        omega
+
+    have h_door_y : isDoor (σ \ {y}) C := by
+      constructor
+      · exact Dominant_of_subset _ _ _ (Finset.sdiff_subset) h0.1
+      · rw [Finset.card_sdiff (by simp [hy_mem]), Finset.card_singleton, h0.2]
+        omega
+    have h_img_eq_x : image c (σ \ {x}) = image c σ := by
+          ext z
+          constructor
+          · intro hz
+            obtain ⟨w, hw_mem, hw_eq⟩ := Finset.mem_image.mp hz
+            exact Finset.mem_image.mpr ⟨w, (Finset.mem_sdiff.mp hw_mem).1, hw_eq⟩
+          · intro hz
+            obtain ⟨w, hw_mem, hw_eq⟩ := Finset.mem_image.mp hz
+            by_cases h : w = x
+            · subst h
+              rw [←hw_eq, hxy_eq]
+              exact Finset.mem_image.mpr ⟨y, Finset.mem_sdiff.mpr ⟨hy_mem, by simp [hxy_ne.symm]⟩, rfl⟩
+            · exact Finset.mem_image.mpr ⟨w, Finset.mem_sdiff.mpr ⟨hw_mem, by simp [h]⟩, hw_eq⟩
+    have h_typed_x : isTypedNC c i (σ \ {x}) C := by
+      constructor
+      · exact h_door_x.1
+      · constructor
+        · rw [h_img_eq_x]
+          exact h_i_notin
+        · rw [h_C_eq]
+          congr 1
+          rw [h_img_eq_x]
+    have h_img_eq_y : image c (σ \ {y}) = image c σ := by
+            ext z
+            constructor
+            · intro hz
+              obtain ⟨w, hw_mem, hw_eq⟩ := Finset.mem_image.mp hz
+              exact Finset.mem_image.mpr ⟨w, (Finset.mem_sdiff.mp hw_mem).1, hw_eq⟩
+            · intro hz
+              obtain ⟨w, hw_mem, hw_eq⟩ := Finset.mem_image.mp hz
+              by_cases h : w = y
+              · subst h
+                rw [←hw_eq, ←hxy_eq]
+                exact Finset.mem_image.mpr ⟨x, Finset.mem_sdiff.mpr ⟨hx_mem, by simp [hxy_ne]⟩, rfl⟩
+              · exact Finset.mem_image.mpr ⟨w, Finset.mem_sdiff.mpr ⟨hw_mem, by simp [h]⟩, hw_eq⟩
+    have h_typed_y : isTypedNC c i (σ \ {y}) C := by
+      constructor
+      · exact h_door_y.1
+      · constructor
+        · rw [h_img_eq_y]
+          exact h_i_notin
+        · rw [h_C_eq]
+          congr 1
+          rw [h_img_eq_y]
+
+    have h_doorof_x : isDoorof (σ \ {x}) C σ C := by
+      apply isDoorof.idoor h0.1 h_door_x x
+      · simp [hx_mem]
+      · rw [Finset.sdiff_singleton_eq_erase]; exact Finset.insert_erase hx_mem
+      · rfl
+
+    have h_doorof_y : isDoorof (σ \ {y}) C σ C := by
+      apply isDoorof.idoor h0.1 h_door_y y
+      · simp [hy_mem]
+      · rw [Finset.sdiff_singleton_eq_erase]; exact Finset.insert_erase hy_mem
+      · rfl
+
+    use (σ \ {x}, C), (σ \ {y}, C)
+    constructor
+    · intro h_eq
+      have : x = y := by
+        have h1 : σ \ {x} = σ \ {y} := by
+          have ⟨h1, h2⟩ := Prod.mk.inj h_eq
+          exact h1
+        by_contra hne
+        have hy_in_left : y ∈ σ \ {x} := by simp [hy_mem, Ne.symm hne]
+        rw [h1] at hy_in_left
+        have hy_notin : y ∉ σ \ {y} := by simp
+        exact hy_notin hy_in_left
+      exact hxy_ne this
+    · ext ⟨τ, D⟩
+      constructor
+      · intro h_mem
+        simp [doors_NCroom] at h_mem
+        obtain ⟨h_typed, h_doorof⟩ := h_mem
+        cases h_doorof with
+        | idoor h_cell_σC h_door_τC z hz hτ_eq hD_eq =>
+          have hτ_eq_sdiff : τ = σ \ {z} := by
+            have h_insert : insert z τ = σ := hτ_eq
+            have h_subset : τ ⊆ σ := by
+              rw [←h_insert]
+              exact Finset.subset_insert z τ
+            have h_z_in_σ : z ∈ σ := by
+              rw [←h_insert]
+              exact Finset.mem_insert_self z τ
+            ext w
+            constructor
+            · intro hw_τ
+              simp
+              constructor
+              · exact h_subset hw_τ
+              · intro h_eq
+                subst h_eq
+                exact hz hw_τ
+            · intro hw_sdiff
+              simp at hw_sdiff
+              obtain ⟨hw_σ, hw_ne⟩ := hw_sdiff
+              by_contra hw_not_τ
+              have h_w_in_insert : w ∈ insert z τ := by
+                rw [h_insert]
+                exact hw_σ
+              simp at h_w_in_insert
+              cases h_w_in_insert with
+              | inl h_eq => exact hw_ne h_eq
+              | inr h_in => exact hw_not_τ h_in
+
+          rw [hτ_eq_sdiff, hD_eq]
+          simp
+          have h_img_eq : (σ \ {z}).image c = σ.image c := by
+            have h_D_eq_insert : D = insert i (τ.image c) := h_typed.2.2
+            rw [hτ_eq_sdiff] at h_D_eq_insert
+            rw [hD_eq] at h_D_eq_insert
+            have h_eq : insert i ((σ \ {z}).image c) = insert i (σ.image c) := by
+              rw [←h_D_eq_insert, h_C_eq]
+            have h_i_notin_sdiff : i ∉ (σ \ {z}).image c := by
+              rw [hτ_eq_sdiff] at h_typed
+              exact h_typed.2.1
+            have h_insert_eq : (σ \ {z}).image c = σ.image c := by
+              ext y
+              constructor
+              · intro hy
+                have h_y_in_insert : y ∈ insert i ((σ \ {z}).image c) := Finset.mem_insert_of_mem hy
+                rw [h_eq] at h_y_in_insert
+                simp only [Finset.mem_insert] at h_y_in_insert
+                cases h_y_in_insert with
+                | inl h_eq_i =>
+                  subst h_eq_i
+                  exfalso
+                  have h_subset : image c (σ \ {z}) ⊆ image c σ := by
+                    intro y hy
+                    obtain ⟨x, hx, rfl⟩ := by simpa using hy
+                    exact Finset.mem_image_of_mem c hx.1
+                  exact h_i_notin (h_subset hy)
+                | inr h_mem => exact h_mem
+              · intro hy
+                have y_ne_i : y ≠ i := fun h => h_i_notin (h ▸ hy)
+                have hy' : y ∈ insert i (image c σ) := Finset.mem_insert.2 (Or.inr hy)
+                rw [←h_eq] at hy'
+                simpa [y_ne_i] using hy'
+            exact h_insert_eq
+          have hz_mem : z ∈ σ := by
+            rw [←hτ_eq]
+            exact Finset.mem_insert_self z τ
+
+          have h_exists_eq : ∃ w ∈ σ \ {z}, c z = c w := by
+            by_contra h_not_exists
+            push_neg at h_not_exists
+            have h_z_unique : ∀ w ∈ σ \ {z}, c z ≠ c w := h_not_exists
+            have h_cz_in_image : c z ∈ (σ.image c) := by
+              exact Finset.mem_image.mpr ⟨z, hz_mem, rfl⟩
+            have h_cz_notin_sdiff_image : c z ∉ ((σ \ {z}).image c) := by
+              intro h_in
+              obtain ⟨w, hw_mem, hw_eq⟩ := Finset.mem_image.mp h_in
+              have hw_in_sdiff : w ∈ σ \ {z} := hw_mem
+              have h_eq_cz : c z = c w := hw_eq.symm
+              exact h_z_unique w hw_in_sdiff h_eq_cz
+            have h_subset : (σ \ {z}).image c ⊆ σ.image c := by
+              intro y hy
+              obtain ⟨w, hw_mem, hw_eq⟩ := Finset.mem_image.mp hy
+              exact Finset.mem_image.mpr ⟨w, (Finset.mem_sdiff.mp hw_mem).1, hw_eq⟩
+            have h_strict_subset : (σ \ {z}).image c ⊂ σ.image c := by
+              rw [Finset.ssubset_iff_subset_ne]
+              constructor
+              · exact h_subset
+              · intro h_eq
+                rw [h_eq] at h_cz_notin_sdiff_image
+                exact h_cz_notin_sdiff_image h_cz_in_image
+            rw [Finset.ssubset_iff_subset_ne] at h_strict_subset
+            exact h_strict_subset.2 h_img_eq
+
+          obtain ⟨w, hw_mem, hzw_eq⟩ := h_exists_eq
+          have hw_in_σ : w ∈ σ := (Finset.mem_sdiff.mp hw_mem).1
+          have hw_ne_z : w ≠ z := by
+            intro h_eq
+            subst h_eq
+            simp at hw_mem
+
+          have h_pair_eq : ({z, w} : Finset T) = {x, y} := by
+            have not_both_in_sdiff : ¬(z ∈ σ \ {x, y} ∧ w ∈ σ \ {x, y}) :=
+              fun ⟨hz_in, hw_in⟩ => hw_ne_z.symm (h_inj_remove (by rw [←Finset.coe_sdiff, Finset.mem_coe]; exact hz_in) (by rw [←Finset.coe_sdiff, Finset.mem_coe]; exact hw_in) hzw_eq)
+
+            have at_least_one_in_xy : z ∈ ({x, y} : Finset T) ∨ w ∈ ({x, y} : Finset T) := by
+              by_contra h
+              push_neg at h
+              exact not_both_in_sdiff ⟨Finset.mem_sdiff.mpr ⟨hz_mem, h.1⟩, Finset.mem_sdiff.mpr ⟨hw_in_σ, h.2⟩⟩
+
+            by_cases hz_in_xy : z ∈ ({x, y} : Finset T)
+            · by_cases hw_in_xy : w ∈ ({x, y} : Finset T)
+              · apply Finset.eq_of_subset_of_card_le
+                · intro t ht; simp at ht; cases' ht with h h <;> subst t <;> assumption
+                · rw [Finset.card_pair hw_ne_z.symm, Finset.card_pair hxy_ne]
+              · have hw_in_sdiff : w ∈ σ \ {x, y} := Finset.mem_sdiff.mpr ⟨hw_in_σ, hw_in_xy⟩
+                simp at hz_in_xy
+                cases hz_in_xy with
+                | inl h =>
+                  subst h
+                  have h_cx_cw : c z = c w := hzw_eq
+                  have h_cy_cw : c y = c w := by rw [←hxy_eq, h_cx_cw]
+
+                  have h_y_ne_w : y ≠ w := by
+                    intro h_eq
+                    subst h_eq
+                    have h_y_notin : y ∉ σ \ {z, y} := by
+                      simp [hxy_ne]
+                    exact h_y_notin hw_in_sdiff
+
+                  have h_contradiction : False := by
+                    have h_inj : ∀ {a b : T}, a ∈ (σ \ {z} : Set T) → b ∈ (σ \ {z} : Set T) → c a = c b → a = b := by
+                      intros a b ha hb h_eq
+                      exact h_inj_x ha hb h_eq
+
+                    have h_y_mem_set : y ∈ (σ \ {z} : Set T) := by
+                      rw [Set.mem_diff]
+                      constructor
+                      · rw [Finset.mem_coe]; exact hy_mem
+                      · intro h_in
+                        rw [Set.mem_singleton_iff] at h_in
+                        exact hxy_ne.symm h_in
+
+                    have h_w_mem_set : w ∈ (σ \ {z} : Set T) := by
+                      rw [Set.mem_diff]
+                      constructor
+                      · rw [Finset.mem_coe]; exact hw_in_σ
+                      · intro h_in
+                        rw [Set.mem_singleton_iff] at h_in
+                        exact hw_ne_z h_in
+                    have h_y_eq_w : y = w := h_inj h_y_mem_set h_w_mem_set h_cy_cw
+                    exact h_y_ne_w h_y_eq_w
+                  exact False.elim h_contradiction
+                | inr h =>
+                  subst h
+                  have h_cz_cw : c z = c w := hzw_eq
+                  have h_cx_cw : c x = c w := by rw [hxy_eq, h_cz_cw]
+
+                  have h_x_ne_w : x ≠ w := by
+                    intro h_eq
+                    subst h_eq
+                    have h_x_notin : x ∉ σ \ {x, z} := by
+                      simp [hxy_ne.symm]
+                    exact h_x_notin hw_in_sdiff
+
+                  have h_contradiction : False := by
+                    have h_inj : ∀ {a b : T}, a ∈ (σ \ {z} : Set T) → b ∈ (σ \ {z} : Set T) → c a = c b → a = b := by
+                      intros a b ha hb h_eq
+                      exact h_inj_y ha hb h_eq
+
+                    have h_x_mem_set : x ∈ (σ \ {z} : Set T) := by
+                      rw [Set.mem_diff]
+                      constructor
+                      · rw [Finset.mem_coe]; exact hx_mem
+                      · intro h_in
+                        rw [Set.mem_singleton_iff] at h_in
+                        exact hxy_ne.symm h_in.symm
+
+                    have h_w_mem_set : w ∈ (σ \ {z} : Set T) := by
+                      rw [Set.mem_diff]
+                      constructor
+                      · rw [Finset.mem_coe]; exact hw_in_σ
+                      · intro h_in
+                        rw [Set.mem_singleton_iff] at h_in
+                        exact hw_ne_z h_in
+
+                    have h_x_eq_w : x = w := h_inj h_x_mem_set h_w_mem_set h_cx_cw
+                    exact h_x_ne_w h_x_eq_w
+
+                  exact False.elim h_contradiction
+            · have hw_in_xy : w ∈ {x, y} := at_least_one_in_xy.resolve_left hz_in_xy
+              have hz_in_sdiff : z ∈ σ \ {x, y} := Finset.mem_sdiff.mpr ⟨hz_mem, hz_in_xy⟩
+              simp at hw_in_xy
+              cases hw_in_xy with
+              | inl h =>
+                  subst h
+                  have h_cz_cx : c z = c w := hzw_eq
+                  have h_cz_cy : c z = c y := by rw [←hxy_eq, h_cz_cx]
+
+                  have h_z_ne_y : z ≠ y := by
+                    intro h_eq
+                    subst h_eq
+                    have h_y_notin : z ∉ σ \ {w, z} := by simp
+                    exact h_y_notin hz_in_sdiff
+
+                  have h_contradiction : False := by
+                    have h_inj : ∀ {a b : T}, a ∈ (σ \ {w} : Set T) → b ∈ (σ \ {w} : Set T) → c a = c b → a = b := by
+                      intros a b ha hb h_eq
+                      exact h_inj_x ha hb h_eq
+
+                    have h_z_mem_set : z ∈ (σ \ {w} : Set T) := by
+                      rw [Set.mem_diff]
+                      constructor
+                      · rw [Finset.mem_coe]; exact hz_mem
+                      · intro h_in
+                        rw [Set.mem_singleton_iff] at h_in
+                        have hz_notin_wy : z ∉ {w, y} := (Finset.mem_sdiff.mp hz_in_sdiff).2
+                        simp at hz_notin_wy
+                        exact hz_notin_wy.1 h_in
+
+                    have h_y_mem_set : y ∈ (σ \ {w} : Set T) := by
+                      rw [Set.mem_diff]
+                      constructor
+                      · rw [Finset.mem_coe]; exact hy_mem
+                      · intro h_in
+                        rw [Set.mem_singleton_iff] at h_in
+                        exact hxy_ne.symm h_in
+
+                    have h_z_eq_y : z = y := h_inj h_z_mem_set h_y_mem_set h_cz_cy
+                    exact h_z_ne_y h_z_eq_y
+
+                  exact False.elim h_contradiction
+              | inr h =>
+                subst h
+                have h_cz_cy : c z = c w := hzw_eq
+                have h_cz_cx : c z = c x := by rw [hxy_eq, h_cz_cy]
+
+                have h_z_ne_x : z ≠ x := by
+                  intro h_eq
+                  subst h_eq
+                  have h_x_notin : z ∉ σ \ {z, w} := by simp
+                  exact h_x_notin hz_in_sdiff
+
+                have h_contradiction : False := by
+                  have h_inj : ∀ {a b : T}, a ∈ (σ \ {w} : Set T) → b ∈ (σ \ {w} : Set T) → c a = c b → a = b := by
+                    intros a b ha hb h_eq
+                    exact h_inj_y ha hb h_eq
+
+                  have h_z_mem_set : z ∈ (σ \ {w} : Set T) := by
+                    rw [Set.mem_diff]
+                    constructor
+                    · rw [Finset.mem_coe]; exact hz_mem
+                    · intro h_in
+                      rw [Set.mem_singleton_iff] at h_in
+                      have hz_notin_xw : z ∉ {x, w} := (Finset.mem_sdiff.mp hz_in_sdiff).2
+                      simp at hz_notin_xw
+                      exact hz_notin_xw.2 h_in
+
+                  have h_x_mem_set : x ∈ (σ \ {w} : Set T) := by
+                    rw [Set.mem_diff]
+                    constructor
+                    · rw [Finset.mem_coe]; exact hx_mem
+                    · intro h_in
+                      rw [Set.mem_singleton_iff] at h_in
+                      simp [hxy_ne] at h_in
+
+                  have h_z_eq_x : z = x := h_inj h_z_mem_set h_x_mem_set h_cz_cx
+                  exact h_z_ne_x h_z_eq_x
+
+                exact False.elim h_contradiction
+          have hz_in_xy : z ∈ ({x, y} : Finset T) := by
+            rw [←h_pair_eq]
+            simp
+          simp at hz_in_xy
+          cases hz_in_xy with
+          | inl h => left; rw [h]
+          | inr h => right; rw [h]
+
+        | odoor h_cell_σC h_door_σD z hz hτ_eq hD_eq =>
+          exfalso
+          rw [hτ_eq, hD_eq] at h_typed
+          obtain ⟨h_cell_typed, h_i_notin, h_D_eq_typed⟩ := h_typed
+          have h_C_diff : C \ (σ.image c) = {i} := by
+            rw [h_C_eq]
+            ext x
+            simp only [Finset.mem_sdiff, Finset.mem_insert, Finset.mem_singleton]
+            constructor
+            · intro h
+              exact h.1.resolve_right h.2
+            · intro h_xi
+              rw [h_xi]
+              exact ⟨Or.inl rfl, h_i_notin⟩
+
+          have h_z_notin_img : z ∉ σ.image c := by
+            intro h_z_in_img
+            have h_z_in_C : z ∈ C := by
+              rw [h_C_eq]
+              exact Finset.mem_insert_of_mem h_z_in_img
+            exact hz h_z_in_C
+
+          have h_z_ne_i : z ≠ i := by
+            intro h_eq
+            subst h_eq
+            exact hz (by rw [h_C_eq]; exact Finset.mem_insert_self z (σ.image c))
+
+          have h_typed_diff : (insert z C) \ (σ.image c) = {i} := by
+            rw [h_D_eq_typed]
+            ext x
+            simp only [Finset.mem_sdiff, Finset.mem_insert, Finset.mem_singleton]
+            constructor
+            · intro h
+              exact h.1.resolve_right h.2
+            · intro h_xi
+              rw [h_xi]
+              exact ⟨Or.inl rfl, h_i_notin⟩
+
+          have h_direct_diff : (insert z C) \ (σ.image c) = insert z (C \ (σ.image c)) := by
+            ext x
+            simp only [Finset.mem_sdiff, Finset.mem_insert]
+            constructor
+            · intro h
+              cases h.1 with
+              | inl h_eq =>
+                left
+                exact h_eq
+              | inr h_in_C =>
+                right
+                exact ⟨h_in_C, h.2⟩
+            · intro h
+              cases h with
+              | inl h_eq =>
+                subst h_eq
+                exact ⟨Or.inl rfl, h_z_notin_img⟩
+              | inr h_in_diff =>
+                exact ⟨Or.inr h_in_diff.1, h_in_diff.2⟩
+
+          rw [h_C_diff] at h_direct_diff
+          rw [h_direct_diff] at h_typed_diff
+          have h_contradiction : {i} = insert z {i} := h_typed_diff.symm
+
+          have h_z_notin_singleton : z ∉ ({i} : Finset I) := by
+            simp [h_z_ne_i]
+          have h_z_in_insert : z ∈ insert z {i} := Finset.mem_insert_self z {i}
+          rw [←h_contradiction] at h_z_in_insert
+          exact h_z_notin_singleton h_z_in_insert
+      · intro h_mem
+        simp [doors_NCroom]
+        simp at h_mem
+        cases h_mem with
+        | inl h =>
+          obtain ⟨h_τ, h_D⟩ := h
+          rw [h_τ, h_D]
+          exact ⟨h_typed_x, h_doorof_x⟩
+        | inr h =>
+          obtain ⟨h_τ, h_D⟩ := h
+          rw [h_τ, h_D]
+          exact ⟨h_typed_y, h_doorof_y⟩
+
 
 lemma card_two_of_doors_NCroom (h0 : isRoom σ C) (h1 : isTypedNC c i σ C) : (doors_NCroom c σ C i).ncard = 2:=
   by
@@ -1522,8 +2113,6 @@ variable (c) in
 abbrev dbcountingset (i : I):= Finset.filter (fun x : (Finset T× Finset I) × (Finset T× Finset I) => isTypedNC c i x.1.1 x.1.2 ∧ isDoorof x.1.1 x.1.2 x.2.1 x.2.2) univ
 
 
--- Finset.disjoint_filter_filter_neg
---
 variable (c) in
 lemma dbcount_outside_door' (i : I): ∃ x,  filter (fun x => isOutsideDoor x.1.1 x.1.2) (dbcountingset c i) = {x}  :=  by
   classical
@@ -1537,26 +2126,19 @@ lemma dbcount_outside_door' (i : I): ∃ x,  filter (fun x => isOutsideDoor x.1.
   let D_u : Finset I := {i}
   let x_unique : (Finset T × Finset I) × (Finset T × Finset I) := ((τ_u, D_u), (σ_u, C_u))
 
-  -- Establish that the constructed elements satisfy the required properties
   have h_outside_door_τu_Du : isOutsideDoor τ_u D_u := outsidedoor_singleton i
   have h_typed_nc : isTypedNC c i τ_u D_u := by
-    -- Need to prove isTypedNC c i τ_u D_u
     constructor
-    · -- Prove isCell τ_u D_u
-      exact (NC_of_outsidedoor (c := c) h_outside_door_τu_Du).1
+    · exact (NC_of_outsidedoor (c := c) h_outside_door_τu_Du).1
     constructor
-    · -- Prove i ∉ τ_u.image c = i ∉ ∅
-      simp only [τ_u, Finset.image_empty, Finset.not_mem_empty]
+    · simp only [τ_u, Finset.image_empty, Finset.not_mem_empty]
       exact Finset.not_mem_empty i
-    · -- Prove D_u = insert i (τ_u.image c) = {i} = insert i ∅
-      simp only [D_u, τ_u, Finset.image_empty, Finset.insert_empty]
+    · simp only [D_u, τ_u, Finset.image_empty, Finset.insert_empty]
       rfl
 
   have h_door_relation : isDoorof τ_u D_u σ_u C_u := by
-    -- Need to prove the door relationship
     apply isDoorof.idoor
-    · -- Prove isCell σ_u C_u (already proven above, can reuse)
-      intro y
+    · intro y
       use i
       constructor
       · simp only [C_u, Finset.mem_singleton]
@@ -1565,48 +2147,34 @@ lemma dbcount_outside_door' (i : I): ∃ x,  filter (fun x => isOutsideDoor x.1.
         simp only [Finset.mem_singleton] at hx
         rw [hx]
         exact @Finset.le_max' T (IST i) Finset.univ y (Finset.mem_univ y)
-    · -- Prove isDoor τ_u D_u
-      exact h_outside_door_τu_Du.1
-    · -- Prove x_max_i ∉ τ_u
-      simp only [τ_u, Finset.not_mem_empty]
+    · exact h_outside_door_τu_Du.1
+    · simp only [τ_u, Finset.not_mem_empty]
       exact Finset.not_mem_empty x_max_i
-    · -- Prove insert x_max_i τ_u = σ_u
-      simp only [τ_u, σ_u, Finset.insert_empty]
+    · simp only [τ_u, σ_u, Finset.insert_empty]
       rfl
-    · -- Prove D_u = C_u
-      rfl
+    · rfl
 
   use x_unique
   ext x_gen
   simp only [mem_filter, mem_univ, mem_singleton]
 
   constructor
-  · -- If x_gen is in the filter, then x_gen = x_unique
-    intro h_in_filter
-    -- h_in_filter tells us x_gen is in the filtered dbcountingset and satisfies isOutsideDoor
+  · intro h_in_filter
     simp only [mem_filter] at h_in_filter
     obtain ⟨h_in_db, h_outside⟩ := h_in_filter
     simp only [dbcountingset, mem_filter, mem_univ, true_and] at h_in_db
     obtain ⟨h_typed, h_door⟩ := h_in_db
-
-    -- From isOutsideDoor
     obtain ⟨h_is_door, h_empty⟩ := h_outside
-
-    -- Derive the key facts directly
     have h_empty_image : (x_gen.1.1).image c = ∅ := by
       rw [h_empty]
       exact Finset.image_empty c
     have h_x_gen_1_2_eq : x_gen.1.2 = {i} := by
-      -- From h_typed: isTypedNC c i x_gen.1.1 x_gen.1.2
       obtain ⟨_, h_i_notin, h_eq⟩ := h_typed
       rw [h_eq, h_empty_image]
       simp
-
-    -- Use outsidedoor_is_singleton to get the structure
     obtain ⟨_, h_D_singleton⟩ := outsidedoor_is_singleton ⟨h_is_door, h_empty⟩
     obtain ⟨j, h_D_eq⟩ := h_D_singleton
 
-    -- Show j = i
     have h_j_eq_i : j = i := by
       have h_eq_j : x_gen.1.2 = {j} := h_D_eq
       rw [h_x_gen_1_2_eq] at h_eq_j
@@ -1620,7 +2188,6 @@ lemma dbcount_outside_door' (i : I): ∃ x,  filter (fun x => isOutsideDoor x.1.
         rw [←h_insert_eq, h_empty]
         rfl
 
-      -- We need to show x = x_max_i
       have h_x_eq_max : x = x_max_i := by
         have h_dom : ∀ y, y ≤[i] x := by
           intro y
