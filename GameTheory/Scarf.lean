@@ -1355,13 +1355,6 @@ lemma NC_of_outsidedoor (h : isOutsideDoor σ C) : isNearlyColorful c σ C  := b
 
 /-variable {c σ C} in
 lemma type_unique_of_outsidedoor (h : isOutsideDoor σ C) : ∃! i,  i = isNCtype (NC_of_outsidedoor (c:=c) h)  := sorry-/
-/-\textit{lemma 5}
-Suppose that $(\tau, D)$ is a nearly colorful door of a room $(\sigma, C)$. Then $(\sigma, C)$ is either colorful, or nearly colorful of the same type as $(\tau, D)$.
-
-\begin{proof}
-Clearly, $C \setminus c(\sigma) \subset D \setminus c(\tau)$. Together with $|D \setminus c(\tau)| = 1$ this implies that $|C \setminus c(\sigma)| \leq 1$. Since $|c(\sigma)| \leq |\sigma| \leq |C|$, if $|C \setminus c(\sigma)| = 0$, then $C = c(\sigma)$ and hence $(\sigma, C)$ is colorful. If $|C \setminus c(\sigma)| = 1$, then $C \setminus c(\sigma) = D \setminus c(\tau)$ and hence $(\sigma, C)$ is nearly colorful and has the same type as $(\tau, D)$.
-\end{proof}
--/
 /-Lemma 5-/
 omit [Inhabited T] in
 lemma NC_or_C_of_door (h1 : isTypedNC c i τ D) (h2 : isDoorof τ D σ C) : isTypedNC c i σ C ∨ isColorful c σ C := by
