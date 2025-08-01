@@ -1477,75 +1477,7 @@ lemma card_of_NCcell (h : isNearlyColorful c σ D) : #σ = #(image c σ)  ∨  #
 /- Lemma 7-/
 variable (c σ C) in
 abbrev doors_NCroom (i : I):= {(τ,D) | isTypedNC c i τ D ∧ isDoorof τ D σ C }
-/-\begin{lemma}
-If $(\sigma, C)$ is a nearly colorful room, then $(\sigma, C)$ has two nearly colorful doors.
-\end{lemma}
 
-\begin{proof}
-Lemma 6 implies that either
-$$
-|c(\sigma)| = |\sigma| \quad \text{or} \quad |c(\sigma)| = |\sigma| - 1 = |C| - 1.
-$$
-
-Suppose first that $|c(\sigma)| = |\sigma| - 1 = |C| - 1$. Then $c(\sigma) \subset C$. Therefore, if also $i \notin C$, then
-$$
-|(C + i) \setminus c(\sigma)| = 2
-$$
-and hence $(\sigma, C + i)$ is not nearly colorful. Since $|c(\sigma)| = |\sigma| - 1$, there are different elements $x, y \in \sigma$ such that $c(x) = c(y)$. Moreover, the coloring $c$ is injective on both $\sigma \setminus \{x\}$ and $\sigma \setminus \{y\}$. If $z \in \sigma$ and $z \ne x, y$, then $c(\sigma \setminus \{z\})$ is properly contained in $c(\sigma)$. Since $c(\sigma)$ is properly contained in $C$, it follows that
-$$
-|C \setminus c(\sigma \setminus \{z\})| = 2
-$$
-and hence $(\sigma \setminus \{z\}, C)$ is not nearly colorful. On the other hand, if $z = x$ or $y$, then $c(\sigma \setminus \{z\}) = c(\sigma)$ and hence
-$$
-|C \setminus c(\sigma \setminus \{z\})| = 1.
-$$
-In this case $(\sigma \setminus \{z\}, C)$ is nearly colorful. Therefore $(\sigma, C)$ has two nearly colorful doors.
-
-Suppose that $|c(\sigma)| = |\sigma|$. Then $c$ is injective on $\sigma$. Since $(\sigma, C)$ is nearly colorful, this implies that
-$$
-|c(\sigma) \setminus C| = 1
-$$
-and hence there is a unique $y \in \sigma$ such that $c(y) \notin C$. If $x \in \sigma$, then
-$$
-c(x) \notin c(\sigma \setminus \{x\})
-$$
-because $c$ is injective on $\sigma$. If also $c(x) \in C$, then
-$$
-C \setminus c(\sigma \setminus \{x\}) = (C \setminus c(\sigma)) + c(x)
-$$
-and hence
-$$
-|C \setminus c(\sigma \setminus \{x\})| = 2.
-$$
-Therefore in this case $(\sigma \setminus \{x\}, C)$ is not nearly colorful. On the other hand, if $c(x) \notin C$, i.e. if $x = y$, then
-$$
-C \setminus c(\sigma \setminus \{x\}) = C \setminus c(\sigma)
-$$
-and hence
-$$
-|C \setminus c(\sigma \setminus \{x\})| = |C \setminus c(\sigma)| = 1.
-$$
-Therefore $(\sigma \setminus \{x\}, C)$ is nearly colorful if and only if $x = y$.
-
-If $i \in I \setminus C$ and $i \notin c(\sigma)$, then
-$$
-(C + i) \setminus c(\sigma) = (C \setminus c(\sigma)) + i
-$$
-and hence
-$$
-|(C + i) \setminus c(\sigma)| = |C \setminus c(\sigma)| + 1 = 2.
-$$
-Therefore in this case $(\sigma, C + i)$ is not nearly colorful. On the other hand, if $i \in c(\sigma)$, i.e. if $i = c(y)$, then
-$$
-(C + i) \setminus c(\sigma) = C \setminus c(\sigma)
-$$
-and hence
-$$
-|(C + i) \setminus c(\sigma)| = |C \setminus c(\sigma)| = 1.
-$$
-Therefore $(\sigma, C + i)$ is nearly colorful if and only if $i = c(y)$. Hence in this case $(\sigma, C)$ also has two nearly colorful doors.
-\end{proof}
--/
 omit [DecidableEq T] in
 lemma doors_of_NCroom [DecidableEq T] (h0 : isRoom σ C) (h1 : isTypedNC c i σ C) : ∃ x y, x ≠ y ∧ doors_NCroom c σ C i = {x, y} := by
   have h_nc : isNearlyColorful c σ C := by
