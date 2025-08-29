@@ -805,24 +805,50 @@ theorem Brouwer (hf : Continuous f): ∃ x , f x = x := by
       exact coords_outside_C_zero i (Finset.mem_compl.mp hi)
     rw [split_sum, compl_sum_zero, add_zero] at total_sum_eq_one
     exact total_sum_eq_one
-  
+
   have f_coords_ge_z_coords : ∀ i ∈ C, (f z).1 i ≥ z.1 i := by
       intro i hi_C
+      have h_tendsto_z : Tendsto (fun k => (room_point_seq f (g1 f (φ k)) : stdSimplex ℝ (Fin n))) atTop (𝓝 z) := convergence_to_z
       sorry
 
+  
   have sum_f_coords_ge_one : ∑ i ∈ C, (f z).1 i ≥ 1 := by
     calc ∑ i ∈ C, (f z).1 i
-        ≥ ∑ i ∈ C, z.1 i := Finset.sum_le_sum f_coords_ge_z_coords
+        ≥ ∑ i ∈ C, z.1 i := Finset.sum_le_sum fun i hi => f_coords_ge_z_coords i hi
       _ = 1 := sum_coords_in_C_eq_one
 
   have f_coords_outside_C_zero : ∀ i ∉ C, (f z).1 i = 0 := by
     intro i hi_not_C
     have total_sum_f : ∑ i, (f z).1 i = 1 := (f z).2.2
-    sorry
+    have sum_f_C_eq_one : ∑ i ∈ C, (f z).1 i = 1 := by
+      have : ∑ i ∈ C, (f z).1 i ≤ 1 := by
+        calc ∑ i ∈ C, (f z).1 i
+          ≤ ∑ i, (f z).1 i := Finset.sum_le_sum_of_subset_of_nonneg (Finset.subset_univ C) (fun i _ _ => (f z).2.1 i)
+          _ = 1 := total_sum_f
+      exact le_antisymm this sum_f_coords_ge_one
+    have compl_sum_zero : ∑ i ∈ Cᶜ, (f z).1 i = 0 := by
+      have split_sum : ∑ i, (f z).1 i = ∑ i ∈ C, (f z).1 i + ∑ i ∈ Cᶜ, (f z).1 i :=
+        (Finset.sum_add_sum_compl C ((f z).1)).symm
+      rw [total_sum_f, sum_f_C_eq_one] at split_sum
+      linarith
+    have hi_in_compl : i ∈ Cᶜ := Finset.mem_compl.mpr hi_not_C
+    have h_nonneg : (f z).1 i ≥ 0 := (f z).2.1 i
+    have h_le_sum : (f z).1 i ≤ ∑ j ∈ Cᶜ, (f z).1 j := Finset.single_le_sum (fun j _ => (f z).2.1 j) hi_in_compl
+    rw [compl_sum_zero] at h_le_sum
+    exact le_antisymm h_le_sum h_nonneg
 
   have f_coords_eq_z_coords : ∀ i ∈ C, (f z).1 i = z.1 i := by
     intro i hi_C
-    sorry
+    have h_sum_f_C_eq_one : ∑ i ∈ C, (f z).1 i = 1 := by
+      have total_sum_f : ∑ i, (f z).1 i = 1 := (f z).2.2
+      have : ∑ i ∈ C, (f z).1 i ≤ 1 := by
+        calc
+          ∑ i ∈ C, (f z).1 i ≤ ∑ i, (f z).1 i := Finset.sum_le_sum_of_subset_of_nonneg (Finset.subset_univ C) (fun i _ _ => (f z).2.1 i)
+          _ = 1 := total_sum_f
+      exact le_antisymm this (sum_f_coords_ge_one)
+    have h_sum_eq : ∑ i ∈ C, (f z).1 i = ∑ i ∈ C, z.1 i := by
+      rw [h_sum_f_C_eq_one, sum_coords_in_C_eq_one]
+    exact (((Finset.sum_eq_sum_iff_of_le fun i hi => f_coords_ge_z_coords i hi).mp h_sum_eq.symm) i hi_C).symm
 
   ext i
   by_cases hi : i ∈ C
