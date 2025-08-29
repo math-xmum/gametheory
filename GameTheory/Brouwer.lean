@@ -189,11 +189,11 @@ lemma size_bound_key (σ : Finset (TT n l)) (C : Finset (Fin n)) (h : TT.ILO.isD
     let R := l - S
     let M_coords : Fin n → ℕ := fun k => if k = (0 : Fin n) then M' 0 + R else M' k
     have h_M_coords_sum : ∑ k, M_coords k = l := by
-      have h1 : S = M' 0 + ∑ k in (Finset.univ : Finset (Fin n)).erase 0, M' k := by
+      have h1 : S = M' 0 + ∑ k ∈ (Finset.univ : Finset (Fin n)).erase 0, M' k := by
         simp [S]
         rw [← Finset.sum_insert (Finset.notMem_erase 0 Finset.univ)]
         rw [Finset.insert_erase (Finset.mem_univ 0)]
-      have : ∑ k, M_coords k = M_coords 0 + ∑ k in (Finset.univ : Finset (Fin n)).erase 0, M_coords k := by
+      have : ∑ k, M_coords k = M_coords 0 + ∑ k ∈ (Finset.univ : Finset (Fin n)).erase 0, M_coords k := by
         rw [← Finset.sum_insert (Finset.notMem_erase 0 Finset.univ)]
         rw [Finset.insert_erase (Finset.mem_univ 0)]
       rw [this]
@@ -365,10 +365,20 @@ theorem size_bound_in (σ : Finset (TT n l)) (C : Finset (Fin n)) (h : TT.ILO.is
         intro z hz
         have := h_bound z hz
         simp only [m'] at this ⊢
-        split_ifs at this ⊢ <;> linarith
+        split_ifs at this ⊢ with h_case
+        · have : (z i : ℕ) - m i < C.card := this
+          simp
+          have h_le : m i ≤ (z i : ℕ) := by
+            apply Finset.min'_le
+            apply Finset.mem_image_of_mem
+            exact hz
+          rw [← Int.ofNat_sub h_le]
+          exact Int.ofNat_lt.mpr this
+        · simp only [Int.ofNat_zero, sub_zero]
+          exact Int.ofNat_lt.mpr this
       calc
         abs ((x i : ℤ) - (y i : ℤ)) = abs (((x i : ℤ) - (m' i : ℤ)) - ((y i : ℤ) - (m' i : ℤ))) := by rw [sub_sub_sub_cancel_right]
-        _ ≤ abs ((x i : ℤ) - (m' i : ℤ)) + abs ((y i : ℤ) - (m' i : ℤ)) := by exact abs_sub_le _ _ _
+        _ ≤ abs ((x i : ℤ) - (m' i : ℤ)) + abs ((y i : ℤ) - (m' i : ℤ)) := abs_sub _ _
         _ = ((x i : ℤ) - (m' i : ℤ)) + ((y i : ℤ) - (m' i : ℤ)) := by
           rw [abs_of_nonneg (h_nonneg x hx), abs_of_nonneg (h_nonneg y hy)]
         _ < (C.card : ℤ) + (C.card : ℤ) := by
@@ -382,7 +392,9 @@ theorem size_bound_in (σ : Finset (TT n l)) (C : Finset (Fin n)) (h : TT.ILO.is
     have : (2 * (C.card : ℤ)) < 2 * (n + 1 : ℤ) := by
       linarith [Int.ofNat_le.mpr h_card_le_n]
     exact this
-  · sorry
+  · intro x hx y hy i
+    exfalso
+    exact hσ ⟨x, hx⟩
 
 theorem size_bound_out (σ : Finset (TT n l)) (C : Finset (Fin n)) (h : TT.ILO.isDominant σ C):
     ∀ x ∈ σ, ∀ i ∉ C, (x i : ℤ) < n + 1
@@ -501,7 +513,24 @@ variable (f : stdSimplex ℝ (Fin n) → stdSimplex ℝ (Fin n))
 
 variable {n l}
 
-instance stdSimplex.upidx (x y : stdSimplex ℝ (Fin n)) : Nonempty { i | x.1 i ≤ y.1 i} := by sorry
+instance stdSimplex.upidx (x y : stdSimplex ℝ (Fin n)) : Nonempty { i | x.1 i ≤ y.1 i} := by
+  by_contra h
+  push_neg at h
+  have sum_x_eq_1 := x.2.2
+  have sum_y_eq_1 := y.2.2
+  have sum_lt : Finset.sum Finset.univ y.1 < Finset.sum Finset.univ x.1 := by
+    apply Finset.sum_lt_sum_of_nonempty
+    . exact Finset.univ_nonempty
+    . intro i _
+      have : ¬ (x.1 i ≤ y.1 i) := by
+        intro hle
+        apply h
+        use i
+        exact hle
+      exact lt_of_not_ge this
+  rw [sum_y_eq_1, sum_x_eq_1] at sum_lt
+  exact (lt_irrefl 1 sum_lt).elim
+
 
 noncomputable def stdSimplex.pick (x  y : stdSimplex ℝ (Fin n)) := Classical.choice $ stdSimplex.upidx x y
 
@@ -519,9 +548,76 @@ def room_point_seq (l' : ℕ) := pick_colorful_point
 
 
 section finiteness
+
+-- Define subsequence function
+def mk_subseq (f : ℕ → ℕ) (h : ∀ n, n < f n) : ℕ → ℕ
+  | 0 => f 0
+  | n+1 => f (mk_subseq f h n)
+
 theorem exists_subseq_constant_of_finite_image {s : Finset α} (e : ℕ → α) (he : ∀ n, e n ∈ s ) :
   ∃ a ∈ s, ∃ g : ℕ ↪o ℕ,  (∀ n, e (g n) = a) := by
-  sorry
+
+  have range_subset : Set.range e ⊆ s.toSet := Set.range_subset_iff.mpr he
+  have range_finite : (Set.range e).Finite := (Finset.finite_toSet s).subset range_subset
+  let imgs : Finset α := Finset.filter (fun a => ¬(Set.Finite (e ⁻¹' {a}))) s
+  have imgs_nonempty : imgs.Nonempty := by
+    by_contra h
+    simp only [Finset.not_nonempty_iff_eq_empty] at h
+    have preimages_all_finite : ∀ a ∈ s, Set.Finite (e ⁻¹' {a}) := by
+      intro a ha
+      by_contra hnf
+      have a_in_imgs : a ∈ imgs := by simp [imgs, ha, hnf]
+      have : imgs ≠ ∅ := Finset.ne_empty_of_mem a_in_imgs
+      contradiction
+    have nat_finite : Set.Finite (Set.univ : Set ℕ) := by
+      have univ_eq : Set.univ = e ⁻¹' (s : Set α) := by ext n; simp [he]
+      rw [univ_eq]
+      have : e ⁻¹' (s : Set α) = ⋃ a ∈ s, e ⁻¹' {a} := by
+        ext n; simp [ Set.mem_preimage]
+      rw [this]
+      exact Set.Finite.biUnion s.finite_toSet preimages_all_finite
+    exact Set.infinite_univ nat_finite
+
+  obtain ⟨a, a_in_imgs⟩ := imgs_nonempty
+  have a_in_s : a ∈ s := (Finset.mem_filter.1 a_in_imgs).1
+  have a_infinite_preimage : ¬Set.Finite (e ⁻¹' {a}) := (Finset.mem_filter.1 a_in_imgs).2
+
+  use a, a_in_s
+  let preimage := e ⁻¹' {a}
+  have preimage_infinite : Set.Infinite preimage := a_infinite_preimage
+
+  have h_nonempty : preimage.Nonempty := by
+    by_contra h_empty
+    rw [Set.not_nonempty_iff_eq_empty] at h_empty
+    rw [h_empty] at preimage_infinite
+    exact Set.finite_empty.not_infinite preimage_infinite
+  obtain ⟨m₀, hm₀⟩ := h_nonempty
+  have h_exists_larger : ∀ k : ℕ, ∃ m ∈ preimage, k < m := by
+    intro k
+    by_contra h_not
+    push_neg at h_not
+    have : preimage ⊆ {n | n ≤ k} := fun n hn => h_not n hn
+    have h_finite : Set.Finite preimage := (Set.finite_le_nat k).subset this
+    exact preimage_infinite h_finite
+  choose f hf using h_exists_larger
+  have f_lt : ∀ n : ℕ, n < f n := fun n => (hf n).2
+  have f_in : ∀ n : ℕ, f n ∈ preimage := fun n => (hf n).1
+  let g := mk_subseq f f_lt
+  have hg_in : ∀ n, g n ∈ preimage := by
+    intro n
+    induction' n with n ih
+    · simp [g, mk_subseq]; exact f_in 0
+    · simp [g, mk_subseq]; exact f_in (g n)
+  have hg_strict : StrictMono g := by
+    intro m n hmn
+    induction' hmn with n hmn ih
+    · simp [g, mk_subseq]
+      exact f_lt (g m)
+    · simp [g, mk_subseq]
+      exact lt_trans ih (f_lt (g n))
+  use OrderEmbedding.ofStrictMono g hg_strict
+  intro n
+  exact hg_in n
 
 end finiteness
 
@@ -538,12 +634,157 @@ abbrev g1 := gpkg f |>.1.2
 
 
 open Topology
+open Filter
 
 /- room_seq ∘ g1 ∘ hpkg.1.2 converge to a point in stdSimplex-/
+
+lemma dominant_coords_tend_to_zero (f : stdSimplex ℝ (Fin n) → stdSimplex ℝ (Fin n)) (C : Finset (Fin n)) (g : ℕ ↪o ℕ) (h_const : ∀ l', (room_seq f (g l')).1.2 = C) :
+  ∀ i ∉ C, Filter.Tendsto (fun l' => ((room_point_seq f (g l')) : stdSimplex ℝ (Fin n)).1 i) Filter.atTop (𝓝 0) := by
+  intro i hiC
+  have h_tendsto_bound : Filter.Tendsto (fun l' => ((n : ℝ) + 1) / ((g l' : ℝ) + 1)) Filter.atTop (𝓝 0) := by
+    have h_denom_tendsto : Filter.Tendsto (fun l' => (g l' : ℝ) + 1) Filter.atTop Filter.atTop := by
+      have g_tendsto : Filter.Tendsto (fun l' => g l') Filter.atTop Filter.atTop := by
+        apply Filter.tendsto_atTop_atTop.mpr
+        intro b
+        use b
+        intro l' hl'
+        exact le_trans hl' (StrictMono.id_le g.strictMono l')
+      have cast_tendsto : Filter.Tendsto (fun l' => (g l' : ℝ)) Filter.atTop Filter.atTop :=
+        Filter.Tendsto.comp tendsto_natCast_atTop_atTop g_tendsto
+      exact Tendsto.atTop_add cast_tendsto (tendsto_const_nhds : Tendsto (fun _ : ℕ => (1 : ℝ)) atTop (𝓝 1))
+    have : Tendsto (fun l' => ((n : ℝ) + 1) / ((g l' : ℝ) + 1)) atTop (𝓝 0) :=
+      Tendsto.div_atTop tendsto_const_nhds h_denom_tendsto
+    exact this
+  apply tendsto_of_tendsto_of_tendsto_of_le_of_le (tendsto_const_nhds : Tendsto (fun _ : ℕ => (0 : ℝ)) atTop (𝓝 0)) h_tendsto_bound
+  · intro l'
+    exact ((room_point_seq f (g l')) : stdSimplex ℝ (Fin n)).2.1 i
+  · intro l'
+    let l_pnat : PNat := ⟨g l' + 1, Nat.succ_pos _⟩
+    let rs := room_seq f (g l')
+    let σ := rs.1.1
+    let C_l := rs.1.2
+    have h_C_l : C_l = C := h_const l'
+    have hiC_l : i ∉ C_l := h_C_l ▸ hiC
+    let x := room_point_seq f (g l')
+    let colorful_proof := (Finset.mem_filter.mp rs.2).2
+    have hx_mem : x ∈ σ := (pick_colorful_point colorful_proof).2
+    have h_dom : TT.ILO.isDominant σ C_l := colorful_proof.1
+    have h_bound := size_bound_out n l_pnat σ C_l h_dom x hx_mem i hiC_l
+    simp only [TT.funlike, TTtostdSimplex, Subtype.coe_mk]
+    have h_eq : (↑l_pnat : ℝ) = ↑(g l') + 1 := by simp [l_pnat, PNat.mk_coe]
+    rw [h_eq]
+    rw [div_le_div_iff_of_pos_right (by positivity : (0 : ℝ) < ↑(g l') + 1)]
+    have h_bound_real : ((x i : ℕ) : ℝ) < (↑n + 1 : ℝ) := by
+      exact_mod_cast Nat.lt_succ_of_le (Int.ofNat_le.mp (Int.le_of_lt_add_one h_bound))
+    exact le_of_lt h_bound_real
+
+
+lemma room_diameter_tends_to_zero (f : stdSimplex ℝ (Fin n) → stdSimplex ℝ (Fin n)) :
+  Filter.Tendsto (fun l' => (EMetric.diam (Set.range (fun x : (room_seq f l').1.1 => (x : stdSimplex ℝ (Fin n))))).toReal) Filter.atTop (𝓝 0) := by
+  let C : ℝ := Real.sqrt (n : ℝ) * (2 * ((n : ℝ) + 1))
+  have h_tendsto_bound : Filter.Tendsto (fun l' : ℕ => C / (↑l' + 1)) Filter.atTop (𝓝 0) := by
+    have h_denom_tendsto : Filter.Tendsto (fun l' : ℕ => (l' : ℝ) + 1) Filter.atTop Filter.atTop :=
+      (tendsto_natCast_atTop_atTop.comp tendsto_id).atTop_add tendsto_const_nhds
+    exact Tendsto.div_atTop tendsto_const_nhds h_denom_tendsto
+
+  apply tendsto_of_tendsto_of_tendsto_of_le_of_le (tendsto_const_nhds : Tendsto (fun _ : ℕ => (0 : ℝ)) atTop (𝓝 0)) h_tendsto_bound
+  · intro l'
+    exact ENNReal.toReal_nonneg
+  · intro l'
+    let l : PNat := ⟨l' + 1, Nat.succ_pos _⟩
+    let σ := (room_seq f l').1.1
+    let C_l := (room_seq f l').1.2
+    have h_dom : TT.ILO.isDominant σ C_l := (Finset.mem_filter.mp (room_seq f l').2).2.1
+
+    have h_diam_le : EMetric.diam (Set.range (fun x : σ => (x : stdSimplex ℝ (Fin n)))) ≤ ENNReal.ofReal (C / (↑l' + 1)) := by
+      apply EMetric.diam_le_iff.mpr
+      intro x hx y hy
+      rw [Set.mem_range] at hx hy
+      rcases hx with ⟨x', hx', rfl⟩
+      rcases hy with ⟨y', hy', rfl⟩
+      rw [edist_dist, ENNReal.ofReal_le_ofReal_iff]
+      have h_dist_eq : dist (TTtostdSimplex x'.val) (TTtostdSimplex y'.val) = ‖(TTtostdSimplex x'.val).1 - (TTtostdSimplex y'.val).1‖ := by
+        rfl
+      rw [h_dist_eq]
+      have h_points_eq : (TTtostdSimplex x'.val).1 - (TTtostdSimplex y'.val).1 = (fun i => ((x'.val i : ℝ) - (y'.val i : ℝ)) / (l : ℝ)) := by
+        ext i
+        simp only [TTtostdSimplex, Pi.sub_apply, sub_div]
+        congr 1
+      rw [h_points_eq]
+      have h_factor : (fun i => ((x'.val i : ℝ) - (y'.val i : ℝ)) / (l : ℝ)) = (1 / (l : ℝ)) • (fun i => (x'.val i : ℝ) - (y'.val i : ℝ)) := by
+        ext i; simp [smul_eq_mul, div_eq_inv_mul]
+      rw [h_factor, norm_smul]
+      simp only [one_div]
+      have l_eq : (↑↑l : ℝ) = ↑l' + 1 := by simp [l]
+      simp only [l_eq, norm_inv, inv_mul_eq_div]
+      rw [Real.norm_eq_abs]
+      rw [abs_of_nonneg (by positivity : (0 : ℝ) ≤ ↑l' + 1)]
+      · rw [div_le_div_iff_of_pos_right (by positivity : (0 : ℝ) < ↑l' + 1)]
+        have h_coord_bound : ∀ i, abs ((x'.val i : ℝ) - (y'.val i : ℝ)) ≤ 2 * ((n : ℝ) + 1) := by
+          intro i
+          have h_int_bound := size_bound_in n ⟨l' + 1, Nat.succ_pos _⟩ σ C_l h_dom x'.val x'.property y'.val y'.property i
+          have h_cast : abs ((x'.val i : ℝ) - (y'.val i : ℝ)) = abs (((x'.val i : ℕ) : ℤ) - ((y'.val i : ℕ) : ℤ) : ℝ) := by
+            simp only [Int.cast_natCast]
+          rw [h_cast]
+          exact_mod_cast le_of_lt h_int_bound
+        have key_norm_eq : ‖(fun i => (x'.val i : ℝ) - (y'.val i : ℝ))‖ = Real.sqrt (∑ i, ((x'.val i : ℝ) - (y'.val i : ℝ)) ^ 2) :=
+          calc ‖(fun i => (x'.val i : ℝ) - (y'.val i : ℝ))‖
+              = (∑ i, ((x'.val i : ℝ) - (y'.val i : ℝ)) ^ 2) ^ (1/2 : ℝ) := rfl
+              _ = Real.sqrt (∑ i, ((x'.val i : ℝ) - (y'.val i : ℝ)) ^ 2) := by simp [Real.sqrt_eq_rpow]
+
+        calc ‖(fun i => (x'.val i : ℝ) - (y'.val i : ℝ))‖
+            = Real.sqrt (∑ i, ((x'.val i : ℝ) - (y'.val i : ℝ)) ^ 2) := key_norm_eq
+            _ ≤ Real.sqrt (Fintype.card (Fin n)) * (Finset.univ.sup' (Finset.univ_nonempty : (Finset.univ : Finset (Fin n)).Nonempty) fun i => abs ((x'.val i : ℝ) - (y'.val i : ℝ))) := by
+              let M := Finset.univ.sup' Finset.univ_nonempty fun i => abs ((x'.val i : ℝ) - (y'.val i : ℝ))
+              have h_le : ∀ i, abs ((x'.val i : ℝ) - (y'.val i : ℝ)) ≤ M := fun i => Finset.le_sup' (fun j => abs ((x'.val j : ℝ) - (y'.val j : ℝ))) (Finset.mem_univ i)
+              have h_sum : (∑ i, ((x'.val i : ℝ) - (y'.val i : ℝ)) ^ 2) ≤ (Fintype.card (Fin n)) * M ^ 2 := by
+                calc ∑ i, ((x'.val i : ℝ) - (y'.val i : ℝ)) ^ 2
+                    ≤ ∑ i, M ^ 2 := by
+                      apply Finset.sum_le_sum
+                      intro i _
+                      apply sq_le_sq'
+                      · exact neg_le_of_abs_le (h_le i)
+                      · exact le_trans (le_abs_self _) (h_le i)
+                  _ = (Fintype.card (Fin n) : ℝ) * M ^ 2 := by
+                      rw [Finset.sum_const, Finset.card_univ, nsmul_eq_mul]
+              calc
+                Real.sqrt (∑ i, ((x'.val i : ℝ) - (y'.val i : ℝ)) ^ 2)
+                  ≤ Real.sqrt ((Fintype.card (Fin n)) * M ^ 2) := by
+                    apply Real.sqrt_le_sqrt
+                    exact h_sum
+                _ = Real.sqrt (Fintype.card (Fin n)) * Real.sqrt (M ^ 2) := by
+                    apply Real.sqrt_mul
+                    exact Nat.cast_nonneg _
+                _ = Real.sqrt (Fintype.card (Fin n)) * M := by
+                    rw [Real.sqrt_sq_eq_abs, abs_of_nonneg]
+                    exact le_trans (abs_nonneg ((x'.val 0 : ℝ) - (y'.val 0 : ℝ)))
+                          (Finset.le_sup' (fun i => abs ((x'.val i : ℝ) - (y'.val i : ℝ))) (Finset.mem_univ (0 : Fin n)))
+
+            _ ≤ Real.sqrt (n : ℝ) * (2 * ((n : ℝ) + 1)) := by
+              have card_eq : Fintype.card (Fin n) = n := Fintype.card_fin n
+              simp only [card_eq]
+              apply mul_le_mul_of_nonneg_left _ (Real.sqrt_nonneg _)
+              apply Finset.sup'_le
+              intro i _
+              exact h_coord_bound i
+            _ = C := by simp only [C]
+      · positivity
+    have h_finite : EMetric.diam (Set.range (fun x : σ => (x : stdSimplex ℝ (Fin n)))) ≠ ⊤ := by
+      apply ne_top_of_le_ne_top ENNReal.ofReal_ne_top h_diam_le
+
+    exact ENNReal.toReal_le_of_le_ofReal (by positivity) h_diam_le
+
+
 def hpkg_aux:
   Nonempty {(z , h) : (stdSimplex ℝ  (Fin n)) × (ℕ → ℕ) | StrictMono h ∧ Filter.Tendsto
-    (fun l => (room_point_seq f (g1 f l): stdSimplex ℝ (Fin n)))
-    Filter.atTop (𝓝 z) } := sorry
+    ((fun l' => (room_point_seq f (g1 f l'): stdSimplex ℝ (Fin n))) ∘ h)
+    Filter.atTop (𝓝 z) } := by
+  let u := fun l' : ℕ => (room_point_seq f (g1 f l') : stdSimplex ℝ (Fin n))
+  have h_compact : IsCompact (Set.univ : Set (stdSimplex ℝ (Fin n))) := isCompact_univ
+  have h_in_univ : ∀ n, u n ∈ Set.univ := fun _ => Set.mem_univ _
+  obtain ⟨z, hz, φ, φ_mono, h_tendsto⟩ := h_compact.tendsto_subseq h_in_univ
+  use ⟨z, φ⟩
+  exact ⟨φ_mono, h_tendsto⟩
 
 def hpkg := Classical.choice  (hpkg_aux f)
 
@@ -554,8 +795,86 @@ Use
 -/
 
 theorem Brouwer (hf : Continuous f): ∃ x , f x = x := by
-  use (hpkg f).1.1
-  sorry
+  -- Extract the fixed point candidate z and the constant color set C
+  let z := (hpkg f).1.1
+  let C := (gpkg f).1.1
+  let φ := (hpkg f).1.2
+
+  use z
+
+  -- Step 1: Show that the diameter of σ_l tends to 0 as l → ∞ (Theorem 10 applied)
+  have diameter_to_zero : Filter.Tendsto (fun l' => (EMetric.diam (Set.range (fun x : (room_seq f l').1.1 => (x : stdSimplex ℝ (Fin n))))).toReal) Filter.atTop (𝓝 0) :=
+    room_diameter_tends_to_zero f
+
+  -- Step 2: Show convergence to z along subsequence
+  have convergence_to_z : Filter.Tendsto ((fun l' => (room_point_seq f (g1 f l'): stdSimplex ℝ (Fin n))) ∘ φ) Filter.atTop (𝓝 z) :=
+    (hpkg f).2.2
+
+  -- Step 3: Show that C is constant along the subsequence
+  have constant_color_set : ∀ l', (room_seq f (g1 f l')).1.2 = C :=
+    (gpkg f).2
+
+  -- Step 4: For i ∉ C, show z_i = 0 using Theorem 10 part 2 (size_bound_out)
+  have coords_outside_C_zero : ∀ i ∉ C, z.1 i = 0 := by
+    intro i hi_not_C
+    -- Use size_bound_out and convergence
+    have bound_out : ∀ l', ∀ x ∈ (room_seq f (g1 f l')).1.1, (x i : ℤ) < ↑n + 1 := by
+      intro l' x hx
+      rw [← constant_color_set l'] at hi_not_C
+      have h_colorful := (Finset.mem_filter.mp (room_seq f (g1 f l')).property).2
+      exact @size_bound_out n ⟨(g1 f l') + 1, Nat.zero_lt_succ _⟩ (room_seq f (g1 f l')).1.1 (room_seq f (g1 f l')).1.2 h_colorful.left x hx i hi_not_C
+    -- Apply limit argument
+    have tendsto_zero : Filter.Tendsto (fun l' => ((room_point_seq f (g1 f l')) : stdSimplex ℝ (Fin n)).1 i) Filter.atTop (𝓝 0) :=
+      dominant_coords_tend_to_zero f C (g1 f) constant_color_set i hi_not_C
+    have h_tendsto_coord_z : Tendsto (fun k => ((room_point_seq f (g1 f (φ k))) : stdSimplex ℝ (Fin n)).1 i) atTop (𝓝 (z.1 i)) := by
+      have h_continuous : Continuous (fun x : stdSimplex ℝ (Fin n) => x.1 i) :=
+        Continuous.comp (continuous_apply i) continuous_subtype_val
+      exact h_continuous.continuousAt.tendsto.comp convergence_to_z
+    have tendsto_zero_subseq : Tendsto (fun k => ((room_point_seq f (g1 f (φ k))) : stdSimplex ℝ (Fin n)).1 i) atTop (𝓝 0) :=
+      (dominant_coords_tend_to_zero f C (g1 f) constant_color_set i hi_not_C).comp (hpkg f).2.1.tendsto_atTop
+    exact tendsto_nhds_unique h_tendsto_coord_z tendsto_zero_subseq
+
+  -- Step 5: Show Σ_{i∈C} z_i = 1
+  have sum_coords_in_C_eq_one : ∑ i ∈ C, z.1 i = 1 := by
+    have total_sum_eq_one : ∑ i, z.1 i = 1 := z.2.2
+    have split_sum : ∑ i, z.1 i = ∑ i ∈ C, z.1 i + ∑ i ∈ Cᶜ, z.1 i :=
+      (Finset.sum_add_sum_compl C (z.1)).symm
+    have compl_sum_zero : ∑ i ∈ Cᶜ, z.1 i = 0 := by
+      apply Finset.sum_eq_zero
+      intro i hi
+      exact coords_outside_C_zero i (Finset.mem_compl.mp hi)
+    rw [split_sum, compl_sum_zero, add_zero] at total_sum_eq_one
+    exact total_sum_eq_one
+
+  -- Step 6: Show f(z)_i ≥ z_i for all i ∈ C using the coloring property
+  have f_coords_ge_z_coords : ∀ i ∈ C, (f z).1 i ≥ z.1 i := by
+    intro i hi_C
+    -- For each k, C is the color set of σ_k, so there's a point x_k with color i.
+    sorry
+  -- Step 7: Show Σ_{i∈C} f(z)_i ≥ 1
+  have sum_f_coords_ge_one : ∑ i ∈ C, (f z).1 i ≥ 1 := by
+    calc ∑ i ∈ C, (f z).1 i
+        ≥ ∑ i ∈ C, z.1 i := Finset.sum_le_sum f_coords_ge_z_coords
+      _ = 1 := sum_coords_in_C_eq_one
+
+  -- Step 8: Show f(z)_i = 0 for i ∉ C and f(z)_i = z_i for i ∈ C
+  have f_coords_outside_C_zero : ∀ i ∉ C, (f z).1 i = 0 := by
+    intro i hi_not_C
+    -- Since Σ f(z)_i = 1 and Σ_{i∈C} f(z)_i ≥ 1, we must have f(z)_i = 0 for i ∉ C
+    have total_sum_f : ∑ i, (f z).1 i = 1 := (f z).2.2
+    sorry
+
+  have f_coords_eq_z_coords : ∀ i ∈ C, (f z).1 i = z.1 i := by
+    intro i hi_C
+    -- Since Σ_{i∈C} f(z)_i ≥ 1, Σ_{i∈C} z_i = 1, and f(z)_i ≥ z_i for i ∈ C,
+    -- we must have equality everywhere
+    sorry
+
+  -- Step 9: Conclude f(z) = z
+  ext i
+  by_cases hi : i ∈ C
+  · exact f_coords_eq_z_coords i hi
+  · rw [f_coords_outside_C_zero i hi, coords_outside_C_zero i hi]
 
 
 end Brouwer
