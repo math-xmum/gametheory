@@ -727,47 +727,15 @@ lemma room_diameter_tends_to_zero (f : stdSimplex ℝ (Fin n) → stdSimplex ℝ
             simp only [Int.cast_natCast]
           rw [h_cast]
           exact_mod_cast le_of_lt h_int_bound
-        have key_norm_eq : ‖(fun i => (x'.val i : ℝ) - (y'.val i : ℝ))‖ = Real.sqrt (∑ i, ((x'.val i : ℝ) - (y'.val i : ℝ)) ^ 2) :=
-          calc ‖(fun i => (x'.val i : ℝ) - (y'.val i : ℝ))‖
-              = (∑ i, ((x'.val i : ℝ) - (y'.val i : ℝ)) ^ 2) ^ (1/2 : ℝ) := rfl
-              _ = Real.sqrt (∑ i, ((x'.val i : ℝ) - (y'.val i : ℝ)) ^ 2) := by simp [Real.sqrt_eq_rpow]
+        have h_norm_le : ‖(fun i : Fin n => (x'.val i : ℝ) - (y'.val i : ℝ))‖ ≤ Real.sqrt (∑ i : Fin n, (2 * ((n : ℝ) + 1)) ^ 2) := by
+          sorry  --技术性问题
 
-        calc ‖(fun i => (x'.val i : ℝ) - (y'.val i : ℝ))‖
-            = Real.sqrt (∑ i, ((x'.val i : ℝ) - (y'.val i : ℝ)) ^ 2) := key_norm_eq
-            _ ≤ Real.sqrt (Fintype.card (Fin n)) * (Finset.univ.sup' (Finset.univ_nonempty : (Finset.univ : Finset (Fin n)).Nonempty) fun i => abs ((x'.val i : ℝ) - (y'.val i : ℝ))) := by
-              let M := Finset.univ.sup' Finset.univ_nonempty fun i => abs ((x'.val i : ℝ) - (y'.val i : ℝ))
-              have h_le : ∀ i, abs ((x'.val i : ℝ) - (y'.val i : ℝ)) ≤ M := fun i => Finset.le_sup' (fun j => abs ((x'.val j : ℝ) - (y'.val j : ℝ))) (Finset.mem_univ i)
-              have h_sum : (∑ i, ((x'.val i : ℝ) - (y'.val i : ℝ)) ^ 2) ≤ (Fintype.card (Fin n)) * M ^ 2 := by
-                calc ∑ i, ((x'.val i : ℝ) - (y'.val i : ℝ)) ^ 2
-                    ≤ ∑ i, M ^ 2 := by
-                      apply Finset.sum_le_sum
-                      intro i _
-                      apply sq_le_sq'
-                      · exact neg_le_of_abs_le (h_le i)
-                      · exact le_trans (le_abs_self _) (h_le i)
-                  _ = (Fintype.card (Fin n) : ℝ) * M ^ 2 := by
-                      rw [Finset.sum_const, Finset.card_univ, nsmul_eq_mul]
-              calc
-                Real.sqrt (∑ i, ((x'.val i : ℝ) - (y'.val i : ℝ)) ^ 2)
-                  ≤ Real.sqrt ((Fintype.card (Fin n)) * M ^ 2) := by
-                    apply Real.sqrt_le_sqrt
-                    exact h_sum
-                _ = Real.sqrt (Fintype.card (Fin n)) * Real.sqrt (M ^ 2) := by
-                    apply Real.sqrt_mul
-                    exact Nat.cast_nonneg _
-                _ = Real.sqrt (Fintype.card (Fin n)) * M := by
-                    rw [Real.sqrt_sq_eq_abs, abs_of_nonneg]
-                    exact le_trans (abs_nonneg ((x'.val 0 : ℝ) - (y'.val 0 : ℝ)))
-                          (Finset.le_sup' (fun i => abs ((x'.val i : ℝ) - (y'.val i : ℝ))) (Finset.mem_univ (0 : Fin n)))
 
-            _ ≤ Real.sqrt (n : ℝ) * (2 * ((n : ℝ) + 1)) := by
-              have card_eq : Fintype.card (Fin n) = n := Fintype.card_fin n
-              simp only [card_eq]
-              apply mul_le_mul_of_nonneg_left _ (Real.sqrt_nonneg _)
-              apply Finset.sup'_le
-              intro i _
-              exact h_coord_bound i
-            _ = C := by simp only [C]
+        calc ‖(fun i => (x'.val i : ℝ) - (y'.val i : ℝ))‖ ≤ Real.sqrt (∑ i, (2 * ((n : ℝ) + 1)) ^ 2) := h_norm_le
+          _ = Real.sqrt (n * (2 * ((n : ℝ) + 1)) ^ 2) := by
+            rw [Finset.sum_const, Finset.card_fin, nsmul_eq_mul]
+          _ = Real.sqrt ↑n * (2 * (↑n + 1)) := by
+            rw [Real.sqrt_mul (by positivity), Real.sqrt_sq_eq_abs, abs_of_nonneg (by positivity)]
       · positivity
     have h_finite : EMetric.diam (Set.range (fun x : σ => (x : stdSimplex ℝ (Fin n)))) ≠ ⊤ := by
       apply ne_top_of_le_ne_top ENNReal.ofReal_ne_top h_diam_le
@@ -795,35 +763,28 @@ Use
 -/
 
 theorem Brouwer (hf : Continuous f): ∃ x , f x = x := by
-  -- Extract the fixed point candidate z and the constant color set C
   let z := (hpkg f).1.1
   let C := (gpkg f).1.1
   let φ := (hpkg f).1.2
 
   use z
 
-  -- Step 1: Show that the diameter of σ_l tends to 0 as l → ∞ (Theorem 10 applied)
   have diameter_to_zero : Filter.Tendsto (fun l' => (EMetric.diam (Set.range (fun x : (room_seq f l').1.1 => (x : stdSimplex ℝ (Fin n))))).toReal) Filter.atTop (𝓝 0) :=
     room_diameter_tends_to_zero f
 
-  -- Step 2: Show convergence to z along subsequence
   have convergence_to_z : Filter.Tendsto ((fun l' => (room_point_seq f (g1 f l'): stdSimplex ℝ (Fin n))) ∘ φ) Filter.atTop (𝓝 z) :=
     (hpkg f).2.2
 
-  -- Step 3: Show that C is constant along the subsequence
   have constant_color_set : ∀ l', (room_seq f (g1 f l')).1.2 = C :=
     (gpkg f).2
 
-  -- Step 4: For i ∉ C, show z_i = 0 using Theorem 10 part 2 (size_bound_out)
   have coords_outside_C_zero : ∀ i ∉ C, z.1 i = 0 := by
     intro i hi_not_C
-    -- Use size_bound_out and convergence
     have bound_out : ∀ l', ∀ x ∈ (room_seq f (g1 f l')).1.1, (x i : ℤ) < ↑n + 1 := by
       intro l' x hx
       rw [← constant_color_set l'] at hi_not_C
       have h_colorful := (Finset.mem_filter.mp (room_seq f (g1 f l')).property).2
       exact @size_bound_out n ⟨(g1 f l') + 1, Nat.zero_lt_succ _⟩ (room_seq f (g1 f l')).1.1 (room_seq f (g1 f l')).1.2 h_colorful.left x hx i hi_not_C
-    -- Apply limit argument
     have tendsto_zero : Filter.Tendsto (fun l' => ((room_point_seq f (g1 f l')) : stdSimplex ℝ (Fin n)).1 i) Filter.atTop (𝓝 0) :=
       dominant_coords_tend_to_zero f C (g1 f) constant_color_set i hi_not_C
     have h_tendsto_coord_z : Tendsto (fun k => ((room_point_seq f (g1 f (φ k))) : stdSimplex ℝ (Fin n)).1 i) atTop (𝓝 (z.1 i)) := by
@@ -834,7 +795,6 @@ theorem Brouwer (hf : Continuous f): ∃ x , f x = x := by
       (dominant_coords_tend_to_zero f C (g1 f) constant_color_set i hi_not_C).comp (hpkg f).2.1.tendsto_atTop
     exact tendsto_nhds_unique h_tendsto_coord_z tendsto_zero_subseq
 
-  -- Step 5: Show Σ_{i∈C} z_i = 1
   have sum_coords_in_C_eq_one : ∑ i ∈ C, z.1 i = 1 := by
     have total_sum_eq_one : ∑ i, z.1 i = 1 := z.2.2
     have split_sum : ∑ i, z.1 i = ∑ i ∈ C, z.1 i + ∑ i ∈ Cᶜ, z.1 i :=
@@ -845,32 +805,25 @@ theorem Brouwer (hf : Continuous f): ∃ x , f x = x := by
       exact coords_outside_C_zero i (Finset.mem_compl.mp hi)
     rw [split_sum, compl_sum_zero, add_zero] at total_sum_eq_one
     exact total_sum_eq_one
-
-  -- Step 6: Show f(z)_i ≥ z_i for all i ∈ C using the coloring property
+  
   have f_coords_ge_z_coords : ∀ i ∈ C, (f z).1 i ≥ z.1 i := by
-    intro i hi_C
-    -- For each k, C is the color set of σ_k, so there's a point x_k with color i.
-    sorry
-  -- Step 7: Show Σ_{i∈C} f(z)_i ≥ 1
+      intro i hi_C
+      sorry
+
   have sum_f_coords_ge_one : ∑ i ∈ C, (f z).1 i ≥ 1 := by
     calc ∑ i ∈ C, (f z).1 i
         ≥ ∑ i ∈ C, z.1 i := Finset.sum_le_sum f_coords_ge_z_coords
       _ = 1 := sum_coords_in_C_eq_one
 
-  -- Step 8: Show f(z)_i = 0 for i ∉ C and f(z)_i = z_i for i ∈ C
   have f_coords_outside_C_zero : ∀ i ∉ C, (f z).1 i = 0 := by
     intro i hi_not_C
-    -- Since Σ f(z)_i = 1 and Σ_{i∈C} f(z)_i ≥ 1, we must have f(z)_i = 0 for i ∉ C
     have total_sum_f : ∑ i, (f z).1 i = 1 := (f z).2.2
     sorry
 
   have f_coords_eq_z_coords : ∀ i ∈ C, (f z).1 i = z.1 i := by
     intro i hi_C
-    -- Since Σ_{i∈C} f(z)_i ≥ 1, Σ_{i∈C} z_i = 1, and f(z)_i ≥ z_i for i ∈ C,
-    -- we must have equality everywhere
     sorry
 
-  -- Step 9: Conclude f(z) = z
   ext i
   by_cases hi : i ∈ C
   · exact f_coords_eq_z_coords i hi
