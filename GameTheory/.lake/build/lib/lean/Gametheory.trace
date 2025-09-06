@@ -1,0 +1,29 @@
+{"synthetic": false,
+ "outputs":
+ {"o": ["17920663372158197910"],
+  "i": "15744173115302802000",
+  "c": "12263725246997407252"},
+ "log":
+ [{"message":
+   ".> LEAN_PATH=/Users/lvyuwei/Lean/.lake/packages/Cli/.lake/build/lib/lean:/Users/lvyuwei/Lean/.lake/packages/batteries/.lake/build/lib/lean:/Users/lvyuwei/Lean/.lake/packages/Qq/.lake/build/lib/lean:/Users/lvyuwei/Lean/.lake/packages/aesop/.lake/build/lib/lean:/Users/lvyuwei/Lean/.lake/packages/proofwidgets/.lake/build/lib/lean:/Users/lvyuwei/Lean/.lake/packages/importGraph/.lake/build/lib/lean:/Users/lvyuwei/Lean/.lake/packages/LeanSearchClient/.lake/build/lib/lean:/Users/lvyuwei/Lean/.lake/packages/plausible/.lake/build/lib/lean:/Users/lvyuwei/Lean/.lake/packages/mathlib/.lake/build/lib/lean:/Users/lvyuwei/Lean/.lake/build/lib/lean /Users/lvyuwei/.elan/toolchains/leanprover--lean4---v4.22.0-rc4/bin/lean /Users/lvyuwei/Lean/Gametheory.lean -o /Users/lvyuwei/Lean/.lake/build/lib/lean/Gametheory.olean -i /Users/lvyuwei/Lean/.lake/build/lib/lean/Gametheory.ilean -c /Users/lvyuwei/Lean/.lake/build/ir/Gametheory.c --setup /Users/lvyuwei/Lean/.lake/build/ir/Gametheory.setup.json --json",
+   "level": "trace"}],
+ "inputs":
+ [["Gametheory:deps",
+   [["deps",
+     [["Gametheory/Gametheory:extraDep", [["@Gametheory:extraDep", "1723"]]],
+      ["import oleans",
+       [["Gametheory.Scarf:olean",
+         [["Gametheory.Scarf:deps", "5551028124489851786"],
+          ["/Users/lvyuwei/Lean/.lake/build/lib/lean/Gametheory/Scarf.olean",
+           "9042102710600682652"]]]]]]],
+    ["libs",
+     [["import dynlibs", "1723"],
+      ["package external libraries", "1723"],
+      ["module dynlibs", "1723"],
+      ["module plugins", "1723"]]]]],
+  ["Lean 4.22.0, commit 30ceb3260d7d7536092fedff969b4b2e8de7f942",
+   "7333961747739924687"],
+  ["/Users/lvyuwei/Lean/Gametheory.lean", "17134113549797505211"],
+  ["options", "1723"],
+  ["Module.leanArgs: #[]", "1723"]],
+ "depHash": "9668472835299251855"}

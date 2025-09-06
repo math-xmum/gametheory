@@ -6,7 +6,10 @@ import Mathlib.Topology.Algebra.Affine
 import Mathlib.Topology.Algebra.Module.Basic
 
 
-import GameTheory.Simplex1
+--import GameTheory.Simplex1
+import GameTheory.Sperner
+import Mathlib.Data.Matrix.Basic
+import Mathlib.Data.Matrix.RowCol
 
 open Classical
 open BigOperators

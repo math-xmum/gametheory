@@ -1,12 +1,12 @@
 import Lake
 open Lake DSL
 
-package «gametheory» {
+package «Gametheory» {
   -- add package configuration options here
 }
 
 @[default_target]
-lean_lib «GameTheory» {
+lean_lib «Gametheory» {
   -- add library configuration options here
 }
 
