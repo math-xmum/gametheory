@@ -23,7 +23,7 @@ structure Game where
     --deEqI : DecidableEq I := inferInstance -- Decidable Eq
     HI : Inhabited I     -- at least one player
     SS : I → Type*       -- S is the set of strategies
-    HSS (i :I): Inhabited (SS i) -- The set of strategies is nonempty
+    HSS (i :I) : Inhabited (SS i) -- The set of strategies is nonempty
     --deEqSS (i : I) : DecidableEq (SS i)
     g : I → (Π i, SS i) →  ℝ
     -- an elements in Π i, SS is a move of all players.
@@ -68,7 +68,10 @@ def mixed_g (i : G.I) (m : Π i, S (G.SS i) ) : ℝ := ∑ s : (Π j, G.SS j) , 
 
 #print mixed_g
 
-lemma mixed_g_linear : G.mixed_g i (update  x i y) = ∑ s : G.SS i, y s * G.mixed_g i (update x i (stdSimplex.pure s)) := sorry
+
+lemma mixed_g_linear : G.mixed_g i (update  x i y) = ∑ s : G.SS i, y s * G.mixed_g i (update x i (stdSimplex.pure s)) := by sorry
+
+
 
 
 def FinGame2MixedGame (G : FinGame) : Game := {
@@ -88,11 +91,7 @@ notation:999 "μ" rhs:60 => (FinGame2MixedGame rhs)
 
 variable (G : FinGame)
 
-
 theorem ExistsNashEq : ∃ m :  (i:(μ G).I )→ (μ G).SS i, (μ G).NashEquilibrium m := by sorry
-
-
-
 /-
 @[simp]
 noncomputable def with_hole {G: FinGame} (s : G.mixedS) (i : G.I) (x : S (G.SS i)) := Function.update G.I (fun i =>S (G.SS i)) s i x
@@ -116,7 +115,7 @@ section Brouwer.mixedGame
 variable {G : FinGame}
 
 
-theorem Brouwer.mixedGame (f : G.mixedS → G.mixedS) (hf : Continuous f) : ∃ x : G.mixedS, f x = x := sorry
+theorem Brouwer.mixedGame (f : G.mixedS → G.mixedS) (hf : Continuous f) : ∃ x : G.mixedS, f x = x := by sorry
 
 end Brouwer.mixedGame
 
@@ -169,26 +168,168 @@ lemma nash_map_cert (σ : G.mixedS) (i : G.I) :
     apply div_self
     linarith [one_le_sum_g i σ]
 
+
 variable (G)
 
 noncomputable def nash_map (σ: G.mixedS) : G.mixedS :=
   fun (i : G.I) ↦ ⟨nash_map_aux σ i, nash_map_cert σ i⟩
 
-lemma nash_map_cont : Continuous $ nash_map G := sorry
+lemma cg : Continuous fun a => g_function (G:=G) i a s := by
+  unfold g_function
+  apply Continuous.add
+  · let f : G.mixedS → stdSimplex ℝ (G.SS i) := fun σ => σ i
+    let g : stdSimplex ℝ (G.SS i) → ℝ := fun a => a s
+    have hfg: g ∘ f = fun σ => σ i s := by
+      ext σ; rfl
+    rw [<-hfg]
+    apply Continuous.comp
+    · have hgg : g =  (fun a => a s) ∘ (fun a => a.1)  := rfl
+      rw [hgg]
+      apply Continuous.comp
+      · apply continuous_apply
+      · continuity
+    · continuity
+
+  · apply Continuous.max
+    · continuity
+    · unfold mixed_g
+      apply Continuous.sub
+      · apply continuous_finset_sum
+        intro i' _
+        apply Continuous.mul
+        · apply continuous_finset_prod
+          intro i'' _
+          by_cases h : i'' = i
+          · rw [h]
+            continuity
+          · simp only [ne_eq, h, not_false_eq_true, update_noteq]
+            have : (fun (a : G.mixedS) => (a i'') (i' i'')) = (fun f => f (i' i'')) ∘ Subtype.val ∘ fun a => a i'' := by
+              rfl
+            rw [this]
+            apply Continuous.comp
+            continuity
+            apply Continuous.comp <;> continuity
+        · continuity
+      · apply continuous_finset_sum
+        intro i' _
+        apply Continuous.mul
+        · apply continuous_finset_prod
+          intro i'' _
+          by_cases h : i'' = i
+          · have : (fun (a : G.mixedS) => (a i) (i' i)) = (fun f => f (i' i)) ∘ Subtype.val ∘ fun a => a i := by
+              rfl
+            rw [h]
+            rw [this]
+            apply Continuous.comp
+            continuity
+            apply Continuous.comp <;> continuity
+          · have : (fun (a : G.mixedS) => (a i'') (i' i'')) = (fun f => f (i' i'')) ∘ Subtype.val ∘ fun a => a i'' := by
+              rfl
+            rw [this]
+            apply Continuous.comp
+            continuity
+            apply Continuous.comp <;> continuity
+        · continuity
+
+
+lemma nash_map_cont : Continuous $ nash_map G :=
+  by
+  unfold nash_map
+  unfold nash_map_aux
+  apply continuous_pi
+  intro i
+  apply Continuous.subtype_mk
+  apply continuous_pi
+  intro s
+  apply Continuous.div
+  · apply cg
+  · apply continuous_finset_sum
+    intro i _; apply cg
+  · intro σ
+    apply ne_of_gt
+    nlinarith [show 1 ≤ ∑ b : G.SS i, g_function i σ b by apply one_le_sum_g i σ]
+
 
 theorem ExistsNashEq : ∃ σ : G.mixedS , mixedNashEquilibrium σ := by {
   obtain ⟨σ, hs⟩ := Brouwer.mixedGame (nash_map G)  (nash_map_cont G)
   use σ
   intro i y
   by_cases H : ∀ t, G.mixed_g i σ  ≥ G.mixed_g i (update σ i (stdSimplex.pure t))
-  · sorry
+  · have h1 : ∃ t : G.SS i, mixed_g i (update σ i (stdSimplex.pure t)) ≥  mixed_g i (update σ i y) := by
+      have h1 : G.mixed_g i (update  σ i y) = ∑ s : G.SS i, y s * G.mixed_g i (update σ i (stdSimplex.pure s)) := by apply mixed_g_linear
+      rw [h1]
+      obtain ⟨t,ht⟩ := Finite.exists_max (fun s => G.mixed_g i (update σ i (stdSimplex.pure s)))
+      use t
+      simp
+      have : ∑ s : G.SS i, y s * G.mixed_g i (update σ i (stdSimplex.pure s))
+             ≤ ∑ s : G.SS i, y s * G.mixed_g i (update σ i (stdSimplex.pure t)) := by
+        apply Finset.sum_le_sum
+        intro s _
+        apply mul_le_mul_of_nonneg_left (ht s)
+        have : 0 ≤ y s := (y).2.1 s
+        exact this
+
+      have h2 : ∑ s : G.SS i, y s  = 1 := by
+        exact (y).2.2
+
+      rw [← Finset.sum_mul, h2] at this
+      simp at this
+      exact this
+    obtain ⟨t, ht⟩ := h1
+    specialize H t
+    nlinarith
+
   · exfalso -- This case cannot happen
     push_neg at H
     obtain ⟨t,ht⟩ := H
-    have H1 :  1 < ∑ b, g_function i σ b := sorry
+    have H1 :  1 < ∑ b, g_function i σ b := by
+      have h1 : 1 ≤ ∑ b : G.SS i, g_function i σ b := by
+        apply one_le_sum_g i σ
+      have h2 : 1 ≠ ∑ b : G.SS i, g_function i σ b := by
+        intro h2
+        replace h2 : ∑ b : G.SS i, σ i b  = ∑ b : G.SS i,   g_function  i σ b := by
+          have h3 : 1 = ∑ b : G.SS i, σ i b := Eq.symm (σ i).2.2
+          rw [h3] at h2
+          exact h2
+        unfold g_function at h2
+        replace h2 : ∑ s : G.SS i, max 0 (mixed_g i (update σ i (stdSimplex.pure s)) - mixed_g i σ) = 0 := by
+          rw [Finset.sum_add_distrib] at h2
+          linarith
+        replace h2 : mixed_g i (update σ i (stdSimplex.pure t)) - mixed_g i σ ≤ 0 := by
+          by_cases h :  ∀ s : G.SS i, mixed_g i (update σ i (stdSimplex.pure s)) - mixed_g i σ ≤ 0
+          · specialize h t
+            simp at h
+            simp
+            exact h
+          · exfalso
+            simp at h
+            obtain ⟨s, hs⟩:= h
+            have h3 : max 0 (mixed_g i (update σ i (stdSimplex.pure s)) - mixed_g i σ) = mixed_g i (update σ i (stdSimplex.pure s)) - mixed_g i σ := by simp; nlinarith
+            have h4: ∀ s : G.SS i , 0 ≤ max 0 (mixed_g i (update σ i (stdSimplex.pure s)) - mixed_g i σ) := by
+                intro s
+                simp
+            have h5 : ∑ s : G.SS i, max 0 (mixed_g i (update σ i (stdSimplex.pure s)) - mixed_g i σ) > 0 := by
+              have f : mixed_g i (update σ i (stdSimplex.pure s)) - mixed_g i σ ≤ ∑ s : G.SS i, max 0 (mixed_g i (update σ i (stdSimplex.pure s)) - mixed_g i σ) := by
+                rw [← h3]
+                set g :G.SS i → ℝ := fun s => max 0 (mixed_g i (update σ i (stdSimplex.pure s)) - mixed_g i σ)
+                have h6 : g s = max 0 (mixed_g i (update σ i (stdSimplex.pure s)) - mixed_g i σ) := by rfl
+                rw [←h6]
+                apply Finset.single_le_sum
+                replace h4 : ∀  s : G.SS i, 0 ≤ g s := by
+                  simp [g]
+                norm_num
+                · apply h4
+                · simp
+              nlinarith
+            nlinarith
+        nlinarith
+      rw [lt_iff_le_and_ne]
+      exact ⟨h1, h2⟩
     have H2 : ∑ s, σ i s * G.mixed_g i (update σ i (stdSimplex.pure s)) =
-      G.mixed_g i σ := sorry
-      -- have H2: G.mixed_g i (update σ i (σ i)) = G.mixed_g i σ  := by sorry
+      G.mixed_g i σ := by
+      rw [← mixed_g_linear]
+      simp
+      -- have H2: G.mixed_g i (update σ i (σ i)) = G.mixed_g i σ  := by sorry\
     obtain ⟨s,hs1,hs2⟩:= stdSimplex.wsum_magic_ineq H2
     have : σ i s = σ i s / (∑ b : G.SS i, g_function i σ b) := by
       nth_rw 1 [<-hs]
@@ -196,10 +337,22 @@ theorem ExistsNashEq : ∃ σ : G.mixedS , mixedNashEquilibrium σ := by {
       _ = nash_map_aux σ i s := by rw [nash_map];rfl
       _ = _ := by
         rw [nash_map_aux,g_function]
-        have : max 0 (mixed_g i (update σ i (stdSimplex.pure s)) - mixed_g i σ)  = 0 := sorry
+        have : max 0 (mixed_g i (update σ i (stdSimplex.pure s)) - mixed_g i σ)  = 0 := by
+          simp
+          apply hs2
         rw [this];norm_num
-    have self_div_lemma {x y : ℝ} : x≠0 → x = x/y → y = 1 := by
-      sorry
+    have self_div_lemma {x y : ℝ} : x ≠ 0 → x = x/y →  y = 1 := by
+      intro h1 h2
+      rw [eq_div_iff_mul_eq ] at h2
+      replace h2 : y = x / x := by
+        rw [mul_comm, ← eq_div_iff] at h2
+        linarith
+        apply h1
+      rw [div_self (show x ≠ 0 by apply h1)] at h2
+      exact h2
+      intro H'
+      replace h2 : x=0 := by rw [h2,H'];simp
+      exact h1 h2
     have := self_div_lemma (by linarith) this
     linarith
 }
