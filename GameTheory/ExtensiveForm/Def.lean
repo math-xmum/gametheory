@@ -64,13 +64,3 @@ def GameSpace.toPerfectInformationGame (G : GameSpace Player Outcome) : Game Pla
         replace H : x = y := H
         rw [H]
 }
-
-section Example
-
-/-
-Now formulate the prizoner dilemma game using above definitions
--/
-
-
-
-end Example
