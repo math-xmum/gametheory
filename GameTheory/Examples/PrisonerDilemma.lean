@@ -68,20 +68,8 @@ def PrisonersDilemmaSpace : GameSpace Player Outcome :=
 
 
 
--- Info set: as before, perfect info so trivial partition
-instance PD_info : Setoid PDNode := ⊥
-
-
--- Now, the Game itself
-def PrisonersDilemma : Game Player Outcome :=
-{ node             := PDNode,
-  action           := PDAction,
-  action_intabited := by intro x; apply inferInstance,
-  move             := PD_move,
-  nodetype         := PD_nodetype,
-  info             := PD_info,
-  actionequiv      := PD_actionequiv
-}
+-- Now, the Game with Perfect information
+def PrisonersDilemma : Game Player Outcome := PrisonersDilemmaSpace.toPerfectInformationGame
 
 
 end PrisonerDilemma
