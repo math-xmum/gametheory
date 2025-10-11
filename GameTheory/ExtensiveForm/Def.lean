@@ -2,21 +2,21 @@ import Mathlib
 
 section
 
-variable (Players : Type*) (Outcome : Type*)
+variable (Player : Type*) (Outcome : Type*)
 
 /--
 We understand a Game Space as a state machine
 -/
-structure GameSpace Players Outcome where
+structure GameSpace Player Outcome where
     node : Type*
     action : node -> Type*
     action_intabited: ∀ x, Nonempty (action x)
     move : (x : node) -> action x → node
-    nodetype : node -> Players ⊕ Outcome
+    nodetype : node -> Player ⊕ Outcome
 
 namespace GameSpace
 
-variable {Players : Type*} {Outcome : Type*} {G : GameSpace Players Outcome}
+variable {Player : Type*} {Outcome : Type*} {G : GameSpace Player Outcome}
 
 
 abbrev node.nodetype (x : G.node) := G.nodetype x
@@ -37,19 +37,33 @@ partial def node.Finite (x : G.node) : Prop :=
 
 def Finite := ∀ (x : G.node), x.Finite
 
+
+
 end GameSpace
 
 
-structure Game extends GameSpace Players Outcome where
+structure Game extends GameSpace Player Outcome where
     -- The information is an partition of nodes. We use equivalence relation
     -- to represent the partition .
     info : Setoid node
     -- The actionsets are the same for all  equivalent nodes
-    actionequiv : ∀ {x y : node}, x ≈ y → nodetype x = nodetype y → action x ≈ action y
-
-
-
+    actionequiv : ∀ {x y : node}, x ≈ y → nodetype x = nodetype y → action x = action y
 end
+
+variable {Player Outcome} in
+def GameSpace.toPerfectInformationGame (G : GameSpace Player Outcome) : Game Player Outcome:=
+{
+    node := G.node,
+    action := G.action,
+    action_intabited := G.action_intabited,
+    move := G.move,
+    nodetype := G.nodetype,
+    info := ⊥
+    actionequiv := by
+        intros x y H _;
+        replace H : x = y := H
+        rw [H]
+}
 
 section Example
 

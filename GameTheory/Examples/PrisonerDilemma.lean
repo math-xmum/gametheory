@@ -69,11 +69,7 @@ def PrisonersDilemmaSpace : GameSpace Player Outcome :=
 
 
 -- Info set: as before, perfect info so trivial partition
-instance PD_info : Setoid PDNode :=
-  ⟨Eq, @Eq.refl _, @Eq.symm _, @Eq.trans _⟩
-
--- Actionset: as before, trivial
-lemma PD_actionequiv : ∀ {x y : PDNode}, x ≈ y → PD_nodetype x = PD_nodetype y → PDAction x ≈ PDAction y := by intros; trivial
+instance PD_info : Setoid PDNode := ⊥
 
 
 -- Now, the Game itself
