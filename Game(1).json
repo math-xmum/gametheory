@@ -1,0 +1,1028 @@
+{
+    "0": {
+        "env": "定义",
+        "title": "策略的定义",
+        "title_en": "Definition of Strategy",
+        "content": "一个完整的关于在博弈中的行为方案,亦即在任意可能出现的游戏情形下给出行动指示的方案,被称为策略."
+    },
+    "1": {
+        "env": "定义",
+        "title": "棋局局面的定义",
+        "title_en": "Definition of Game Situation in Chess",
+        "content": "'棋局局面'(game situation)定义为包括棋盘上每个棋子的身份及其所处格子的状态,但不包含导致该局面的走子序列的全部细节.换言之,可能有两个或多个不同的走子序列对应同一棋局局面,因此需区分'棋盘局面'和'棋局局面'."
+    },
+    "2": {
+        "env": "定理",
+        "title": "凸函数与Jensen不等式的等价性",
+        "title_en": "Equivalence of Convex Functions and Jensen's Inequality",
+        "content": "\\n对于每组 $(x_{1}, x_{2}, \\ldots, x_{K})$ 以及每个非负且和为1的向量 $(p_{1}, p_{2}, \\ldots, p_{K})$,不等式\\n$$\\n\\sum_{k=1}^{K} p_{k} U_{i}(x_{k}) \\geq U_{i}\\left( \\sum_{k=1}^{K} p_{k} x_{k} \\right)\\n$$\\n成立的充分必要条件是 $U_{i}$ 是凸函数.\\n"
+    },
+    "3": {
+        "env": "定理",
+        "title": "刻画定理",
+        "title_en": "Characterization Theorem",
+        "content": "\\n对于每一个复合彩票 $\\widehat{L}$,有 $\\widehat{L} \\approx_{i} \\left[ u_{i} (\\widehat{L}) (A_{K}), ( 1 - u_{i} (\\widehat{L}) ) (A_{1}) \\right]$.\\n"
+    },
+    "4": {
+        "env": "定理",
+        "title": "风险态度判定的简化定理",
+        "title_en": "Simplification Theorem for Assessing Risk Attitude",
+        "content": "该定理指出:在判定一个玩家的风险态度时,只需比较其对每对结果组成的二元彩票的效用与该彩票期望值效用之间的关系,而无需对所有可能的彩票逐一进行比较.证明略(练习 2.23)."
+    },
+    "5": {
+        "env": "定义",
+        "title": "复合型彩票的定义",
+        "title_en": "Definition of Compound Lottery",
+        "content": "复合型彩票是指由多个彩票组成的彩票."
+    },
+    "6": {
+        "env": "定理",
+        "title": "关于复合彩票偏好关系的刻画定理",
+        "title_en": "Characterization Theorem for Compound Lottery Preferences",
+        "content": "\\n玩家对所有任意阶复合彩票的偏好关系由玩家对简单彩票的偏好关系所确定.\\n"
+    },
+    "7": {
+        "env": "公理",
+        "title": "连续性公理",
+        "title_en": "Axiom of Continuity",
+        "content": "\\n对于任意结果三元组 $A \\stackrel{\\sim}{_i} B \\stackrel{\\sim}{_i} C$,存在一个数 $\\theta_{i} \\in [0, 1]$,使得\\n$$\\nB \\approx_{i} [\\theta_{i}(A), (1 - \\theta_{i})(C)].\\n$$\\n"
+    },
+    "8": {
+        "env": "定义",
+        "title": "效用函数的定义",
+        "title_en": "Definition of Utility Function",
+        "content": "Player $i$ 的效用函数 $u_{i}$,用以表示其偏好关系 $\\succsim$,是一个从 $\\widehat{\\mathcal{L}}$ 映射到 $\\mathbb{R}$ 的函数 $u_{i}: \\widehat{\\mathcal{L}} \\to \\mathbb{R}$,满足\\n\\n$$\\nu_{i}(\\widehat{L}_{1}) \\geq u_{i}(\\widehat{L}_{2}) \\iff \\widehat{L}_{1} \\succsim_{i} \\widehat{L}_{2}, \\quad \\forall \\widehat{L}_{1}, \\widehat{L}_{2} \\in \\widehat{\\mathcal{L}}.\\n$$\\n"
+    },
+    "9": {
+        "env": "定理",
+        "title": "效用函数的单调变换仍表示同一偏好关系",
+        "title_en": "Monotonic Transformation of Utility Function Represents the Same Preference Relation",
+        "content": "设 $O$ 是结果的集合,$\\succsim$ 是 $O$ 上的完全、自反且传递的偏好关系.假设 $u$ 是表示 $\\succsim$ 的效用函数.那么对于每个严格单调递增的函数 $v : \\mathbb{R} \\to \\mathbb{R}$,复合函数 $v \\circ u$ 定义为\\n\\n$$\\n(v \\circ u)(x) = v(u(x))\\n$$\\n\\n也是表示 $\\succsim$ 的效用函数."
+    },
+    "10": {
+        "env": "定理",
+        "title": "线性效用函数的刻画定理",
+        "title_en": "Characterization Theorem for Linear Utility Functions",
+        "content": "如果玩家 $i$ 对 $\\widehat{\\mathcal{L}}$ 的偏好关系 $\\succsim$ 是完备且可传递的,并且满足冯·诺依曼–摩根斯坦的四个公理(公理 2.12、2.13、2.16 和 2.17),那么该偏好关系可以由线性效用函数来刻画."
+    },
+    "11": {
+        "env": "证明",
+        "title": "关于 $u_i$ 是效用函数的证明",
+        "title_en": "Proof that $u_i$ is a Utility Function",
+        "content": "要证明 $u_i$ 是一个效用函数,我们需要说明对于任意复合彩票 $\\widehat{L}$ 和 $\\widehat{L}'$,\\n$$\\n\\widehat{L} \\stackrel{}{\\sim}_i \\widehat{L}' \\quad \\iff \\quad u_i(\\widehat{L}) \\geq u_i(\\widehat{L}')\\n\\quad \\forall \\widehat{L}_1, \\widehat{L}_2 \\in \\widehat{\\mathcal{L}},\\n$$\\n且这由第4步以及单调性公理(Monotonicity Axiom)推出.\\n因此,在假设 $A_K \\succ_i A_1$ 的前提下,证明完成."
+    },
+    "12": {
+        "env": "性质",
+        "title": "无限结果集下的期望公理性质",
+        "title_en": "Properties of Expected Utility Axioms with Infinite Outcome Set",
+        "content": "如果满足以下条件,则期望效用理论中的所有结果依然成立:\\n\\n- 结果集合 $O$ 可以是任意集合,无论有限还是无限;\\n- 简单彩票集合 $\\mathcal{L}$ 包含对有限数量结果的所有彩票;\\n- 复合彩票集合 $\\widehat{\\mathcal{L}}$ 包含对有限数量简单彩票的所有彩票;\\n- 玩家对复合彩票集合 $\\widehat{\\mathcal{L}}$ 有完备、自反和传递的偏好关系;\\n- 存在一个(弱)最优结果 $A_{K} \\in O$,即玩家(弱)偏好 $A_{K}$ 优于 $O$ 中任何其他结果.\\n"
+    },
+    "13": {
+        "env": "定义",
+        "title": "效用函数的线性性定义",
+        "title_en": "Definition of Linearity of Utility Function",
+        "content": "线性性是效用函数可以满足的一个便利性质,指的是对一个彩票分配的效用值等于对各个可能结果分配的效用值的期望值.例如,若彩票 $L = [p\\, x,\\, (1-p)\\, y]$ 表示以概率 $p$ 获得结果 $x$,以概率 $1-p$ 获得结果 $y$,则线性性要求效用函数对于彩票 $L$ 的值应等于对结果 $x$ 和 $y$ 所分配效用值的加权平均,即\\n$$\\nu(L) = p\\, u(x) + (1-p)\\, u(y).\\n$$\\n"
+    },
+    "14": {
+        "env": "定义",
+        "title": "风险中性玩家的定义",
+        "title_en": "Definition of Risk Neutral Player",
+        "content": "一个玩家 $i$ 被称为风险中性,当且仅当对每一个具有有限可能结果的彩票 $L$,\\n$$\\nu_{i}(L) = u_{i}([1(\\mu_{L})]).\\n$$\\n"
+    },
+    "15": {
+        "env": "定义",
+        "title": "风险厌恶玩家的定义",
+        "title_en": "Definition of Risk Averse Player",
+        "content": "一个玩家 $i$ 被称为风险厌恶,当且仅当对每一个具有有限可能结果的彩票 $L$,\\n$$\\nu_{i}(L) \\leq u_{i}([1(\\mu_{L})]).\\n$$\\n"
+    },
+    "16": {
+        "env": "定义",
+        "title": "风险寻求玩家的定义",
+        "title_en": "Definition of Risk Seeking Player",
+        "content": "一个玩家 $i$ 被称为风险寻求(或风险偏好),当且仅当对每一个具有有限可能结果的彩票 $L$,\\n$$\\nu_{i}(L) \\geq u_{i}([1(\\mu_{L})]).\\n$$\\n"
+    },
+    "17": {
+        "env": "定义",
+        "title": "白方策略的定义",
+        "title_en": "Definition of White's Strategy",
+        "content": "白方的策略是一个函数 $s_W$,它将每一个游戏状态 $(x_0, x_1, x_2, \\ldots, x_K) \\in H$(其中 $K$ 为偶数)关联到一个棋盘位置 $x_{K+1}$,并且从棋盘位置 $x_K$ 到 $x_{K+1}$ 可以通过白方的一步合法棋步完成."
+    },
+    "18": {
+        "env": "定义",
+        "title": "L_j 的定义",
+        "title_en": "Definition of L_j",
+        "content": "$$\\nL _ { j } = \\big [ p _ { 1 } ^ { j } ( A _ { 1 } ) , \\dots , p _ { K } ^ { j } ( A _ { K } ) \\big ] , \\forall j = 1 , 2 , \\dots , J.\\n$$"
+    },
+    "19": {
+        "env": "定义",
+        "title": "r_k 的定义",
+        "title_en": "Definition of r_k",
+        "content": "$$\\nr _ { k } = \\sum _ { j = 1 } ^ { J } q _ { j } p _ { j } ^ { k } , \\quad \\forall k = 1 , 2 , \\ldots , K.\\n$$"
+    },
+    "20": {
+        "env": "公理",
+        "title": "简化公理的应用",
+        "title_en": "Application of Simplification Axiom",
+        "content": "$$\\n{ \\widehat { L } } \\approx _ { i } [ r _ { 1 } ( A _ { 1 } ) , r _ { 2 } ( A _ { 2 } ) , \\ldots , r _ { K } ( A _ { K } ) ].\\n$$"
+    },
+    "21": {
+        "env": "定义",
+        "title": "M_k 的定义",
+        "title_en": "Definition of M_k",
+        "content": "$$\\nM _ { k } = [ \\theta _ { i } ^ { k } ( A _ { K } ) , ( 1 - \\theta _ { i } ^ { k } ) ( A _ { 1 } ) ] \\quad \\text{for every } 1 \\leq k \\leq K.\\n$$"
+    },
+    "22": {
+        "env": "性质",
+        "title": "A_k 与 M_k 的等价性质",
+        "title_en": "Equivalence Property of A_k and M_k",
+        "content": "$$\\nA _ { k } \\approx _ { i } M _ { k } \\quad \\text{for every } 1 \\leq k \\leq K.\\n$$"
+    },
+    "23": {
+        "env": "定义",
+        "title": "后代顶点的定义",
+        "title_en": "Definition of Descendant Vertex",
+        "content": "每一个可以通过一系列移动从 $x$ 到达的顶点称为 $x$ 的后代顶点."
+    },
+    "24": {
+        "env": "定义",
+        "title": "复合型彩票的定义",
+        "title_en": "Definition of Compound Lottery",
+        "content": "一个复合型彩票(compound lottery)定义为\\n$$\\n\\widehat{L} = [q_{1}(L_{1}), q_{2}(L_{2}), \\ldots, q_{J}(L_{J})],\\n$$\\n其中 $q_{1}, \\ldots, q_{J}$ 是非负实数且满足 $\\sum_{j=1}^J q_j = 1$,$L_{1}, \\ldots, L_{J}$ 是$\\mathcal{L}$中的彩票(lottery).\\n"
+    },
+    "25": {
+        "env": "定义",
+        "title": "彩票的表示",
+        "title_en": "Representation of a Lottery",
+        "content": "对于每个 $1 \\leq j \\leq J$,存在非负数 $(p_{k}^{j})_{k=1}^{K}$,满足 $\\sum_{k=1}^K p_k^j = 1$,使得\\n$$\\nL_{j} = \\big[p_{1}^{j}(A_{1}), p_{2}^{j}(A_{2}), \\ldots, p_{K}^{j}(A_{K})\\big].\\n$$\\n其中 $A_1, \\ldots, A_K$ 是可能的结果.\\n"
+    },
+    "26": {
+        "env": "定义",
+        "title": "偏序关系的定义",
+        "title_en": "Definition of Partial Order Relation",
+        "content": "如果 $x \\succ_i y$,当且仅当 $x \\succ_i y$ 且 $y \\not\\subsetneq_i x$."
+    },
+    "27": {
+        "env": "定义",
+        "title": "效用函数的定义",
+        "title_en": "Definition of Utility Function",
+        "content": "设 $O$ 是一个结果集,$\\succsim$ 是 $O$ 上的完全、自反和传递的偏好关系.若函数 $u : O \\to \\mathbb{R}$ 满足对任意 $x, y \\in O$,\\n$$\\nx \\succsim_i y \\iff u(x) \\geq u(y)\\n$$\\n则称 $u$ 是表示 $\\succsim$ 的效用函数."
+    },
+    "28": {
+        "env": "定义",
+        "title": "偏好关系的定义",
+        "title_en": "Definition of Preference Relation",
+        "content": "定义 2.1 玩家 $i$ 在结果集合 $o$ 上的偏好关系是一个二元关系,记作 $\\succsim$.二元关系在形式上是 $o \\times o$ 的一个子集,但我们不写 $(x, y) \\in \\succsim$,而写 $x \\succsim_{i} y$,意思是'玩家 $i$ 对结果 $x$ 相对于 $y$ 的偏好:要么偏好 $x$ 于 $y$,要么对两者无差别'.有时也称玩家在此情况下'弱偏好'$x$ 于 $y$."
+    },
+    "29": {
+        "env": "定义",
+        "title": "无差异关系的定义",
+        "title_en": "Definition of Indifference Relation",
+        "content": "\\n无差异关系 $\\approx _ { i }$ 被定义为:当且仅当 $x \\succeq _ { i } y$ 且 $y \\succeq _ { i } x$ 时,称玩家 $i$ 对两个结果 $x$ 和 $y$ 无差异,即\\n$$\\nx \\approx _ { i } y \\iff x \\succeq _ { i } y \\mathrm{~and~} y \\succeq _ { i } x.\\n$$\\n"
+    },
+    "30": {
+        "env": "定理",
+        "title": "关于博弈$\\Gamma(x)$的白方获胜策略的判定",
+        "title_en": "Criterion for White's Winning Strategy in Game $\\Gamma(x)$",
+        "content": "如果存在顶点 $y_{0} \\in C(x)$,使得白方在博弈 $\\Gamma(y_{0})$ 中有获胜策略,则在博弈 $\\Gamma(x)$ 中,结论(i)成立:白方在 $\\Gamma(x)$ 中的获胜策略是将第一步移动到顶点 $y_{0}$,并在所有后续回合中遵循在 $\\Gamma(y_{0})$ 中的获胜策略."
+    },
+    "31": {
+        "env": "性质",
+        "title": "有限集合上的全称否定等价于存在否定",
+        "title_en": "Negation of Universal Quantification on Finite Set Equivalent to Existential Negation",
+        "content": "\\n设 $X$ 是有限集合,$A(x)$ 是任意逻辑公式.如果'并非对于所有 $x \\in X$,公式 $A(x)$ 都成立',那么'存在某个 $x \\in X$,使得公式 $A(x)$ 不成立'.\\n"
+    },
+    "32": {
+        "env": "定义",
+        "title": "战略性博弈与合作性博弈的定义",
+        "title_en": "Definition of Strategic Games and Coalitional (Cooperative) Games",
+        "content": "传统上,博弈论分为两个主要子领域:战略性博弈(又称非合作性博弈)和合作性博弈(又称联盟博弈)."
+    },
+    "33": {
+        "env": "定义",
+        "title": "战略性博弈与合作性博弈的区别",
+        "title_en": "Distinction Between Strategic Games and Coalitional Games",
+        "content": "广义而言,在战略性博弈中,参与者彼此独立行动,每个参与者根据自身偏好追求最理想的结果;而在合作性博弈中,参与者也同样独立行动,但允许他们达成并签署可强制履行的契约,以协调行动."
+    },
+    "34": {
+        "env": "定义",
+        "title": "以顶点为根的子树和子博弈的定义",
+        "title_en": "Definition of Subtree and Subgame Starting at a Vertex",
+        "content": "给定顶点 $x \\in H$,我们可以考虑以 $x$ 为根的子树,其定义为以 $x$ 为根,去除所有不是 $x$ 的后代的顶点后得到的树.博弈树中的该子树,记作 $\\Gamma(x)$,对应于称为以 $x$ 开始的子博弈的博弈."
+    },
+    "35": {
+        "env": "定义",
+        "title": "黑方策略的定义",
+        "title_en": "Definition of Black's Strategy",
+        "content": "黑方的策略是一个函数 $s_{B}$,它将每一个棋局情形 $(x_{0}, x_{1}, x_{2}, \\ldots, x_{K}) \\in H$(其中 $K$ 为奇数)对应到一个棋盘位置 $x_{K+1}$,使得从棋盘位置 $x_{K}$ 经过黑方的一步合法走子可以到达 $x_{K+1}$."
+    },
+    "36": {
+        "env": "定义",
+        "title": "策略对决定棋局过程的定义",
+        "title_en": "Definition of Game Course by Pair of Strategies",
+        "content": "任意一对策略 $\\left(s_{W}, s_{B}\\right)$ 决定了完整的一系列走子过程."
+    },
+    "37": {
+        "env": "定义",
+        "title": "标准棋局的定义",
+        "title_en": "Definition of the Standard Chess Game",
+        "content": "游戏 $\\Gamma(x_{0})$ 被定义为以棋局开局态开始的游戏,因此它是标准的国际象棋游戏."
+    },
+    "38": {
+        "env": "定义",
+        "title": "简单型彩票的定义",
+        "title_en": "Definition of Simple Lottery",
+        "content": "我们将 $L \\in {\\mathcal{L}}$ 中的彩票称为简单型彩票."
+    },
+    "39": {
+        "env": "定义",
+        "title": "复合型彩票集合的定义",
+        "title_en": "Definition of Set of Compound Lotteries",
+        "content": "复合型彩票的集合记为 $\\widehat{\\mathcal{L}}$."
+    },
+    "40": {
+        "env": "定义",
+        "title": "效用函数的定义",
+        "title_en": "Definition of Utility Function",
+        "content": "设 $\\succsim_{i}$ 是玩家 $i$ 在彩票集合 $\\mathcal{L}$ 上的偏好关系.一个表示玩家 $i$ 偏好的效用函数 $u_{i}$ 是定义在 $\\mathcal{L}$ 上的实值函数,满足\\n\\n$$\\nu_{i}(L_{1}) \\geq u_{i}(L_{2}) \\iff L_{1} \\succsim_{i} L_{2} \\quad \\forall L_{1}, L_{2} \\in \\mathcal{L}.\\n$$\\n"
+    },
+    "41": {
+        "env": "性质",
+        "title": "国际象棋的三个基本性质",
+        "title_en": "Three Fundamental Properties of Chess",
+        "content": "\\n(C1) 游戏是有限的.\\n(C2) 玩家策略决定游戏过程.换言之,游戏中没有偶然因素;不涉及骰子或抽牌.\\n(C3) 每位玩家在每一轮都知道之前所有阶段的走棋.\\n"
+    },
+    "42": {
+        "env": "定理",
+        "title": "国际象棋博弈三分律",
+        "title_en": "Trichotomy Law for Chess Games",
+        "content": "\\n在国际象棋中,以下三种情况且仅有一种必定成立:\\n\\n(i) 白方有必胜策略;\\n(ii) 黑方有必胜策略;\\n(iii) 双方均有至少保证和棋的策略.\\n\\n该定理适用于所有国际象棋对局,而非某一特定对局.即,如果(i)成立,则无论对手是谁,任何白方玩家只要按照该策略$s_{W}$行棋,便必定获胜;如果(ii)成立,则任何黑方玩家只要按照$s_{B}$行棋,便必定获胜;如果(iii)成立,则白方有策略$s_{W}$保证至少和棋,黑方有策略$s_{B}$保证至少和棋,双方只需遵循各自的策略,即可在任何对局中至少获得和棋.注意,如果(i)成立,可能存在不止一种必胜策略,对(ii)和(iii)同理.\\n"
+    },
+    "43": {
+        "env": "定义",
+        "title": "终端顶点的定义",
+        "title_en": "Definition of Terminal Vertex",
+        "content": "若顶点 $x$ 满足 $n_{x} = 1$,则称 $x$ 为终端顶点."
+    },
+    "44": {
+        "env": "定义",
+        "title": "博弈树的定义",
+        "title_en": "Definition of Game Tree",
+        "content": "将博弈中的所有游戏状态用树状结构表示,这样的树称为博弈树."
+    },
+    "45": {
+        "env": "定理",
+        "title": "满足连续性与单调性公理偏好关系的唯一性定理",
+        "title_en": "Uniqueness Theorem for Preference Relations Satisfying Continuity and Monotonicity",
+        "content": "\\n若偏好关系满足连续性与单调性公理,且 $A \\succ_{i} B \\succ_{i} C$,并且 $A \\succ_{i} C$,则在连续性公理中定义的 $\\theta_{i}$ 的取值是唯一的.\\n"
+    },
+    "46": {
+        "env": "定义",
+        "title": "概率型彩票的定义",
+        "title_en": "Definition of Probabilistic Lottery",
+        "content": "\\n一个彩票 $L$,其中结果 $A_{k}$ 以概率 $p_{k}$ 实现($p_{1}, \\dots, p_{K}$ 为非负实数且和为1),记作\\n$$\\nL = [ p_{1}(A_{1}), p_{2}(A_{2}), \\dots, p_{K}(A_{K}) ],\\n$$\\n所有关于集合 $O$ 的彩票的集合记作 $\\mathcal{L}$.\\n"
+    },
+    "47": {
+        "env": "定理",
+        "title": "全称与存在量词的否定等价律",
+        "title_en": "Equivalence of Negation of Universal and Existential Quantifiers",
+        "content": "\\n$\\lnot ( \\forall x ( A ) ) = \\exists x ( \\lnot A )$.\\n"
+    },
+    "48": {
+        "env": "定理",
+        "title": "存在与全称量词的否定等价律",
+        "title_en": "Equivalence of Negation of Existential and Universal Quantifiers",
+        "content": "\\n$\\lnot \\left( \\exists x ( A ) \\right) = \\forall x ( \\lnot A )$.\\n"
+    },
+    "49": {
+        "env": "定义",
+        "title": "彩票的期望值定义",
+        "title_en": "Definition of Expected Value of a Lottery",
+        "content": "给定一个彩票 $L = [ p_{1}(x_{1}), p_{2}(x_{2}), \\dots, p_{K}(x_{K}) ]$,其中 $L$ 有有限个可能结果,我们记 $\\mu_{L}$ 为 $L$ 的期望值,定义为\\n\\n$$\\n\\mu_{L} = \\sum_{k=1}^{K} p_{k} x_{k}.\\n$$\\n"
+    },
+    "50": {
+        "env": "公理",
+        "title": "简化公理",
+        "title_en": "Axiom of Simplification",
+        "content": "简化公理指出,复合彩票的效用仅依赖于它最终分配给每个结果的概率."
+    },
+    "51": {
+        "env": "公理",
+        "title": "独立性公理",
+        "title_en": "Axiom of Independence",
+        "content": "\\n设 $\\widehat{L} = [ q_{1}(L_{1}), \\ldots, q_{J}(L_{J}) ]$ 为一个复合型博彩,$M$ 为一个简单博彩.如果 $L_{j} \\approx_{i} M$,那么\\n\\n$$\\n\\widehat{L} \\approx_{i} [ q_{1}(L_{1}), \\ldots, q_{j-1}(L_{j}), q_{j}(M), q_{j+1}(L_{j+1}), \\ldots, q_{J}(L_{J}) ].\\n$$\\n"
+    },
+    "52": {
+        "env": "定义",
+        "title": "棋局的定义",
+        "title_en": "Definition of a Play of the Game",
+        "content": "一整套棋步(从开局到结束的每一步)称为一局棋."
+    },
+    "53": {
+        "env": "性质",
+        "title": "棋局的结果",
+        "title_en": "Possible Outcomes of a Play of the Game",
+        "content": "每一局国际象棋的对局最终要么白方胜利,要么黑方胜利,要么平局."
+    },
+    "54": {
+        "env": "推论",
+        "title": "满足连续性与单调性公理的偏好关系的唯一混合系数存在性",
+        "title_en": "Existence and Uniqueness of Mixing Coefficient under Continuity and Monotonicity Axioms",
+        "content": "\\n如果 $\\succsim$ 是定义在 $\\widehat{\\mathcal{L}}$ 上并满足连续性与单调性公理的偏好关系,且 $A_{K} \\succ_{i} A_{1}$,那么对于每个 $k = 1, 2, \\ldots, K$,存在唯一的 $\\theta_{i}^{k} \\in [0, 1]$,使得\\n$$\\nA_{k} \\approx_{i} \\left[\\theta_{i}^{k}(A_{K}), \\left(1 - \\theta_{i}^{k}\\right)(A_{1})\\right].\\n$$\\n并且有\\n$$\\n\\theta_{i}^{1} = 0, \\quad \\theta_{i}^{K} = 1.\\n$$\\n"
+    },
+    "55": {
+        "env": "例子",
+        "title": "群体偏好非传递性的例子",
+        "title_en": "Example of Non-Transitivity in Group Preferences",
+        "content": "如果一个'玩家'实际上是由一群个体组成,每个个体都有传递的偏好关系,则该群体的集体偏好仍然可能是不传递的.下面的例子展示了这种现象."
+    },
+    "56": {
+        "env": "定理",
+        "title": "函数 $u_{i}$ 的线性性",
+        "title_en": "Linearity of the Function $u_{i}$",
+        "content": "对于每个简单彩票 $L = [ p_{1} (A_{1}), \\dots, p_{K} (A_{K}) ]$,有\\n$$\\nu_{i} (L) = \\sum_{k = 1}^{K} p_{k} u_{i} (A_{k}).\\n$$\\n即 $u_{i}$ 是线性的.该等式成立,因为第 (2.37) 式表明左边等于 $\\sum_{k = 1}^{K} p_{k} \\theta_{i}^{k}$,而第 (2.39) 式表明右边也等于 $\\sum_{k = 1}^{K} p_{k} \\theta_{i}^{k}$."
+    },
+    "57": {
+        "env": "定理",
+        "title": "对所有结果无差别时偏好等价于常数效用函数",
+        "title_en": "Indifference Implies Constant Utility Function",
+        "content": "\\n若玩家对所有结果 $A_1, A_2, \\ldots, A_K$ 都无差别,即 $A_1 \\approx_i A_2 \\approx_i \\cdots \\approx_i A_K$,则根据独立性与简化公理,玩家对任意两个简单型彩票无差别.进一步,对任意复合型彩票 $\\widehat{L}$,有 $\\widehat{L} \\approx_i [1(A_1)]$.因此,玩家对任意两个复合型彩票均无差别,任何常数函数 $u_i$ 都能表示其偏好关系.\\n"
+    },
+    "58": {
+        "env": "推论",
+        "title": "胜势转移的推论",
+        "title_en": "Corollary of Transfer of Winning Strategy",
+        "content": "如果在每个顶点 $y \\in C(x)$ 的博弈 $\\Gamma(y)$ 中,黑方均有必胜策略,则在 $\\Gamma(x)$ 的情形下,结论 (ii) 成立:黑方可以通过在白方第一次行动后确定顶点 $y$ 的身份,并在后续的所有回合中采用其在 $\\Gamma(y)$ 的必胜策略,从而获胜."
+    },
+    "59": {
+        "env": "定理",
+        "title": "关于 $\\mathcal{F}$ 中博弈可能结局的定理",
+        "title_en": "Theorem on Possible Outcomes of Games in $\\mathcal{F}$",
+        "content": "每个属于 $\\mathcal{F}$ 的博弈满足且仅满足下列三种可能之一:\\n\\n(i) 白方有必胜策略;\\n(ii) 黑方有必胜策略;\\n(iii) 每一方都有策略保证至少平局."
+    },
+    "60": {
+        "env": "证明",
+        "title": "关于 $\\mathcal{F}$ 中博弈可能结局定理的归纳证明",
+        "title_en": "Inductive Proof of the Theorem on Possible Outcomes of Games in $\\mathcal{F}$",
+        "content": "证明:证明过程按子博弈 $\\Gamma(x)$ 的顶点数 $n_x$ 进行归纳."
+    },
+    "61": {
+        "env": "定义",
+        "title": "概率感知的无差异概率值定义",
+        "title_en": "Definition of Indifference Probability Value in Perceptions of Probability",
+        "content": "如果一个人在三个可能结果 $A$, $B$, $C$ 上的偏好关系满足 $A \\succ B \\succ C$,则可以通过试错法为其提供不同概率值 $p$,最终确定一个概率值 $p_0$,使得\\n$$\\nB \\approx [p_0(A), (1-p_0)(C)].\\n$$\\n其中 $B$ 与以概率 $p_0$ 获得 $A$、以概率 $1-p_0$ 获得 $C$ 的混合结果无差异."
+    },
+    "62": {
+        "env": "定理",
+        "title": "有限国际象棋胜负策略三分定理",
+        "title_en": "Trichotomy Theorem of Winning Strategies in Finite Chess",
+        "content": "在有限国际象棋中,恰好有以下三种可能之一成立:\\n(i) 白方有必胜策略;\\n(ii) 黑方有必胜策略;\\n(iii) 两方各自拥有至少保证和棋的策略."
+    },
+    "63": {
+        "env": "公理",
+        "title": "决策者偏好的单调性公理",
+        "title_en": "Monotonicity Axiom for Decision Maker Preferences",
+        "content": "设 $\\alpha, \\beta$ 为 $[0,1]$ 内的数,且 $A \\succ_{i} B$.则\\n\\n$$\\n[\\alpha(A), (1 - \\alpha)(B)] \\underset{\\sim i}{\\succsim} [\\beta(A), (1 - \\beta)(B)]\\n$$\\n\\n当且仅当 $\\alpha \\ge \\beta$.\\n"
+    },
+    "64": {
+        "env": "性质",
+        "title": "效用函数在简单彩票概率下的线性性质",
+        "title_en": "Linearity of Utility Functions in Probabilities of Simple Lotteries",
+        "content": "如果 $L_1$ 和 $L_2$ 是简单彩票,$\\widehat{L} = \\mathsf{[} q(L_1), (1-q)(L_2) \\mathsf{]}$,则效用函数满足\\n$$\\nu_i(\\widehat{L}) = q u_i(L_1) + (1-q) u_i(L_2)\\n$$\\n该性质由效用函数对单个结果概率的线性性及简化公理(Axiom of Simplification)共同推出."
+    },
+    "65": {
+        "env": "推论",
+        "title": "满足冯·诺依曼-摩根斯坦公理的偏好关系的线性效用函数表征",
+        "title_en": "Representation of Preference Relations Satisfying the von Neumann–Morgenstern Axioms by a Linear Utility Function",
+        "content": "若一个博弈者的偏好关系满足冯·诺依曼-摩根斯坦公理,则该偏好关系可以被一个线性效用函数所表征,且该效用函数在正的仿射变换下唯一确定."
+    },
+    "66": {
+        "env": "定义",
+        "title": "子树与子博弈的定义",
+        "title_en": "Definition of Subtree and Subgame",
+        "content": "若 $y$ 是 $x$ 的子结点,则 $\\Gamma(y)$ 是 $\\Gamma(x)$ 的子树,且不包含 $x$."
+    },
+    "67": {
+        "env": "定义",
+        "title": "博弈终止局面的定义",
+        "title_en": "Definition of Terminal Situation in Games",
+        "content": "$n_{x} = 1$ 当且仅当 $x$ 是博弈的终止局面,即在该子博弈中玩家无法实施任何行动.在此情况下,玩家的策略记作 $\\varnothing$."
+    },
+    "68": {
+        "env": "定义",
+        "title": "所有子博弈的集合定义",
+        "title_en": "Definition of the Set of All Subgames",
+        "content": "记\\n$$\\n\\mathcal{F} = \\{ \\Gamma(x) : x \\in H \\}\\n$$\\n为所有由国际象棋博弈的子树定义的子博弈的集合."
+    },
+    "69": {
+        "env": "定义",
+        "title": "简单彩票与复合彩票的对应定义",
+        "title_en": "Definition of Correspondence between Simple Lottery and Compound Lottery",
+        "content": "每一个简单彩票 $L$ 可以与复合彩票 $\\widehat{L}$ 对应,其中 $\\widehat{L}$ 以概率 1 实现简单彩票 $L$,即\\n$$\\n\\widehat{L} = [ 1 ( L ) ].\\n$$"
+    },
+    "70": {
+        "env": "定义",
+        "title": "结果与简单彩票的对应定义",
+        "title_en": "Definition of Correspondence between Outcome and Simple Lottery",
+        "content": "每个结果 $A_k$ 可与如下简单彩票对应:\\n$$\\nL = [ 0 ( A_1 ), \\dots, 0 ( A_{k-1}), 1 ( A_k ), 0 ( A_{k+1}), \\dots, 0 ( A_K ) ],\\n$$\\n即结果 $A_k$ 也可与复合彩票 $[1(L)]$ 对应,其中 $L$ 为上述定义的简单彩票."
+    },
+    "71": {
+        "env": "证明",
+        "title": "定理2的证明",
+        "title_en": "Proof of Theorem 2",
+        "content": "\\n我们首先假设 $A_{K} \\succ_{i} A_{1}$,即最优结果 $A_{K}$ 严格优于最劣结果 $A_{1}$.如果 $A_{1} \\approx_{i}~A_{K}$,则由传递性,玩家对所有结果都无差别.该情形处理起来很简单,我们将在证明末尾讨论它.\\n"
+    },
+    "72": {
+        "env": "公理",
+        "title": "复合型彩票简化公理",
+        "title_en": "Axiom of Simplification of Compound Lotteries",
+        "content": "对于每个 $j = 1, \\ldots, J$,令 $L_{j}$ 为如下简单彩票:\\n\\n$$\\nL_{j} = \\big[p_{1}^{j}(A_{1}), p_{2}^{j}(A_{2}), \\dots, p_{K}^{j}(A_{K})\\big],\\n$$\\n\\n并令 $\\widehat{L}$ 为如下复合型彩票:\\n\\n$$\\n\\widehat{L} = [q_{1}(L_{1}), q_{2}(L_{2}), \\ldots, q_{J}(L_{J})].\\n$$\\n\\n对于每个 $k = 1, \\ldots, K$,定义:\\n\\n$$\\nr_{k} = q_{1} p_{k}^{1} + q_{2} p_{k}^{2} + \\cdots + q_{J} p_{k}^{J};\\n$$\\n\\n则玩家在偏好上会认为复合型彩票 $\\widehat{L}$ 与简单彩票 $L = [r_{1}(A_{1}), \\ldots, r_{K}(A_{K})]$ 等价,即只关注各结果的概率分布,而不关注彩票的具体结构.\\n"
+    },
+    "73": {
+        "env": "定义",
+        "title": "偏好关系的效用函数定义",
+        "title_en": "Definition of Utility Function for Preference Relation",
+        "content": "效用函数 $u$ 被定义为\\n\\n$$\\nu(a) = 22,\\, u(b) = 13,\\, u(c) = 13,\\, u(d) = 0,\\n$$\\n\\n它能够表示偏好关系 $\\succsim$."
+    },
+    "74": {
+        "env": "定义",
+        "title": "效用函数表示偏好关系的条件",
+        "title_en": "Condition for Utility Function Representing Preference Relation",
+        "content": "效用函数能够表示偏好关系 $\\succsim$ 的唯一条件是\\n\\n$$\\nu(a) > u(b) = u(c) > u(d).\\n$$\\n"
+    },
+    "75": {
+        "env": "例子",
+        "title": "关于偏好关系的一个例子",
+        "title_en": "An Example of a Preference Relation",
+        "content": "设 $O = \\{ a , b , c , d \\}$,偏好关系 $\\succsim$ 定义如下:\\n$$\\na \\succ b \\approx c \\succ d.\\n$$\\n虽然该关系只在部分结果对上定义,但由于自反性和传递性假设,可以将该关系推广到所有结果对.例如,由上述定义可立即得出 $a \\succ c$."
+    },
+    "76": {
+        "env": "定义",
+        "title": "正仿射变换的定义",
+        "title_en": "Definition of Positive Affine Transformation",
+        "content": "设 $u : X \\to \\mathbb{R}$ 是一个函数.若存在正实数 $\\alpha > 0$ 和实数 $\\beta$,使得对于任意 $x \\in X$,有\\n$$\\nv(x) = \\alpha u(x) + \\beta,\\n$$\\n则称 $v : X \\to \\mathbb{R}$ 是 $u$ 的正仿射变换."
+    },
+    "77": {
+        "env": "定理",
+        "title": "有限象棋保证和棋策略在无限象棋中的推广",
+        "title_en": "Extension of Finite Chess Drawing Strategy to Infinite Chess",
+        "content": "如果每个玩家在有限象棋中都拥有至少保证和棋的策略, 那么每个玩家在无限象棋中也存在至少保证和棋的策略."
+    },
+    "78": {
+        "env": "定义",
+        "title": "无限象棋中白方策略的构造",
+        "title_en": "Construction of White's Strategy in Infinite Chess",
+        "content": "设白方在有限象棋中有策略 $\\sigma_W$ 至少保证和棋.则在无限象棋中,白方采取如下策略 $\\widehat{\\sigma}_W$:\\n- 实施有限象棋策略 $\\sigma_W$,直到象棋局终止或棋盘局面重复(此时有限象棋局终止).\\n- 如果到达一个曾经出现过的棋局 $x$,则从该局面开始,实施有限象棋策略 $\\sigma_W$,直到抵达一个先前出现过的新局面 $y$,依此类推."
+    },
+    "79": {
+        "env": "定义",
+        "title": "风险厌恶的定义",
+        "title_en": "Definition of Risk Aversion",
+        "content": "\\n一个玩家是风险厌恶的,当且仅当对任意简单彩票 $L = [ p_{1}(x_{1}), p_{2}(x_{2}), \\dots, p_{K}(x_{K}) ]$,其效用满足\\n$$\\nu_{i}(L) \\leq u_{i}([1(\\mu_{L})]) = U_{i}(\\mu_{L})\\n$$\\n或者等价地,\\n$$\\n\\sum_{k=1}^{K} p_{k} U_{i}(x_{k}) = u_{i}(L) \\leq U_{i}(\\mu_{L}) = U_{i}\\left(\\sum_{k=1}^{K} p_{k} x_{k}\\right)\\n$$\\n即总结为,玩家是风险厌恶的,当且仅当\\n$$\\n\\sum_{k=1}^{K} p_{k} U_{i}(x_{k}) \\leq U_{i}\\left(\\sum_{k=1}^{K} p_{k} x_{k}\\right)\\n$$\\n对于所有 $(x_{1}, x_{2}, \\ldots, x_{K})$ 及所有满足 $\\sum_{k=1}^{K} p_{k} = 1$ 的非负向量 $(p_{1}, p_{2}, \\ldots, p_{K})$ 成立,当且仅当 $U_{i}$ 是凹函数.\\n"
+    },
+    "80": {
+        "env": "定义",
+        "title": "风险中性玩家的定义",
+        "title_en": "Definition of Risk Neutral Player",
+        "content": "玩家是风险中性的,当且仅当他既风险寻求又风险规避."
+    },
+    "81": {
+        "env": "性质",
+        "title": "效用函数线性与风险中性等价性",
+        "title_en": "Equivalence of Linear Utility Function and Risk Neutrality",
+        "content": "由于一个函数当且仅当它既是凹函数又是凸函数时是线性的,玩家 $i$ 是风险中性的,当且仅当 $U_{i}$ 是线性的."
+    },
+    "82": {
+        "env": "定理",
+        "title": "Savage期望效用表示定理",
+        "title_en": "Savage's Expected Utility Representation Theorem",
+        "content": "Savage 证明了:如果玩家 $i$ 的偏好关系满足某些公理,则存在一个在 $\\Omega$ 上的概率分布 $q_{i}$ 和一个函数 $u_{i} : O \\to \\mathbb{R}$,能够表示玩家 $i$ 的偏好关系.\\n\\n换言之,玩家通过偏好一个赌博方案而不是另一个的行为方式,就好像他在极大化期望效用,其中期望效用用概率分布 $q_{i}$ 计算:\\n\\n$$\\nu_{i}(f) = \\int_{\\Omega} u_{i}(f(\\omega)) \\mathrm{d} q_{i}(\\omega).\\n$$\\n\\n这里,$q_{i}$ 表示玩家 $i$ 的主观概率,$u_{i}$ 表示玩家的效用函数(无论他是否意识到自己在使用概率分布和效用函数).\\n"
+    },
+    "83": {
+        "env": "定义",
+        "title": "风险中性玩家的定义",
+        "title_en": "Definition of Risk Neutral Player",
+        "content": "玩家 $i$ 被称为风险中性当且仅当对于任意 $p \\in [0, 1]$ 和任意结果对 $x, y \\in \\mathbb{R}$,有\\n$$\\nu_{i}([p(x), (1 - p)(y)]) = u_{i}([1(p x + (1 - p) y)]).\\n$$\\n"
+    },
+    "84": {
+        "env": "定义",
+        "title": "风险厌恶玩家的定义",
+        "title_en": "Definition of Risk Averse Player",
+        "content": "玩家 $i$ 被称为风险厌恶当且仅当对于任意 $p \\in [0, 1]$ 和任意结果对 $x, y \\in \\mathbb{R}$,有\\n$$\\nu_{i}([p(x), (1 - p)(y)]) \\leq u_{i}([1(p x + (1 - p) y)]).\\n$$\\n"
+    },
+    "85": {
+        "env": "定义",
+        "title": "风险寻求玩家的定义",
+        "title_en": "Definition of Risk Seeking Player",
+        "content": "玩家 $i$ 被称为风险寻求当且仅当对于任意 $p \\in [0, 1]$ 和任意结果对 $x, y \\in \\mathbb{R}$,有\\n"
+    },
+    "86": {
+        "env": "定理",
+        "title": "风险偏好与效用函数的关系定理",
+        "title_en": "Theorem on the Relationship between Risk Attitude and Utility Function",
+        "content": "玩家 $i$ 的偏好关系满足冯·诺依曼-摩根斯坦公理,当且仅当 $U _ { i }$ 是线性函数时该玩家是风险中性;当且仅当 $U _ { i }$ 是凹函数时该玩家是风险厌恶;当且仅当 $U _ { i }$ 是凸函数时该玩家是风险寻求."
+    },
+    "87": {
+        "env": "定理",
+        "title": "线性效用函数的正仿射变换仍为线性效用函数",
+        "title_en": "Positive Affine Transformations of Linear Utility Functions Remain Linear Utility Functions",
+        "content": "\\n设 $u_{i}$ 是一个代表博弈者 $i$ 偏好关系 $\\succsim$ 的线性效用函数,则 $u_{i}$ 的任意正仿射变换 $v_{i} = \\alpha u_{i} + \\beta$(其中 $\\alpha > 0$)也是代表 $\\succsim$ 的线性效用函数.\\n"
+    },
+    "88": {
+        "env": "证明",
+        "title": "线性效用函数正仿射变换为线性效用函数的证明",
+        "title_en": "Proof that Positive Affine Transformation of Linear Utility Function is Linear Utility Function",
+        "content": "\\n设 $\\succsim$ 为博弈者 $i$ 的偏好关系,$v_{i} = \\alpha u_{i} + \\beta$ 为 $u_{i}$ 的一个正仿射变换,且 $\\alpha > 0$.\\n第一步,证明 $v_{i}$ 是代表 $\\succsim$ 的效用函数.对于任意复合型彩票 $\\widehat{L}_{1}$ 和 $\\widehat{L}_{2}$,\\n我们有\\n$$\\n\\begin{array}{rl}\\n& \\widehat{L}_{1} \\succsim_{i} \\widehat{L}_{2} \\longleftrightarrow u_{i}(\\widehat{L}_{1}) \\geq u_{i}(\\widehat{L}_{2}) \\\\\\n& \\qquad \\Longleftrightarrow \\alpha u_{i}(\\widehat{L}_{1}) + \\beta \\geq \\alpha u_{i}(\\widehat{L}_{2}) + \\beta \\\\\\n& \\qquad \\Longleftrightarrow v_{i}(\\widehat{L}_{1}) \\geq v_{i}(\\widehat{L}_{2}),\\n\\end{array}\\n$$\\n因此 $v_{i}$ 也是代表 $\\succsim$ 的效用函数.\\n\\n接下来,证明 $v_{i}$ 是线性的.设 $L = [p_{1}(A_{1}), p_{2}(A_{2}), \\dots, p_{K}(A_{K})]$ 为一个简单彩票,$p_{1} + \\cdots + p_{K} = 1$,且 $u_{i}$ 线性,则\\n$$\\n\\begin{array}{rl}\\n& v_{i}(L) = \\alpha u_{i}(L) + \\beta \\\\\\n& \\qquad = \\alpha (p_{1}u_{i}(A_{1}) + p_{2}u_{i}(A_{2}) + \\cdots + p_{K}u_{i}(A_{K})) + \\beta \\\\\\n& \\qquad = p_{1}v_{i}(A_{1}) + p_{2}v_{i}(A_{2}) + \\cdots + p_{K}v_{i}(A_{K}),\\n\\end{array}\\n$$\\n从而 $v_{i}$ 线性.\\n"
+    },
+    "89": {
+        "env": "例子",
+        "title": "孔多塞悖论举例",
+        "title_en": "Example of the Condorcet Paradox",
+        "content": "\\n三项政治政策 $A$、$B$ 和 $C$ 正在被讨论.建议通过公投在三者中作出选择.然而,选民对这些政策的偏好如下:\\n\\n$$\\n\\begin{array}{ll}\\n\\mathrm{Democrats:} \\quad & A \\succ_D B \\succ_D C \\\\\\n\\mathrm{Republicans:} \\quad & B \\succ_R C \\succ_R A \\\\\\n\\mathrm{Independents:} \\quad & C \\succ_I A \\succ_I B\\n\\end{array}\\n$$\\n\\n假设人口大致在三类选民中均分.可以通过设计公投,使得任何一个政策都能以近三分之二的多数获胜.例如,如果公投在 $A$ 和 $B$ 之间进行,大多数人会投票 $A \\succ B$;若在 $B$ 和 $C$ 之间进行,大多数人会投票 $B \\succ C$;同理,可以得到 $C \\succ A$.这说明用多数规则会导致偏好关系不具备传递性,这是'社会选择理论'中的重要问题,这一现象最早由孔多塞(Condorcet)提出.\\n"
+    },
+    "90": {
+        "env": "定义",
+        "title": "函数 $u_i$ 在复合彩票集上的定义",
+        "title_en": "Definition of the function $u_i$ over the set of compound lotteries",
+        "content": "\\n定义函数 $u_{i}$ 于复合彩票集 $\\widehat{\\mathcal{L}}$ 上如下:\\n\\n设 $\\widehat{L} = [ q_{1} (L_{1}), \\dots, q_{J} (L_{J}) ]$ 是一个复合彩票,其中 $q_{1}, \\ldots, q_{J}$ 是非负数且 $\\sum_{j=1}^J q_j = 1$,$L_{1}, \\dots, L_{J}$ 是简单彩票,且 $L_{j} = [ p_{1}^{j} (A_{1}), \\ldots, p_{K}^{j} (A_{K}) ]$.\\n\\n对于每个 $1 \\leq k \\leq K$,定义\\n$$\\nr_{k} = q_{1} p_{k}^{1} + q_{2} p_{k}^{2} + \\cdots + q_{J} p_{k}^{J}.\\n$$\\n这是该彩票结果为 $A_k$ 的概率.\\n\\n定义 $u_{i}$ 为\\n$$\\nu_{i} ( \\widehat{L} ) = r_{1} \\theta_{i}^{1} + r_{2} \\theta_{i}^{2} + \\cdots + r_{K} \\theta_{i}^{K}.\\n$$\\n\\n特别地,对于每个简单彩票 $L = [ p_{1} (A_{1}), \\dots, p_{K} (A_{K}) ]$,\\n$$\\nu_{i} (L) = \\sum_{k = 1}^{K} p_{k} \\theta_{i}^{k}.\\n$$\\n"
+    },
+    "91": {
+        "env": "定理",
+        "title": "国际象棋胜负策略定理",
+        "title_en": "Chess Winning Strategy Theorem",
+        "content": "在国际象棋游戏中,要么白方(先手)有必胜策略,要么黑方(后手)有必胜策略,要么双方都有至少保证和棋的策略."
+    },
+    "92": {
+        "env": "定义",
+        "title": "国际象棋游戏规则定义",
+        "title_en": "Definition of Chess Game Rules",
+        "content": "国际象棋由两位玩家进行游戏,分别称为白方与黑方.每位玩家初始拥有十六枚棋子,按照固定规则在棋盘上排列.白方先行,之后双方轮流按照固定规则移动棋子.比赛有三种可能结果:\\n\\n- 白方胜利:白方吃掉黑方的王.\\n- 黑方胜利:黑方吃掉白方的王.\\n- 和棋:1. 黑方轮到走棋,但无合法棋步可走,且其王未被将军;2. 白方轮到走棋,但无合法棋步可走,且其王未被将军;3. 双方同意和棋;4. 棋盘局面双方均无法获胜;5. 连续50回合未有兵移动且未有任何棋子被吃,且当前玩家要求和棋;6. 同一棋盘局面出现三次,且当前玩家要求和棋."
+    },
+    "93": {
+        "env": "定理",
+        "title": "线性效用函数的正仿射变换定理",
+        "title_en": "Theorem on Positive Affine Transformation of Linear Utility Functions",
+        "content": "如果 $u_{i}$ 和 $v_{i}$ 是表示博弈者 $i$ 偏好关系的两个线性效用函数,且该偏好关系满足冯·诺伊曼–摩根斯特恩公理,则 $v_{i}$ 是 $u_{i}$ 的一个正仿射变换."
+    },
+    "94": {
+        "env": "公理",
+        "title": "偏好关系的完备性公理",
+        "title_en": "Axiom of Completeness of Preference Relation",
+        "content": "偏好关系 $\\succsim$ 在 $O$ 上是完备的;即对于任意 $O$ 中的两个结果 $x$ 和 $y$,要么 $x \\succsim_{i} y$,要么 $y \\succsim_{i} x$,要么两者都成立."
+    },
+    "95": {
+        "env": "公理",
+        "title": "偏好关系的自反性公理",
+        "title_en": "Axiom of Reflexivity of Preference Relation",
+        "content": "偏好关系 $\\succsim$ 在 $O$ 上是自反的;即对每个 $x \\in O$,都有 $x \\succsim_{i} x$."
+    },
+    "96": {
+        "env": "公理",
+        "title": "偏好关系的传递性公理",
+        "title_en": "Axiom of Transitivity of Preference Relation",
+        "content": "偏好关系 $\\succsim$ 在 $O$ 上是传递的;即对任意 $O$ 中的三个结果 $x$、$y$、$z$,如果 $x \\succsim_{i} y$ 且 $y \\succsim_{i} z$,则 $x \\succsim_{i} z$."
+    },
+    "97": {
+        "env": "定义",
+        "title": "有限国际象棋的定义",
+        "title_en": "Definition of Finite Chess",
+        "content": "规定如下版本的国际象棋:游戏规则与第1页的规则相同,唯一的区别是如果某个棋盘局面在一次对局中被重复,则该对局判为和棋.由于棋盘局面数有限,这一版本的国际象棋是有限游戏.我们称其为'有限国际象棋'."
+    },
+    "98": {
+        "env": "定义",
+        "title": "白方胜利策略的定义",
+        "title_en": "Definition of Winning Strategy for White",
+        "content": "若某个白方策略 $s_{W}$ 满足:对于黑方的任意策略 $s_{B}$,由 $\\left(s_{W}, s_{B}\\right)$ 决定的游戏过程都以白方胜利结束,则称 $s_{W}$ 为白方的胜利策略(winning strategy)."
+    },
+    "99": {
+        "env": "定义",
+        "title": "白方至少保证和局的策略定义",
+        "title_en": "Definition of Strategy Guaranteeing at Least a Draw for White",
+        "content": "某个白方策略 $s_{W}$ 称为至少保证和局的策略,若对于黑方的任意策略 $s_{B}$,由 $\\left(s_{W}, s_{B}\\right)$ 决定的游戏过程都以白方胜利或和局结束."
+    },
+    "100": {
+        "env": "定义",
+        "title": "黑方胜利策略及保证和局策略的定义",
+        "title_en": "Definition of Winning Strategy and Strategy Guaranteeing at Least a Draw for Black",
+        "content": "黑方的'胜利策略'和'至少保证和局的策略'与白方的定义类似,按同样方式定义."
+    },
+    "101": {
+        "env": "证明",
+        "title": "对称有限博弈三分结论的第二证明",
+        "title_en": "Second Proof of the Trichotomy for Finite Symmetric Games",
+        "content": "\\n假设国际象棋是一种有限博弈,即存在自然数 $K$,使得每一局游戏最多在 $2K$ 步(白方 $K$ 步,黑方 $K$ 步)后结束.进一步假设每局游戏都恰好进行 $2K$ 步:若有局面提前结束,则可通过在余下回合中每位玩家轮流'无作为'补全至 $2K$ 步,此举不影响棋盘状态.\\n\\n对于每个 $k$,$1 \\leq k \\leq K$,记白方第 $k$ 步为 $a_k$,黑方第 $k$ 步为 $b_k$.令 $W$ 表示白方获胜(在 $2K$ 步后),则 $\\neg W$ 表示和棋或黑方获胜.\\n\\n'白方有必胜策略'可以形式化为:\\n$$\\n\\exists a_{1} \\forall b_{1} \\exists a_{2} \\forall b_{2} \\exists a_{3} \\cdots \\exists a_{K} \\forall b_{K} ( W ).\\n$$\\n\\n'白方无必胜策略'则形式化为:\\n$$\\n\\neg (\\exists a_{1} \\forall b_{1} \\exists a_{2} \\forall b_{2} \\exists a_{3} \\cdots \\exists a_{K} \\forall b_{K} ( W )).\\n$$\\n\\n通过多次应用等价式 $(1.2)$ 与 $(1.3)$,得到:\\n$$\\n\\forall a_{1} \\exists b_{1} \\forall a_{2} \\exists b_{2} \\forall a_{3} \\cdots \\forall a_{K} \\exists b_{K} ( \\lnot W ).\\n$$\\n\\n这说明黑方有策略保证至少和棋.即,如果白方无必胜策略,则黑方有策略保证至少和棋.同理可证,若黑方无必胜策略,则白方有策略保证至少和棋.这得出定理 $1.4$ 的三分结论之一必然成立.\\n"
+    },
+    "102": {
+        "env": "例子",
+        "title": "基于效用函数选择彩票的例子",
+        "title_en": "Example of Choosing Lotteries Based on Utility Function",
+        "content": "\\n假设 Joshua 需要在以下两个彩票中进行选择:\\n\\n- $[ \\frac{1}{2} (\\text{New car}), \\frac{1}{2} (\\text{New computer}) ]$ -- 中奖概率分别为 $\\frac{1}{2}$ 的新车和新电脑;\\n- $[ \\frac{1}{3} (\\text{New motorcycle}), \\frac{2}{3} (\\text{Trip around the world}) ]$ -- 中奖概率分别为 $\\frac{1}{3}$ 的新摩托车和 $\\frac{2}{3}$ 的环球旅行.\\n\\n假定 Joshua 对彩票的偏好关系满足冯·诺伊曼–摩根斯特恩公理,则定理 2.18 保证存在一个线性效用函数 $u$ 来表示他的偏好关系.假设 $u$ 的取值如下:\\n\\n$$\\n\\begin{array}{r}\\nu(\\text{New Car}) = 25, \\\\\\nu(\\text{Trip around the world}) = 14, \\\\\\nu(\\text{New motorcycle}) = 3, \\\\\\nu(\\text{New computer}) = 1.\\n\\end{array}\\n$$\\n\\n那么,Joshua 从第一个彩票获得的效用为:\\n\\n$$\\nu\\left( [ \\frac{1}{2} (\\text{New Car}), \\frac{1}{2} (\\text{New computer}) ] \\right) = \\frac{1}{2} \\times 25 + \\frac{1}{2} \\times 1 = 13,\\n$$\\n"
+    },
+    "103": {
+        "env": "定义",
+        "title": "国际象棋博弈情形的定义",
+        "title_en": "Definition of Game Situation in Chess",
+        "content": "一个游戏情形(在国际象棋中)是一个有限序列 $( x _ { 0 } , x _ { 1 } , x _ { 2 } , \\ldots , x _ { K } )$,其中每个 $x_i$ 为棋盘上的一个局面,满足以下条件:\\n\\n1. $x _ { 0 }$ 是开局的棋盘局面.\\n2. 对于每个偶数 $k$,$0 \\leq k < K$,从棋盘局面 $x _ { k }$ 到 $x _ { k + 1 }$ 可以通过白方一次合法走子实现.\\n3. 对于每个奇数 $k$,$0 \\leq k < K$,从棋盘局面 $x _ { k }$ 到 $x _ { k + 1 }$ 可以通过黑方一次合法走子实现.\\n\\n我们用 $H$ 表示所有游戏情形的集合.\\n"
+    },
+    "104": {
+        "env": "定义",
+        "title": "风险厌恶、中性和偏好者的定义",
+        "title_en": "Definition of Risk Averse, Neutral, and Seeking Individuals",
+        "content": "风险态度分为三类:风险厌恶者、风险中性者和风险偏好者.这些风险态度可以随时间变化,并可能依赖于个人的家庭状况或财务状况."
+    },
+    "105": {
+        "env": "定义",
+        "title": "风险态度对效用函数的影响",
+        "title_en": "Effect of Risk Attitude on Utility Function",
+        "content": "在区间 $O = [ -R , R ]$ 中,$x \\in [ -R , R ]$ 表示玩家获得的货币结果.假设每个玩家都偏好获得更多的金钱,即 $x \\succ_{i} y$ 当且仅当 $x > y$."
+    },
+    "106": {
+        "env": "定义",
+        "title": "复合型彩票的偏好关系和冯·诺依曼－摩根斯特恩公理",
+        "title_en": "Preference Relation over Compound Lotteries and von Neumann–Morgenstern Axioms",
+        "content": "假设玩家对复合型彩票的偏好关系是完全的、自反的和传递的,并且满足冯·诺依曼－摩根斯特恩公理."
+    },
+    "107": {
+        "env": "定义",
+        "title": "效用函数和货币结果的关系",
+        "title_en": "Relationship between Utility Function and Monetary Outcome",
+        "content": "用 $u_{i}$ 表示第 $i$ 个玩家的效用函数.效用由实值函数 $U_{i}: \\mathbb{R} \\to \\mathbb{R}$ 给出,对每个 $x \\in O$,有\\n$$\\nU_{i}(x) := u_{i}([1(x)]).\\n$$\\n其中 $U_{i}$ 是单调递增函数."
+    },
+    "108": {
+        "env": "定理",
+        "title": "彩票的效用等于期望效用",
+        "title_en": "Utility of a Lottery Equals Expected Utility",
+        "content": "如果每个玩家的偏好关系满足冯·诺依曼－摩根斯特恩公理,则对于任意简单彩票 $L = [ p_{1}(x_{1}), p_{2}(x_{2}), \\dots, p_{K}(x_{K}) ]$,有\\n$$\\nu_{i}(L) = \\sum_{k=1}^{K} p_{k} U_{i}(x_{k}) = \\sum_{k=1}^{K} p_{k} u_{i}([1(x_{k})]).\\n$$\\n即彩票 $L$ 的效用等于其结果的期望效用."
+    },
+    "109": {
+        "env": "定义",
+        "title": "达尔文适者生存原则的定义",
+        "title_en": "Definition of Darwin's Principle of Survival of the Fittest",
+        "content": "达尔文的'适者生存'原则指出,只有那些具有最适应其所处环境条件的遗传特性的生物体才能生存下来."
+    },
+    "110": {
+        "env": "定义",
+        "title": "进化稳定策略的定义",
+        "title_en": "Definition of Evolutionarily Stable Strategy",
+        "content": "进化稳定策略(Evolutionarily Stable Strategy)是一种纳什均衡的变体,用于解释达尔文'适者生存'原则,描述在生物进化过程中能够稳定存在且不易被其他策略取代的策略."
+    },
+    "111": {
+        "env": "定义",
+        "title": "线性效用函数的定义",
+        "title_en": "Definition of Linear Utility Function",
+        "content": "\\n效用函数 $u_{i}$ 称为线性的,如果对于任意彩票 $L = [p_{1}(A_{1}), p_{2}(A_{2}), \\ldots, p_{K}(A_{K})]$,都有\\n$$\\nu_{i}(L) = p_{1} u_{i}(A_{1}) + p_{2} u_{i}(A_{2}) + \\cdots + p_{K} u_{i}(A_{K}).\\n$$\\n"
+    },
+    "112": {
+        "env": "定义",
+        "title": "偏好关系的定义",
+        "title_en": "Definition of Preference Relation",
+        "content": "我们用符号 $\\succsim$ 表示玩家 $i$ 在所有彩票集合上的偏好关系,其中 $L_{1} \\succsim_{i} L_{2}$ 表示玩家 $i$ 要么偏好彩票 $L_{1}$ 胜过彩票 $L_{2}$,要么对两者无差别."
+    },
+    "113": {
+        "env": "例子",
+        "title": "风险厌恶玩家的效用函数示例",
+        "title_en": "Example of Utility Function for a Risk-Averse Player",
+        "content": "考虑一个玩家,其偏好关系由效用函数 $U_i(x)$ 表示,如图 2.3 所示,该函数是凹的.\\n\\n$$\\nu_{i}([1(x)]) = U_{i}(x)\\n$$\\n\\n图 2.3 展示了风险厌恶玩家的效用函数.该图描述了函数 $U_i$ 的图像,该函数将每个 $x$ 映射为玩家确定获得结果 $x$ 时的效用.我们将说明函数 $U_i$ 的凹性正体现了玩家 $i$ 的风险厌恶特性.\\n\\n由于 $U_i$ 是凹函数,连接图上任意两点的弦都位于函数图像下方.因此,对任意 $y, w \\in \\mathbb{R}$ 及任意 $\\alpha \\in (0,1)$,有:\\n$$\\n\\begin{array}{rl}\\n& u_{i}([1(\\alpha y + (1-\\alpha)w)]) = U_{i}(\\alpha y + (1-\\alpha)w) \\\\\\n& \\qquad > \\alpha U_{i}(y) + (1-\\alpha)U_{i}(w) \\\\\\n& \\qquad = \\alpha u_{i}([1(y)]) + (1-\\alpha)u_{i}([1(w)]) \\\\\\n& \\qquad = u_{i}([\\alpha (y), (1-\\alpha)(w)]).\\n\\end{array}\\n$$\\n\\n换句话说,玩家 $i$ 更偏好确定获得期望值 $\\alpha y + (1-\\alpha)w$,而不是以概率 $\\alpha$ 获得 $y$,概率 $1-\\alpha$ 获得 $w$,这正是风险厌恶的含义.\\n"
+    },
+    "114": {
+        "env": "定理",
+        "title": "von Neumann–Morgenstern 公理下对概率分布偏好的刻画",
+        "title_en": "Characterization of Preferences over Lotteries under von Neumann–Morgenstern Axioms",
+        "content": "如果一个玩家的偏好关系满足 von Neumann–Morgenstern 公理,则只需知道该玩家对每个单独结果赋予的效用,就足以确定他对所有概率分布(彩票)的偏好,因为任意彩票的效用可以通过这些单个结果的效用计算得到."
+    },
+    "115": {
+        "env": "定义",
+        "title": "0 概率步在扩展式博弈中的定义",
+        "title_en": "Definition of 0 Chance Move in Extensive-Form Games",
+        "content": "0 chance move in an extensive-form game: 在扩展式博弈中,概率为0的行动步."
+    },
+    "116": {
+        "env": "定义",
+        "title": "欧氏空间的原点定义",
+        "title_en": "Definition of Origin in Euclidean Space",
+        "content": "origin of a Euclidean space: 欧氏空间中的原点."
+    },
+    "117": {
+        "env": "定义",
+        "title": "空策略在扩展式博弈中的定义",
+        "title_en": "Definition of Empty Strategy in Extensive-Form Games",
+        "content": "$\\emptyset$ strategy used by a player who has no decision vertices in an extensive-form game: 在扩展式博弈中,没有决策节点的玩家所采用的空策略."
+    },
+    "118": {
+        "env": "定义",
+        "title": "事件指示函数的定义",
+        "title_en": "Definition of Indicator Function of an Event",
+        "content": "${\\mathbf{1}}_{A}$ function that is equal to 1 on event $A$ and to 0 otherwise: ${\\mathbf{1}}_{A}$ 是一个函数,当事件 $A$ 发生时取值为1,否则为0."
+    },
+    "119": {
+        "env": "定义",
+        "title": "全集的幂集定义",
+        "title_en": "Definition of Power Set",
+        "content": "$2^{Y}$ collection of all subsets of $Y$: $2^{Y}$ 表示 $Y$ 的所有子集的集合."
+    },
+    "120": {
+        "env": "定义",
+        "title": "有限集合元素个数定义",
+        "title_en": "Definition of Cardinality of Finite Set",
+        "content": "$|X|$ number of elements in finite set $X$: $|X|$ 表示有限集合 $X$ 中的元素个数."
+    },
+    "121": {
+        "env": "定义",
+        "title": "$L_\\infty$ 范数的定义",
+        "title_en": "Definition of $L_\\infty$ Norm",
+        "content": "$\\|x\\|_{\\infty}$ $L_{\\infty}$ norm, $\\left\\|x\\right\\|_{\\infty} := {\\mathrm{max}}_{i=1,2,\\ldots,n} \\left|x_{i}\\right|$: $\\|x\\|_{\\infty}$ 表示向量 $x$ 的 $L_\\infty$ 范数,即所有分量绝对值的最大值."
+    },
+    "122": {
+        "env": "定义",
+        "title": "向量的范数定义",
+        "title_en": "Definition of Norm of a Vector",
+        "content": "$\\|x\\|$ norm of a vector, $\\|x\\| := \\sqrt{\\textstyle \\sum_{l=1}^{d} (x_{l})^{2}}$: $\\|x\\|$ 表示向量 $x$ 的欧氏范数,即各分量平方和的平方根."
+    },
+    "123": {
+        "env": "定义",
+        "title": "男性最大匹配的定义",
+        "title_en": "Definition of Maximum Matching for Men",
+        "content": "$A \\vee B$ maximum matching (for men) in a matching problem: $A \\vee B$ 表示匹配问题中男性的最大匹配."
+    },
+    "124": {
+        "env": "定义",
+        "title": "女性最大匹配的定义",
+        "title_en": "Definition of Maximum Matching for Women",
+        "content": "$A \\wedge B$ maximum matching (for women) in a matching problem: $A \\wedge B$ 表示匹配问题中女性的最大匹配."
+    },
+    "125": {
+        "env": "定义",
+        "title": "集合包含关系的定义",
+        "title_en": "Definition of Subset Relation",
+        "content": "$A \\subseteq B$ set $A$ contains set $B$ or is equal to it: $A \\subseteq B$ 表示集合 $A$ 包含集合 $B$ 或与其相等."
+    },
+    "126": {
+        "env": "定义",
+        "title": "集合真包含关系的定义",
+        "title_en": "Definition of Proper Subset Relation",
+        "content": "$A \\subset B$ set $A$ strictly contains set $B$: $A \\subset B$ 表示集合 $A$ 严格包含集合 $B$."
+    },
+    "127": {
+        "env": "定义",
+        "title": "内积的定义",
+        "title_en": "Definition of Inner Product",
+        "content": "$\\langle x, y \\rangle$ inner product: $\\langle x, y \\rangle$ 表示向量 $x$ 和 $y$ 的内积."
+    },
+    "128": {
+        "env": "定义",
+        "title": "单纯形的定义",
+        "title_en": "Definition of Simplex",
+        "content": "$x_{0}, \\ldots, x_{k}$ $k$-dimensional simplex: $x_{0}, \\ldots, x_{k}$ 表示 $k$ 维单纯形."
+    },
+    "129": {
+        "env": "定义",
+        "title": "玩家偏好关系的定义",
+        "title_en": "Definition of Player's Preference Relation",
+        "content": "$\\succsim_{i}$ preference relation of player $i$: $\\succsim_{i}$ 表示玩家 $i$ 的偏好关系."
+    },
+    "130": {
+        "env": "定义",
+        "title": "玩家严格偏好关系的定义",
+        "title_en": "Definition of Player's Strict Preference Relation",
+        "content": "$\\succ_{i}$ strict preference relation of player $i$: $\\succ_{i}$ 表示玩家 $i$ 的严格偏好关系."
+    },
+    "131": {
+        "env": "定义",
+        "title": "玩家无差异关系的定义",
+        "title_en": "Definition of Player's Indifference Relation",
+        "content": "$\\sim_{i}$ indifference relation of player $i$: $\\sim_{i}$ 表示玩家 $i$ 的无差异关系."
+    },
+    "132": {
+        "env": "定义",
+        "title": "个人偏好关系的定义",
+        "title_en": "Definition of Individual's Preference Relation",
+        "content": "$\\succsim_{P}$ preference relation of an individual: $\\succsim_{P}$ 表示个人的偏好关系."
+    },
+    "133": {
+        "env": "定义",
+        "title": "社会严格偏好关系的定义",
+        "title_en": "Definition of Society's Strict Preference Relation",
+        "content": "$\\succ_{Q}$ strict preference relation of society: $\\succ_{Q}$ 表示社会的严格偏好关系."
+    },
+    "134": {
+        "env": "定义",
+        "title": "社会无差异关系的定义",
+        "title_en": "Definition of Society's Indifference Relation",
+        "content": "$\\sim_{Q}$ indifference relation of society: $\\sim_{Q}$ 表示社会的无差异关系."
+    },
+    "135": {
+        "env": "定义",
+        "title": "向量坐标逐点大于等于的定义",
+        "title_en": "Definition of Coordinatewise Greater Than or Equal",
+        "content": "$x \\geq y$ $x_{k} \\geq y_{k}$ for each coordinate $k$, where $x, y$ are vectors in a Euclidean space: $x \\geq y$ 表示欧氏空间中向量 $x$ 的每个坐标都大于等于 $y$ 的对应坐标."
+    },
+    "136": {
+        "env": "定义",
+        "title": "向量坐标逐点大于的定义",
+        "title_en": "Definition of Coordinatewise Greater Than",
+        "content": "$x > y$ $x \\geq y$ and $x \\neq y$: $x > y$ 表示 $x \\geq y$ 且 $x \\neq y$."
+    },
+    "137": {
+        "env": "定义",
+        "title": "向量坐标逐点严格大于的定义",
+        "title_en": "Definition of Coordinatewise Strictly Greater Than",
+        "content": "$x \\gg y$ $x_{k} > y_{k}$ for each coordinate $k$, where $x, y$ are vectors in a Euclidean space: $x \\gg y$ 表示欧氏空间中向量 $x$ 每个坐标都严格大于 $y$ 的对应坐标."
+    },
+    "138": {
+        "env": "定义",
+        "title": "向量加法的定义",
+        "title_en": "Definition of Vector Addition",
+        "content": "$x + y$ sum of vectors in a Euclidean space, $(x + y)_{k} := x_{k} + y_{k}$: $x + y$ 表示欧氏空间中向量的加法,分量为 $(x + y)_{k} := x_{k} + y_{k}$."
+    },
+    "139": {
+        "env": "定义",
+        "title": "向量逐点乘积的定义",
+        "title_en": "Definition of Coordinatewise Product of Vectors",
+        "content": "$xy$ coordinatewise product of vectors in a Euclidean space, $(xy)_{k} := x_{k}y_{k}$: $xy$ 表示欧氏空间中向量的逐点乘积,分量为 $(xy)_{k} := x_{k}y_{k}$."
+    },
+    "140": {
+        "env": "定义",
+        "title": "向量与集合的和的定义",
+        "title_en": "Definition of Vector Plus Set",
+        "content": "$x + S$ $x + S := \\{x + s : s \\in S\\}$, where $x \\in \\mathbb{R}^{d}$ and $S \\subseteq \\mathbb{R}^{d}$: $x + S$ 表示 $x$ 与集合 $S$ 的和,即 $\\{x + s : s \\in S\\}$,其中 $x \\in \\mathbb{R}^{d}$,$S \\subseteq \\mathbb{R}^{d}$."
+    },
+    "141": {
+        "env": "定义",
+        "title": "向量与集合的乘积定义",
+        "title_en": "Definition of Vector Times Set",
+        "content": "$xS$ $xS := \\{xs : s \\in S\\}$, where $x \\in \\mathbb{R}^{d}$ and $S \\subseteq \\mathbb{R}^{d}$: $xS$ 表示 $x$ 与集合 $S$ 的乘积,即 $\\{xs : s \\in S\\}$,其中 $x \\in \\mathbb{R}^{d}$,$S \\subseteq \\mathbb{R}^{d}$."
+    },
+    "142": {
+        "env": "定义",
+        "title": "实数与向量的乘积定义",
+        "title_en": "Definition of Real Number Times Vector",
+        "content": "$cx$ product of real number $c$ and vector $x$: $cx$ 表示实数 $c$ 与向量 $x$ 的乘积."
+    },
+    "143": {
+        "env": "定义",
+        "title": "实数与集合的乘积定义",
+        "title_en": "Definition of Real Number Times Set",
+        "content": "$cS$ $cS := \\{cs \\colon s \\in S\\}$, where $c$ is a real number and $S \\subseteq \\mathbb{R}^{d}$: $cS$ 表示实数 $c$ 与集合 $S$ 的乘积,即 $\\{cs : s \\in S\\}$."
+    },
+    "144": {
+        "env": "定义",
+        "title": "集合和的定义",
+        "title_en": "Definition of Sum of Sets",
+        "content": "$S + T$ sum of sets; $S + T := \\{x + y \\colon x \\in S, y \\in T\\}$: $S + T$ 表示集合 $S$ 与集合 $T$ 的和,即 $\\{x + y : x \\in S, y \\in T\\}$."
+    },
+    "145": {
+        "env": "定义",
+        "title": "向上取整的定义",
+        "title_en": "Definition of Ceiling Function",
+        "content": "$\\lceil c \\rceil$ smallest integer greater than or equal to $c$: $\\lceil c \\rceil$ 表示大于等于 $c$ 的最小整数."
+    },
+    "146": {
+        "env": "定义",
+        "title": "向下取整的定义",
+        "title_en": "Definition of Floor Function",
+        "content": "$\\lfloor c \\rfloor$ largest integer less than or equal to $c$: $\\lfloor c \\rfloor$ 表示小于等于 $c$ 的最大整数."
+    },
+    "147": {
+        "env": "定义",
+        "title": "向量转置的定义",
+        "title_en": "Definition of Transpose of a Vector",
+        "content": "$x^{\\top}$ transpose of a vector, column vector that corresponds to row vector $x$: $x^{\\top}$ 表示向量 $x$ 的转置,把行向量变为列向量."
+    },
+    "148": {
+        "env": "定义",
+        "title": "函数取最大值的点集定义",
+        "title_en": "Definition of Argmax Set",
+        "content": "$\\operatorname{argmax}_{x \\in X} f(x)$ set of all $x$ where function $f$ attains its maximum in the set $X$: $\\operatorname{argmax}_{x \\in X} f(x)$ 表示 $f$ 在集合 $X$ 取得最大值的所有 $x$ 的集合."
+    },
+    "149": {
+        "env": "定义",
+        "title": "市场中生产者初始禀赋的定义",
+        "title_en": "Definition of Producer's Initial Endowment in Market",
+        "content": "$a(i)$ producer $i$'s initial endowment in a market: $a(i)$ 表示市场中生产者 $i$ 的初始禀赋."
+    },
+    "150": {
+        "env": "定义",
+        "title": "决策问题中动作集合的定义",
+        "title_en": "Definition of Action Set in Decision Problem",
+        "content": "$A$ set of actions in a decision problem with experts: $A$ 表示带有专家的决策问题中的动作集合."
+    },
+    "151": {
+        "env": "定义",
+        "title": "备选集合的定义",
+        "title_en": "Definition of Set of Alternatives",
+        "content": "$A$ set of alternatives: $A$ 表示备选方案的集合."
+    },
+    "152": {
+        "env": "定义",
+        "title": "扩展式博弈中玩家行动集合的定义",
+        "title_en": "Definition of Player's Action Set in Extensive-Form Game",
+        "content": "$A_{i}$ player $i$'s action set in an extensive-form game, $\\mathsf{\\bar{A}}_{i} := \\cup_{j=1}^{k_{i}} A(U_{i}^{j})$: $A_{i}$ 表示扩展式博弈中玩家 $i$ 的行动集合,$\\mathsf{\\bar{A}}_{i}$ 是所有信息集 $U_{i}^{j}$ 的行动集合的并."
+    },
+    "153": {
+        "env": "定义",
+        "title": "博弈可能结果的定义",
+        "title_en": "Definition of Possible Outcome in Game",
+        "content": "$A_{k}$ possible outcome of a game: $A_{k}$ 表示博弈的可能结果."
+    },
+    "154": {
+        "env": "定义",
+        "title": "扩展式博弈中顶点可用动作的定义",
+        "title_en": "Definition of Available Actions at Vertex in Extensive-Form Game",
+        "content": "$A(x)$ set of available actions at vertex $x$ in an extensive-form game: $A(x)$ 表示扩展式博弈中顶点 $x$ 的可用动作集合."
+    },
+    "155": {
+        "env": "定义",
+        "title": "扩展式博弈中信息集可用动作的定义",
+        "title_en": "Definition of Available Actions at Information Set in Extensive-Form Game",
+        "content": "$A(U_{i})$ set of available actions at information set $U_{i}$ of player $i$ in an extensive-form game: $A(U_{i})$ 表示扩展式博弈中玩家 $i$ 的信息集 $U_{i}$ 上的可用动作集合."
+    },
+    "156": {
+        "env": "定义",
+        "title": "拍卖中买家出价的定义",
+        "title_en": "Definition of Buyer's Bid in Auction",
+        "content": "$b_{i}$ buyer $i$'s bid in an auction: $b_{i}$ 表示拍卖中买家 $i$ 的出价."
+    },
+    "157": {
+        "env": "定义",
+        "title": "集合的凸包的定义",
+        "title_en": "Definition of Convex Hull of a Set",
+        "content": "$\\operatorname{conv}\\{x_{1}, \\ldots, x_{K}\\}$ 是包含向量 $\\{x_{1}, \\ldots, x_{K}\\}$ 的最小凸集,也称为 $\\{x_{1}, \\ldots, x_{K}\\}$ 的凸包."
+    },
+    "158": {
+        "env": "定义",
+        "title": "自然数集的定义",
+        "title_en": "Definition of the Set of Natural Numbers",
+        "content": "$\\mathbb{N}:=\\{ 1, 2, 3, \\dots \\}$ 表示自然数集."
+    },
+    "159": {
+        "env": "定义",
+        "title": "非负数集的定义",
+        "title_en": "Definition of the Set of Nonnegative Numbers",
+        "content": "$\\mathbb{R}_{+}$ 表示非负实数的集合,即所有大于等于 0 的实数集合."
+    },
+    "160": {
+        "env": "定义",
+        "title": "正数集的定义",
+        "title_en": "Definition of the Set of Positive Numbers",
+        "content": "$\\mathbb{R}_{++}$ 表示正实数的集合,即所有大于 0 的实数集合."
+    },
+    "161": {
+        "env": "定义",
+        "title": "n 维欧几里得空间的定义",
+        "title_en": "Definition of n-Dimensional Euclidean Space",
+        "content": "$\\mathbb{R}^{n}$ 表示 $n$ 维欧几里得空间."
+    },
+    "162": {
+        "env": "定义",
+        "title": "非负正交空间的定义",
+        "title_en": "Definition of Nonnegative Orthant",
+        "content": "$\\mathbb{R}_{+}^{n}$ 表示 $n$ 维欧几里得空间中的非负正交空间,$\\mathbb{R}_{+}^{n} := \\{ x \\in \\mathbb{R}^{n} : x_{i} \\geq 0, \\forall i = 1, 2, \\ldots, n \\}$."
+    },
+    "163": {
+        "env": "定义",
+        "title": "S 维欧几里得空间的定义",
+        "title_en": "Definition of S-Dimensional Euclidean Space",
+        "content": "$\\mathbb{R}^{S}$ 表示 $|S|$ 维欧几里得空间,其中每个坐标对应 $S$ 中的一个玩家."
+    },
+    "164": {
+        "env": "定义",
+        "title": "半空间的定义",
+        "title_en": "Definition of Half-Space",
+        "content": "$H^{+}(\\alpha, \\beta)$ 是半空间,定义为 $H^{+}(\\alpha, \\beta) := \\{x \\in \\mathbb{R}^{d} \\colon \\langle \\alpha, x \\rangle \\geq \\beta\\}$.$H^{-}(\\alpha, \\beta)$ 是半空间,定义为 $H^{-}(\\alpha, \\beta) := \\{x \\in \\mathbb{R}^{d} \\colon \\langle \\alpha, x \\rangle \\leq \\beta\\}$."
+    },
+    "165": {
+        "env": "定义",
+        "title": "超平面的定义",
+        "title_en": "Definition of Hyperplane",
+        "content": "$H(\\alpha, \\beta)$ 是超平面,定义为 $H(\\alpha, \\beta) := \\{x \\in \\mathbb{R}^{d} \\colon \\langle \\alpha, x \\rangle = \\beta\\}$."
+    },
+    "166": {
+        "env": "定义",
+        "title": "概率分布的定义",
+        "title_en": "Definition of Probability Distribution",
+        "content": "$\\Delta(S)$ 表示 $S$ 上所有概率分布的集合."
+    },
+    "167": {
+        "env": "定义",
+        "title": "集合的所有非空子集的定义",
+        "title_en": "Definition of the Collection of All Nonempty Subsets of a Set",
+        "content": "$\\mathcal{P}(N)$ 表示 $N$ 的所有非空子集的集合,$\\mathcal{P}(N):=\\{ S \\subseteq N, S \\neq \\varnothing \\}$."
+    },
+    "168": {
+        "env": "定义",
+        "title": "权重集合的定义",
+        "title_en": "Definition of the Set of Positive Rational Numbers",
+        "content": "$\\mathbb{Q}_{++}$ 表示正有理数的集合."
+    },
+    "169": {
+        "env": "定义",
+        "title": "标准单纯形的定义",
+        "title_en": "Definition of the Standard Simplex",
+        "content": "$X(n)$ 表示标准 $(n-1)$ 维单纯形,$X(n) := \\{ x \\in \\mathbb{R}^n : \\sum_{i=1}^n x_i = 1, x_i \\geq 0 \\forall i \\}$."
+    },
+    "170": {
+        "env": "定义",
+        "title": "极大私有价值的定义",
+        "title_en": "Definition of Maximal Private Value",
+        "content": "$\\overline{v}$ 表示拍卖中买家的极大私有价值."
+    }
+}
