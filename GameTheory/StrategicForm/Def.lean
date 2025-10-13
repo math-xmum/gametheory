@@ -17,7 +17,7 @@ namespace StrategicGame
 variable {Player Outcome : Type*} {G : StrategicGame Player Outcome} [DecidableEq Player]
 
 
-variable {k}  [LE k] [IsTotal k (· ≤ ·)] (payoff : Outcome → k)
+variable {k}  [PartialOrder k] (payoff : Outcome → k)
 
 -- Nash Equilibrium: No single player can unilaterally change their strategy for better payoff
 def NashEquilibrium
@@ -26,9 +26,10 @@ def NashEquilibrium
     let y := Function.update x i si'
     payoff (G.outcome i x) ≥ payoff (G.outcome i y)
 
-
+def isFintypeStrategy := ∀ i, Fintype (G.Strategy i)
 
 end StrategicGame
+
 
 
 end
