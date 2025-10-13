@@ -9,7 +9,6 @@ We understand a Game Space as a state machine
 -/
 structure GameSpace Player Outcome where
     node : Type*
-    node_nonempty : Nonempty node
     action : node -> Type*
     /- We require that actions attached to x are nonempty, this is to ensure that the space of strategies is nonempty. -/
     action_intabited: ∀ x, Nonempty (action x)
@@ -24,6 +23,7 @@ variable {Player : Type*} {Outcome : Type*} {G : GameSpace Player Outcome}
 abbrev node.nodetype (x : G.node) := G.nodetype x
 
 abbrev node.isOutcome (x : G.node) := x.nodetype.isRight
+abbrev node.isInter (x : G.node) := x.nodetype.isLeft
 
 
 abbrev action.next {x} (a : G.action x): G.node := G.move x a
@@ -76,16 +76,29 @@ structure Game extends GameSpace Player Outcome where
     info : Setoid node
     -- The actionsets are the same for all  equivalent nodes
     actionequiv : ∀ {x y : node}, x ≈ y → nodetype x = nodetype y → action x = action y
+
+attribute [instance] Game.info
+
 end
+
+namespace Game
+
+variable {Player : Type*} {Outcome : Type*} {G : Game Player Outcome}
+
+
+
+structure Strategy where
+  s : (x : G.node) -> G.action x
+  s_constant : ∀ {x y : G.node}, x ≈ y → x.isInter → y.isInter →  x.nodetype = y.nodetype → s x ≍ s y
+
+
+end Game
+
 
 variable {Player Outcome} in
 def GameSpace.toPerfectInformationGame (G : GameSpace Player Outcome) : Game Player Outcome:=
 {
-    node := G.node,
-    action := G.action,
-    action_intabited := G.action_intabited,
-    move := G.move,
-    nodetype := G.nodetype,
+    G with
     info := ⊥
     actionequiv := by
         intros x y H _;

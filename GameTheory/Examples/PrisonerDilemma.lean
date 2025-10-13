@@ -27,7 +27,23 @@ inductive PDNode
 | outDD       -- both D
 deriving DecidableEq, Repr
 
+
 open PDNode
+
+
+instance : Fintype PDNode where
+   elems := {root, bC, bD, outCC, outCD, outDC, outDD}
+   complete := by
+    intro x
+    match x with
+     | root    => simp
+     | bC      => simp
+     | bD      => simp
+     | outCC   => simp
+     | outCD   => simp
+     | outDC   => simp
+     | outDD   => simp
+
 
 -- Single action type for all nodes (as requested)
 def PDAction (_ : PDNode) := Act
@@ -68,8 +84,30 @@ def PrisonersDilemmaSpace : GameSpace Player Outcome :=
 
 
 
--- Now, the Game with Perfect information
-def PrisonersDilemma : Game Player Outcome := PrisonersDilemmaSpace.toPerfectInformationGame
 
+
+/--  the Game with Perfect information
+-/
+def PrisonersDilemmaPectectInformation : Game Player Outcome := PrisonersDilemmaSpace.toPerfectInformationGame
+
+
+
+instance PD_info : Setoid PDNode where
+  r := fun x y =>
+    x = y ∨                 -- Same node
+    (x = bC ∨  x = bD) ∧ (y = bC ∨  y= bD)  -- B's information set: bC ≈ bD
+  iseqv := by
+    apply Equivalence.mk <;> decide
+
+
+theorem PD_actionequiv {x y : PDNode} (h : x ≈ y) (ht : PD_nodetype x = PD_nodetype y) :
+    PDAction x = PDAction y :=
+  rfl  -- since PDAction n ≡ Act for all n
+
+def PrisonersDilemma : Game Player Outcome :=
+{ toGameSpace := PrisonersDilemmaSpace,
+  info        := PD_info,
+  actionequiv := by intros;rfl
+}
 
 end PrisonerDilemma
