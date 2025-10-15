@@ -5,7 +5,7 @@ section
 variable (Player : Type*) (Outcome : Type*) [Nonempty Player] [Nonempty Outcome]
 
 /--
-We understand a Game Space as a state machine
+We understand a Game Space as a status machine
 -/
 structure GameSpace Player Outcome where
     node : Type*
