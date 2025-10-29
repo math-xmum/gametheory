@@ -1,105 +1,152 @@
--- Import necessary tactics and definitions from mathlib.
 import Mathlib.Tactic
+import Mathlib.Data.List.Range
 import GameTheory.ExtensiveForm.Def
 
-namespace TicTacToe
+-- The entire model is defined within a `section` environment, parameterized by the board dimensions `m`, `n`, and the winning condition `k`.
+section MnkGame
 
-/-- Defines a position on the 3x3 board. -/
-inductive Pos : Type
-| mk : Fin 3 → Fin 3 → Pos
-deriving DecidableEq, Repr
+-- We declare m, n, k, and the assumption that they must be positive integers, as variables for this section.
+variable {m n k : Nat}
+variable (hm_pos : m > 0) (hn_pos : n > 0) (hk_pos : k > 0)
 
-/-- Defines the two players, X and O. -/
+/-- Defines a position on an m x n board as an alias for a tuple of finite numbers. -/
+abbrev Pos (m n : Nat) := Fin m × Fin n
+
+/-- Provides a printing instance for the position type that depends on m and n. -/
+instance : Repr (@Pos m n) where
+  reprPrec p _ :=
+    let (i, j) := p
+    s!"({i.val}, {j.val})"
+
+/-- The Player type remains unchanged as it is independent of the board size. -/
 inductive Player
-| X
-| O
+| X | O
 deriving DecidableEq, Repr
 
-/-- Defines the board as a function from a position to an optional player. -/
-def Board := Pos → Option Player
+/-- The Board is defined as a function from a position to an optional player. -/
+def Board : Type := (@Pos m n) → Option Player
 
--- Provides a pretty-printing instance for the board.
-instance : Repr Board where
+/-- The 'pretty-printing' instance for the board now uses the variables m and n. -/
+instance : Repr (@Board m n) where
   reprPrec b _ :=
-    let rows := (List.finRange 3).map fun i =>
-      let row := (List.finRange 3).map fun j =>
-        match b (Pos.mk i j) with
+    let rows := (List.finRange m).map fun i =>
+      let row := (List.finRange n).map fun j =>
+        match b (i, j) with
         | some Player.X => "X"
         | some Player.O => "O"
         | none => "."
       String.intercalate " " row
     String.intercalate "\n" rows
 
-/-- The initial empty board where all positions are `none`. -/
-def emptyBoard : Board := fun _ => none
+/-- The initial empty board. Its type depends on m and n. -/
+def emptyBoard : @Board m n := fun _ => none
 
-/-- Checks if a square is empty. Returns `true` if it is. -/
-def isEmpty (b : Board) (p : Pos) : Bool :=
+/-- Checks if a square is empty. -/
+def isEmpty (b : @Board m n) (p : @Pos m n) : Bool :=
   b p == none
 
-/-- Places a player's mark on the board if the position is empty. -/
-def place (b : Board) (p : Pos) (pl : Player) : Board :=
-  if b p = none then
+/-- Places a player's piece on the board. -/
+def place (b : @Board m n) (p : @Pos m n) (pl : Player) : @Board m n :=
+  if b p == none then
     fun q => if q = p then some pl else b q
   else
     b
 
-/-- A list of all 9 positions on the board. -/
-def allPositions : List Pos :=
-  (List.finRange 3).flatMap fun i =>
-  (List.finRange 3).map fun j => Pos.mk i j
+/-- A list containing all m*n positions on the board. -/
+def allPositions : List (@Pos m n) :=
+  (List.finRange m).flatMap fun i =>
+  (List.finRange n).map fun j => (i, j)
 
-/-- A list of all 8 winning lines (3 rows, 3 columns, 2 diagonals). -/
-def winningLines : List (List Pos) :=
-  let rows := (List.finRange 3).map fun i =>
-    (List.finRange 3).map fun j => Pos.mk i j
-  let cols := (List.finRange 3).map fun j =>
-    (List.finRange 3).map fun i => Pos.mk i j
-  -- The two main diagonals are constructed directly.
-  let diag1 := [
-      Pos.mk ⟨0, by decide⟩ ⟨0, by decide⟩,
-      Pos.mk ⟨1, by decide⟩ ⟨1, by decide⟩,
-      Pos.mk ⟨2, by decide⟩ ⟨2, by decide⟩
-    ]
-  let diag2 := [
-      Pos.mk ⟨0, by decide⟩ ⟨2, by decide⟩,
-      Pos.mk ⟨1, by decide⟩ ⟨1, by decide⟩,
-      Pos.mk ⟨2, by decide⟩ ⟨0, by decide⟩
-    ]
-  rows ++ cols ++ [diag1, diag2]
+/-- Generates all winning lines of length `k` for a generic `m x n` board. -/
+def winningLines : List (List (@Pos m n)) :=
+  let h_lines :=
+    (List.finRange m).flatMap fun (i : Fin m) =>
+    (List.finRange n).flatMap fun (j : Fin n) =>
+      if h_j_bound : j.val + k ≤ n then
+        [ (List.finRange k).map fun (ki : Fin k) =>
+            let new_j := j.val + ki.val
+            have h_new_j_lt_n : new_j < n :=
+              Nat.lt_of_lt_of_le (Nat.add_lt_add_left ki.isLt j.val) h_j_bound
+            (i, ⟨new_j, h_new_j_lt_n⟩)
+        ]
+      else []
 
-/-- Checks if a given player has won the game. -/
-def isWinner (b : Board) (pl : Player) : Bool :=
-  winningLines.any fun line =>
-    line.all fun pos => b pos = some pl
+  let v_lines :=
+    (List.finRange m).flatMap fun (i : Fin m) =>
+    (List.finRange n).flatMap fun (j : Fin n) =>
+      if h_i_bound : i.val + k ≤ m then
+        [ (List.finRange k).map fun (ki : Fin k) =>
+            let new_i := i.val + ki.val
+            have h_new_i_lt_m : new_i < m :=
+              Nat.lt_of_lt_of_le (Nat.add_lt_add_left ki.isLt i.val) h_i_bound
+            (⟨new_i, h_new_i_lt_m⟩, j)
+        ]
+      else []
 
-/-- Represents the state of the game at any point (the board and the current turn). -/
+  let d1_lines :=
+    (List.finRange m).flatMap fun (i : Fin m) =>
+    (List.finRange n).flatMap fun (j : Fin n) =>
+      if h_bounds : i.val + k ≤ m ∧ j.val + k ≤ n then
+        [ (List.finRange k).map fun (ki : Fin k) =>
+            let new_i := i.val + ki.val
+            let new_j := j.val + ki.val
+            have h_new_i_lt_m : new_i < m :=
+              Nat.lt_of_lt_of_le (Nat.add_lt_add_left ki.isLt i.val) h_bounds.1
+            have h_new_j_lt_n : new_j < n :=
+              Nat.lt_of_lt_of_le (Nat.add_lt_add_left ki.isLt j.val) h_bounds.2
+            (⟨new_i, h_new_i_lt_m⟩, ⟨new_j, h_new_j_lt_n⟩)
+        ]
+      else []
+
+  let d2_lines :=
+    (List.finRange m).flatMap fun (i : Fin m) =>
+    (List.finRange n).flatMap fun (j : Fin n) =>
+      if h_bounds : i.val + k ≤ m ∧ j.val + 1 ≥ k then
+        [ (List.finRange k).map fun (ki : Fin k) =>
+            let new_i := i.val + ki.val
+            have : j.val ≥ ki.val :=
+              Nat.le_of_lt_succ (Nat.lt_of_lt_of_le ki.isLt h_bounds.2)
+            let new_j := j.val - ki.val
+            have h_new_i_lt_m : new_i < m :=
+              Nat.lt_of_lt_of_le (Nat.add_lt_add_left ki.isLt i.val) h_bounds.1
+            have h_new_j_lt_n : new_j < n :=
+              Nat.lt_of_le_of_lt (Nat.sub_le j.val ki.val) j.isLt
+            (⟨new_i, h_new_i_lt_m⟩, ⟨new_j, h_new_j_lt_n⟩)
+        ]
+      else []
+
+  h_lines ++ v_lines ++ d1_lines ++ d2_lines
+
+/-- The game state, which automatically depends on m and n from the section. -/
 structure GameState where
-  board : Board
+  board : @Board m n
   turn  : Player
 deriving Repr
 
-/-- Switches to the next player. -/
+/-- Checks if a player has won. -/
+def isWinner (b : @Board m n) (pl : Player) : Bool :=
+  List.any (@winningLines m n k) fun line =>
+    let marksOnLine := line.map fun pos => b pos
+    (marksOnLine.takeWhile (· = some pl)).length = k
+
+/-- Switches the player, an operation independent of the board size. -/
 def nextPlayer : Player → Player
 | Player.X => Player.O
-| Player.O => Player.X -- 【LOGIC CORRECTION】Fixed the turn logic for Player O.
+| Player.O => Player.X
 
-/-- Performs a move for the current player at a given position. -/
-def move (s : GameState) (p : Pos) : GameState :=
+/-- Executes a move. -/
+def move (s : @GameState m n) (p : @Pos m n) : @GameState m n :=
   let b' := place s.board p s.turn
   { board := b', turn := nextPlayer s.turn }
 
-/-- Checks if the game has reached a terminal state (a player has won or the board is full). -/
-def isTerminal (s : GameState) : Bool :=
-  isWinner s.board Player.X || isWinner s.board Player.O
-  || allPositions.all (fun p => s.board p ≠ none)
+/-- Checks if the game has reached a terminal state. -/
+def isTerminal (s : @GameState m n) : Bool :=
+  @isWinner m n k s.board Player.X ∨
+  @isWinner m n k s.board Player.O ∨
+  (@allPositions m n).all (fun p => (s.board p).isSome)
 
-/-- The starting state of the game. -/
-def start : GameState := { board := emptyBoard, turn := Player.X }
+/-- The initial state for any m x n board. -/
+def start : @GameState m n :=
+  { board := emptyBoard, turn := Player.X }
 
--- Demonstrations and tests:
-#eval allPositions.length
-#eval isTerminal start
-#eval start -- This will now pretty-print the initial empty board.
-
-end TicTacToe
+end MnkGame
