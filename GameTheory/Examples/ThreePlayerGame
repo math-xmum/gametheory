@@ -1,0 +1,114 @@
+import GameTheory.ExtensiveForm.Def
+
+namespace ThreePlayerGames
+
+--Game E
+--Players
+inductive Player | I | II | III
+deriving DecidableEq, Repr
+
+def Outcome := ℕ × ℕ
+
+--Actions
+inductive PDNode 
+| T | M | B      -- Player I acts
+| t1 | b1        -- Player II acts after I chooses T
+| t2 | b2        -- Player II acts after I chooses M
+| τ1 | β1        -- Player III acts after I chooses B
+| τ2 | β2        -- Player III acts after II chooses t2
+deriving DecidableEq, Repr
+
+--Nodes
+inductive TPGENode 
+| root                                   -- Player I acts
+| iiT                                    -- Player II acts after I chooses T
+| iiM                                    -- Player II acts after I chooses M
+| iiiB                                   -- Player III acts after I chooses B
+| iiit2                                  -- Player III acts after II chooses t2
+| t1 | b1 | b2 | τ1 | β1 | τ2 | β2       -- All possible outcomes
+deriving DecidableEq, Repr
+
+open TPGENode
+
+instance : Fintype TPGENode where
+   elems := {root, iiT, iiM, iiiB, iiit2, t1, b1, b2, τ1 , β1 , τ2 , β2}
+   complete := by
+    intro x
+    match x with
+     | root     => simp
+     | iiT      => simp
+     | iiM      => simp
+     | iiiB     => simp
+     | iiit2    => simp
+     | t1       => simp
+     | b1       => simp
+     | b2       => simp
+     | τ1       => simp
+     | β1       => simp
+     | τ2       => simp
+     | β2       => simp
+
+
+-- Single action type for all nodes
+def TPGEAction (_ : TPGENode) := Act
+
+instance {n} : Inhabited (TPGEAction n) := ⟨Act.β2⟩
+
+-- Transition function
+def TPGE_move : (x : TPGENode) → TPGEAction x → TPGENode
+| root,    Act.T  => iiT
+| root,    Act.M  => iiM
+| root,    Act.B  => iiiB
+| iiT      Act.t1 => t1
+| iiT      Act.b1 => b1
+| iiM      Act.t2 => iiit2
+| iiM      Act.b2 => b2
+| iiiB     Act.τ1 => τ1
+| iiiB     Act.β1 => β1
+| iiit2    Act.τ2 => τ2
+| iiit2    Act.β2 => β2
+| n,       _      => n
+
+def TPGE_nodetype : TPGENode → Player ⊕ Outcome
+| root     => Sum.inl Player.I
+| iiT      => Sum.inl Player.II
+| iiM      => Sum.inl Player.II
+| iiiB     => Sum.inl Player.III
+| iiit2    => Sum.inl Player.III
+| t1       => Sum.inr (2, 4, 5)
+| b1       => Sum.inr (3, 8, 2)
+| b2       => Sum.inr (1, 1, 1)
+| τ1       => Sum.inr (2, 4, 8)
+| β1       => Sum.inr (27, 9, 3)
+| τ2       => Sum.inr (2, 7, 3)
+| β2       => Sum.inr (4, 0, 5)
+
+--Game E
+def ThreePlayerGames : GameSpace Player Outcome :=
+{ node             := TPGENode,
+  action           := TPGEAction,
+  action_intabited := by intro x; apply inferInstance,
+  move             := TPGE_move,
+  nodetype         := TPGE_nodetype,
+}
+
+--Perfect Information
+def ThreePlayerGamesPectectInformation : Game Player Outcome := ThreePlayerGamesSpace.toPerfectInformationGame
+
+instance TPGE_info : Setoid TPGENode where
+  r := fun x y =>
+    x = y ∨ (x = iiiB ∨  x = iiit2) ∧ (y = iiiB ∨  y= iiit2)
+  iseqv := by
+    apply Equivalence.mk <;> decide
+
+theorem TPGE_actionequiv {x y : TPGENode} (h : x ≈ y) (ht : TPGE_nodetype x = TPGE_nodetype y) :
+    TPGEAction x = TPGEAction y :=
+  rfl  --since TPGEAction n ≡ Act for all n
+
+def ThreePlayerGames : Game Player Outcome :=
+{ toGameSpace := ThreePlayerGames,
+  info        := TPGE_info,
+  actionequiv := by intros;rfl
+}
+
+end ThreePlayerGames
