@@ -65,13 +65,7 @@ instance : Fintype BoSNode  where
    complete := by
     intro x
     match x with
-     | root      => simp
-     | womanF    => simp
-     | womanC    => simp
-     | outFF     => simp
-     | outFC     => simp
-     | outCF     => simp
-     | outCC     => simp
+     | root      | womanF    | womanC    | outFF     | outFC     | outCF     | outCC     =>  simp
 
 -- Information set: Woman cannot tell whether at womanF or womanC.
 instance BoS_info : Setoid BoSNode where
