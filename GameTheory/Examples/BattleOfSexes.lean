@@ -136,31 +136,7 @@ instance : Finite BoSNode := by
   ⟩
 
 instance : Finite $ BoS_preSpace.interNode:= by
-  refine @Finite.intro _ 3 ?_
-  unfold BoS_preSpace
-  unfold preGameSpace.interNode
-  dsimp
-  refine ⟨?_,
-  fun i => match i with
-  | 0 => ?_
-  | 1 => ?_
-  | 2 => ?_
-  , ?_,?_
-  ⟩
-  use fun x => match x.val with
-  | root => 0
-  | womanF => 1
-  | womanC => 2
-  | outFF => 2
-  | outFC => 2
-  | outCF => 2
-  | outCC => 2
-  use womanC <;> decide
-  use womanF <;> decide
-  use root <;> decide
   sorry
-  sorry
-
 
 
 lemma isInter (x : BoS_preSpace.node) : x.isInter ↔ x=root ∨ x=womanF ∨ x=womanC := by
