@@ -183,7 +183,7 @@ def Strategy'.update {i : Player} (s : G.Strategy') (si : G.Strategy_i i) : G.St
 
 variable {R : Type*} [Preorder R]
 
-def Subgame.NashEquilibrium (x : G.Subgame) (s : G.Strategy') (utility : Player → Outcome → R):= ∀ i, ∀ (si : G.Strategy_i i), utility i (s.play x) ≥ utility i ((s.update si).play x)
+def Strategy'.NashEquilibrium (s : G.Strategy') (x : G.Subgame) (utility : Player → Outcome → R):= ∀ i, ∀ (si : G.Strategy_i i), utility i (s.play x) ≥ utility i ((s.update si).play x)
 
 
 end Equilibrium
