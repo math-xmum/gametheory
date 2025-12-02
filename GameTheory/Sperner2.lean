@@ -126,7 +126,7 @@ theorem Sperner {c : Coloring sc} (h : c.Proper) : ∃ f : sc.faces, c.Rainbowfa
 
 /-- The boundary of a SimplicialSimplex is the subcomplex consisting of all proper faces. -/
 def boundary (sc : SimplicialComplex k (ι→k)) [ss : SimplicialSimplex sc] : SimplicialComplex k (ι→k) where
-  faces := sorry  -- {s ∈ sc.faces | s ⊂ ss.extremes} -- extremes field doesn't exist yet
+  faces := sorry
   empty_notMem := by
     sorry
   indep := by
