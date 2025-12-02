@@ -1,7 +1,4 @@
-import Mathlib.Data.Set.Card
-import Mathlib.Analysis.Convex.SimplicialComplex.Basic
-import Mathlib.Algebra.Group.Pointwise.Finset.Basic
-import Mathlib.Analysis.Convex.Basic
+import Mathlib
 
 open BigOperators
 open Classical
@@ -13,8 +10,8 @@ noncomputable section
 Note that the simplex must be at least dimension 1
 so we include the assumption that ι is non-trivial
 -/
-variable {k : Type*} {ι : Type*} [Fintype ι] [Nontrivial ι] [hLO: LinearOrderedField k] [DecidableEq ι]
-[DecidableEq k]
+variable {k : Type*} {ι : Type*} [Fintype ι] [Nontrivial ι] [Field k] [LinearOrder k]
+[IsStrictOrderedRing k] [DecidableEq ι] [DecidableEq k]
 
 
 namespace Geometry
@@ -23,7 +20,7 @@ open SimplicialComplex
 
 namespace SimplicialComplex
 
-variable {k E : Type*} {ι : Type*} [OrderedRing k] [AddCommGroup E] [Module k E]
+variable {k E : Type*} {ι : Type*} [Ring k] [PartialOrder k] [IsOrderedRing k] [AddCommGroup E] [Module k E]
 
 variable {sc : SimplicialComplex k E}
 
@@ -111,7 +108,7 @@ def res_face (f : Finset E) : Finset ({x | x ≠ v} → k) := Finset.image (rest
 variable (sc)  in
 def _root_.Geometry.SimplicialComplex.Boundary [SimplicialSimplex sc] : SimplicialComplex k ({x | x ≠ v}→ k) where
   faces := (res_face v) '' {f ∈ sc.faces | v ∉ FSupport f}
-  not_empty_mem := by sorry
+  empty_notMem := by sorry
   indep := by sorry
   down_closed := by sorry
   inter_subset_convexHull := by sorry
@@ -128,21 +125,19 @@ section SpernerProof
 theorem Sperner {c : Coloring sc} (h : c.Proper) : ∃ f : sc.faces, c.Rainbowfacet f := sorry
 
 /-- The boundary of a SimplicialSimplex is the subcomplex consisting of all proper faces. -/
-def boundary (sc : SC) [ss : SimplicialSimplex k sc] : SC where
-  faces := {s ∈ sc.faces | s ⊂ ss.extremes}
-  not_empty_mem := by
-    rintro ⟨s, hs, hss⟩
-    exact sc.not_empty_mem hs
+def boundary (sc : SimplicialComplex k (ι→k)) [ss : SimplicialSimplex sc] : SimplicialComplex k (ι→k) where
+  faces := sorry  -- {s ∈ sc.faces | s ⊂ ss.extremes} -- extremes field doesn't exist yet
+  empty_notMem := by
+    sorry
   indep := by
-    rintro s ⟨hs, _⟩
-    exact sc.indep hs
+    rintro s hs
+    sorry
   down_closed := by
-    rintro t s ⟨hs, hss⟩ hts
-    refine ⟨sc.down_closed hs hts, ?_⟩
-    exact Finset.subset_trans hts hss
+    intro t s hs hts
+    sorry
   inter_subset_convexHull := by
-    rintro s t ⟨hs, _⟩ ⟨ht, _⟩
-    exact sc.inter_subset_convexHull hs ht
+    intro s t hs ht
+    sorry
 
 namespace SimplicialSimplex
 
@@ -175,7 +170,3 @@ section Sperner
 
 
 end Sperner
-
-end SimplicialSimplex
-end Geometry
-end
