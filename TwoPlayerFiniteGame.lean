@@ -8,7 +8,7 @@ We attempt to make everything computable
 
 -/
 
-section
+noncomputable section
 
 class Doubleton (α : Type*) [DecidableEq α]:=
   x : α
@@ -32,7 +32,9 @@ instance fin2.doubleton : Doubleton (Fin 2) where
   x := 0
   y := 1
   x_ne_y := by decide
-  x_or_y := by sorry
+  x_or_y := by
+    intro a
+    fin_cases a <;> simp
 
 #eval! Doubleton.other (0 : Fin 2)
 #eval! Doubleton.other (1: Fin 2)
@@ -41,7 +43,7 @@ end Doubleton
 
 end
 
-section
+noncomputable section
 
 /- α will be the set of all status
 A game will be defined on a subset of α
@@ -76,28 +78,62 @@ def internodes: Finset α:= Finset.image p Finset.univ
 /- Leaves are non-inner nodes -/
 def leaves : Finset α := Finset.filter (· ∉ internodes p) Finset.univ
 
-lemma mem_leaves_iff_no_children {x :α} : x ∈ leaves p ↔ children p x  = {} := sorry
+lemma mem_leaves_iff_no_children {x :α} : x ∈ leaves p ↔ children p x  = {} := by
+  constructor
+  · intro hx
+    apply Finset.eq_empty_iff_forall_notMem.mpr
+    intro y hy
+    have hx' : x ∉ internodes p := by
+      simpa [leaves] using hx
+    have hy' : x ∈ internodes p := by
+      exact Finset.mem_image.mpr ⟨y, by simp, by simpa [children] using hy⟩
+    exact hx' hy'
+  · intro hx
+    have hx' : ∀ y, y ∉ children p x := by
+      simpa [Finset.eq_empty_iff_forall_notMem] using hx
+    have : x ∉ internodes p := by
+      intro hmem
+      rcases (by simpa [internodes] using hmem : ∃ y, p y = x) with ⟨y, hy⟩
+      have hy' : y ∈ children p x := by
+        simp [children, hy]
+      exact hx' y hy'
+    simpa [leaves] using this
 
-def subgame_aux (C : Finset α) :=
-  let Y := C ∪ Finset.filter (p · ∈ C) Finset.univ
-  if h : Y = C then
-    Y
-  else
-    subgame_aux Y
-termination_by Cᶜ.card
-decreasing_by
-  sorry
+def subgame_aux (C : Finset α) : Finset α := by
+  classical
+  exact Finset.filter (fun y => ∃ z ∈ C, ∃ n, p^[n] y = z) Finset.univ
 
 def subgame [GameSpace p] (x : α) := subgame_aux p ({x}: Finset α)
 
-lemma subgame_def  (x : α) : y ∈ subgame p x ↔ ∃ n, p^[n] y = x := sorry
+lemma subgame_def  (x : α) : y ∈ subgame p x ↔ ∃ n, p^[n] y = x := by
+  simp [subgame, subgame_aux]
 
-lemma subgame_mem_self (x :α) : x ∈ subgame p x := by sorry
+lemma subgame_mem_self (x :α) : x ∈ subgame p x := by
+  rw [subgame_def (p := p) x]
+  exact ⟨0, by simp⟩
 
-lemma subgame_sub[igs : GameSpace p] {x y : α} (hy : p y = x) : subgame p y ⊆ subgame p x:= by sorry
+lemma subgame_sub[igs : GameSpace p] {x y : α} (hy : p y = x) : subgame p y ⊆ subgame p x:= by
+  intro z hz
+  rw [subgame_def (p := p) y] at hz
+  rw [subgame_def (p := p) x]
+  rcases hz with ⟨n, hn⟩
+  refine ⟨n + 1, ?_⟩
+  rw [Function.iterate_succ_apply']
+  simpa [hn, hy]
 
 
-lemma subgame_neq [igs : GameSpace p] {x y : α} (hy : p y = x) : subgame p y ≠  subgame p x:= by sorry
+lemma subgame_neq [igs : GameSpace p] {x y : α} (hy : p y = x) (hy0 : y ≠ default) :
+    subgame p y ≠ subgame p x := by
+  intro hEq
+  have hx_mem : x ∈ subgame p x := subgame_mem_self (p := p) x
+  have hx_mem' : x ∈ subgame p y := by
+    simpa [hEq] using hx_mem
+  rw [subgame_def (p := p) y] at hx_mem'
+  rcases hx_mem' with ⟨n, hn⟩
+  have hloop : p^[n + 1] y = y := by
+    rw [Function.iterate_succ_apply]
+    simpa [hy] using hn
+  exact (GameSpace.no_loop (p := p) y n hy0) hloop
 
 lemma subgame_decrease [igs : GameSpace p] {x y : α} (hy : p y = x) : (subgame p y).card < (subgame p x).card := by sorry
 
